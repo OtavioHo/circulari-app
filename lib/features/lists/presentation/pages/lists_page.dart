@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -63,9 +64,9 @@ class _ListsScaffold extends StatelessWidget {
                       final list = lists[i];
                       return ListCard(
                         list: list,
-                        onTap: () {
-                          // TODO: navigate to items page
-                        },
+                        onTap: () => context.push(
+                          '/lists/${list.id}/items?name=${Uri.encodeComponent(list.name)}',
+                        ),
                         onDelete: () => _onDeleteTapped(context, list.id, list.name),
                         onRename: () =>
                             _onRenameTapped(context, list.id, list.name),

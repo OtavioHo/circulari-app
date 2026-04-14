@@ -6,6 +6,7 @@ import '../auth/auth_state_notifier.dart';
 import '../network/api_client.dart';
 import '../storage/token_storage.dart';
 import '../../features/auth/auth_di.dart';
+import '../../features/items/items_di.dart';
 import '../../features/lists/lists_di.dart';
 
 final sl = GetIt.instance;
@@ -23,4 +24,5 @@ void setupInjection() {
   // ── Features ──────────────────────────────────────────────────────────────
   sl.registerAuthFeature();
   sl.registerListsFeature();
+  sl.registerItemsFeature();
 }

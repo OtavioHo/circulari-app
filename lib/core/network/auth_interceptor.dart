@@ -79,6 +79,7 @@ class AuthInterceptor extends Interceptor {
       final completer = _refreshCompleter!;
       _refreshCompleter = null;
       completer.completeError(e);
+      completer.future.ignore(); // prevent unhandled-exception when no concurrent waiter
       await _tokenStorage.clearTokens();
       return handler.reject(_unauthorizedError(err.requestOptions));
     }
