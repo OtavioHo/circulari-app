@@ -12,6 +12,7 @@ final class ItemsCreateRequested extends ItemsEvent {
   final String name;
   final String? description;
   final int quantity;
+  final String? categoryId;
   final String? locationId;
   final double? userDefinedValue;
   final String? imagePath;
@@ -21,6 +22,7 @@ final class ItemsCreateRequested extends ItemsEvent {
     required this.name,
     this.description,
     this.quantity = 1,
+    this.categoryId,
     this.locationId,
     this.userDefinedValue,
     this.imagePath,
@@ -32,6 +34,7 @@ final class ItemsUpdateRequested extends ItemsEvent {
   final String? name;
   final String? description;
   final int? quantity;
+  final String? categoryId;
   final String? locationId;
   final double? userDefinedValue;
 
@@ -40,6 +43,7 @@ final class ItemsUpdateRequested extends ItemsEvent {
     this.name,
     this.description,
     this.quantity,
+    this.categoryId,
     this.locationId,
     this.userDefinedValue,
   });

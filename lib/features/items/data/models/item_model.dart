@@ -1,3 +1,4 @@
+import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
 import 'item_image_model.dart';
 
@@ -10,6 +11,7 @@ class ItemModel extends Item {
     required super.quantity,
     super.locationId,
     super.userDefinedValue,
+    super.category,
     required super.images,
     required super.createdAt,
   });
@@ -17,6 +19,16 @@ class ItemModel extends Item {
   factory ItemModel.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final rawImages = json['images'] as List? ?? [];
+
+    final rawCategory = json['category'];
+    Category? category;
+    if (rawCategory is Map<String, dynamic>) {
+      category = Category(
+        id: rawCategory['id'] as String,
+        name: rawCategory['name'] as String,
+      );
+    }
+
     return ItemModel(
       id: id,
       listId: json['list_id'] as String? ?? '',
@@ -27,6 +39,7 @@ class ItemModel extends Item {
       userDefinedValue: json['user_defined_value'] != null
           ? (json['user_defined_value'] as num).toDouble()
           : null,
+      category: category,
       images: rawImages
           .map((e) => ItemImageModel.fromJson(e as Map<String, dynamic>, id))
           .toList(),

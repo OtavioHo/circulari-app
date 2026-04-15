@@ -60,6 +60,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         name: event.name,
         description: event.description,
         quantity: event.quantity,
+        categoryId: event.categoryId,
         locationId: event.locationId,
         userDefinedValue: event.userDefinedValue,
       );
@@ -88,6 +89,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         name: event.name,
         description: event.description,
         quantity: event.quantity,
+        categoryId: event.categoryId,
         locationId: event.locationId,
         userDefinedValue: event.userDefinedValue,
       );

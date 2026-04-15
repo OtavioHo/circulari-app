@@ -102,6 +102,7 @@ class _ItemsScaffold extends StatelessWidget {
               name: result.name,
               description: result.description,
               quantity: result.quantity,
+              categoryId: result.categoryId,
               userDefinedValue: result.userDefinedValue,
               imagePath: result.imagePath,
             ),
@@ -118,6 +119,7 @@ class _ItemsScaffold extends StatelessWidget {
               name: result.name,
               description: result.description,
               quantity: result.quantity,
+              categoryId: result.categoryId,
               userDefinedValue: result.userDefinedValue,
             ),
           );

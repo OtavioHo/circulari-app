@@ -10,6 +10,7 @@ class UpdateItemUsecase {
     String? name,
     String? description,
     int? quantity,
+    String? categoryId,
     String? locationId,
     double? userDefinedValue,
   }) =>
@@ -18,6 +19,7 @@ class UpdateItemUsecase {
         name: name,
         description: description,
         quantity: quantity,
+        categoryId: categoryId,
         locationId: locationId,
         userDefinedValue: userDefinedValue,
       );

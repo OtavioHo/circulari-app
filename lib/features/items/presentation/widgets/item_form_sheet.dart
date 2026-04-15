@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/di/injection.dart';
+import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
+import '../bloc/ai_analysis_cubit.dart';
+import '../bloc/categories_cubit.dart';
 
 /// Bottom sheet used for both creating and editing an item.
 /// Returns an [ItemFormResult] when the user taps Save, or null if cancelled.
@@ -11,6 +16,7 @@ class ItemFormResult {
   final String name;
   final String? description;
   final int quantity;
+  final String? categoryId;
   final double? userDefinedValue;
   final String? imagePath;
 
@@ -18,6 +24,7 @@ class ItemFormResult {
     required this.name,
     this.description,
     required this.quantity,
+    this.categoryId,
     this.userDefinedValue,
     this.imagePath,
   });
@@ -31,7 +38,13 @@ Future<ItemFormResult?> showItemFormSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _ItemFormSheet(existing: existing),
+    builder: (_) => MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<AiAnalysisCubit>()),
+        BlocProvider(create: (_) => sl<CategoriesCubit>()..load()),
+      ],
+      child: _ItemFormSheet(existing: existing),
+    ),
   );
 }
 
@@ -51,6 +64,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   late final TextEditingController _valueCtrl;
 
   String? _imagePath;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
@@ -58,13 +72,13 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     final e = widget.existing;
     _nameCtrl = TextEditingController(text: e?.name ?? '');
     _descCtrl = TextEditingController(text: e?.description ?? '');
-    _qtyCtrl =
-        TextEditingController(text: (e?.quantity ?? 1).toString());
+    _qtyCtrl = TextEditingController(text: (e?.quantity ?? 1).toString());
     _valueCtrl = TextEditingController(
       text: e?.userDefinedValue != null
           ? e!.userDefinedValue!.toStringAsFixed(2)
           : '',
     );
+    _selectedCategoryId = e?.category?.id;
   }
 
   @override
@@ -83,8 +97,9 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
       imageQuality: 85,
       maxWidth: 1280,
     );
-    if (file != null) {
+    if (file != null && mounted) {
       setState(() => _imagePath = file.path);
+      context.read<AiAnalysisCubit>().analyze(file.path);
     }
   }
 
@@ -129,10 +144,29 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
         name: _nameCtrl.text.trim(),
         description: desc.isEmpty ? null : desc,
         quantity: qty,
+        categoryId: _selectedCategoryId,
         userDefinedValue: value,
         imagePath: _imagePath,
       ),
     );
+  }
+
+  void _onAnalysisState(BuildContext context, AiAnalysisState state) {
+    if (state is AiAnalysisSuccess) {
+      final result = state.result;
+      if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.name;
+      if (_descCtrl.text.isEmpty) _descCtrl.text = result.description;
+      if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
+        _valueCtrl.text = result.priceMin.toStringAsFixed(2);
+      }
+      if (result.categoryId != null) {
+        setState(() => _selectedCategoryId = result.categoryId);
+      }
+    } else if (state is AiAnalysisFailure) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not analyse image: ${state.message}')),
+      );
+    }
   }
 
   @override
@@ -140,107 +174,173 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     final isEditing = widget.existing != null;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, bottom + 16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              isEditing ? 'Edit item' : 'New item',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            _ImagePicker(
-              imagePath: _imagePath,
-              existingUrl: widget.existing?.images.firstOrNull?.url,
-              onTap: _showImageSourceDialog,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Name *',
-                border: OutlineInputBorder(),
+    return BlocListener<AiAnalysisCubit, AiAnalysisState>(
+      listener: _onAnalysisState,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottom + 16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                isEditing ? 'Edit item' : 'New item',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              textCapitalization: TextCapitalization.sentences,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _descCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _qtyCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (v) {
-                      final n = int.tryParse(v ?? '');
-                      if (n == null || n < 1) return 'Min 1';
-                      return null;
-                    },
-                  ),
+              const SizedBox(height: 16),
+              BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+                builder: (context, state) => _ImagePickerArea(
+                  imagePath: _imagePath,
+                  existingUrl: widget.existing?.images.firstOrNull?.url,
+                  isAnalyzing: state is AiAnalysisLoading,
+                  onTap: _showImageSourceDialog,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _valueCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Value (R\$)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Name *',
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: 2,
+              ),
+              const SizedBox(height: 12),
+              _CategoryDropdown(
+                selectedCategoryId: _selectedCategoryId,
+                onChanged: (id) => setState(() => _selectedCategoryId = id),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _qtyCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantity',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        final n = int.tryParse(v ?? '');
+                        if (n == null || n < 1) return 'Min 1';
+                        return null;
+                      },
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _valueCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Value (R\$)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+                builder: (context, state) => FilledButton(
+                  onPressed: state is AiAnalysisLoading ? null : _submit,
+                  child: Text(isEditing ? 'Save changes' : 'Add item'),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _submit,
-              child: Text(isEditing ? 'Save changes' : 'Add item'),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ImagePicker extends StatelessWidget {
+class _CategoryDropdown extends StatelessWidget {
+  final String? selectedCategoryId;
+  final ValueChanged<String?> onChanged;
+
+  const _CategoryDropdown({
+    required this.selectedCategoryId,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CategoriesCubit, CategoriesState>(
+      builder: (context, state) => switch (state) {
+        CategoriesLoading() => const SizedBox(
+            height: 56,
+            child: Center(child: LinearProgressIndicator()),
+          ),
+        CategoriesSuccess(:final categories) => _buildDropdown(
+            context,
+            categories,
+          ),
+        CategoriesFailure() => const SizedBox.shrink(),
+        CategoriesInitial() => const SizedBox.shrink(),
+      },
+    );
+  }
+
+  Widget _buildDropdown(BuildContext context, List<Category> categories) {
+    // Ensure selectedCategoryId is valid — clear it if it no longer matches.
+    final validId = categories.any((c) => c.id == selectedCategoryId)
+        ? selectedCategoryId
+        : null;
+
+    return DropdownButtonFormField<String>(
+      key: ValueKey(validId),
+      initialValue: validId,
+      decoration: const InputDecoration(
+        labelText: 'Category',
+        border: OutlineInputBorder(),
+      ),
+      items: [
+        const DropdownMenuItem(value: null, child: Text('No category')),
+        ...categories.map(
+          (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+        ),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _ImagePickerArea extends StatelessWidget {
   final String? imagePath;
   final String? existingUrl;
+  final bool isAnalyzing;
   final VoidCallback onTap;
 
-  const _ImagePicker({
+  const _ImagePickerArea({
     required this.imagePath,
     required this.existingUrl,
+    required this.isAnalyzing,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget child;
+    Widget image;
 
     if (imagePath != null) {
-      child = ClipRRect(
+      image = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.file(
           File(imagePath!),
@@ -250,7 +350,7 @@ class _ImagePicker extends StatelessWidget {
         ),
       );
     } else if (existingUrl != null) {
-      child = ClipRRect(
+      image = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
           existingUrl!,
@@ -261,12 +361,38 @@ class _ImagePicker extends StatelessWidget {
         ),
       );
     } else {
-      child = _emptyState(context);
+      image = _emptyState(context);
     }
 
     return GestureDetector(
-      onTap: onTap,
-      child: child,
+      onTap: isAnalyzing ? null : onTap,
+      child: Stack(
+        children: [
+          image,
+          if (isAnalyzing)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: ColoredBox(
+                  color: Colors.black45,
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: Colors.white),
+                        SizedBox(height: 8),
+                        Text(
+                          'Analysing…',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

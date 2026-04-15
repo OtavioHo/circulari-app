@@ -1,3 +1,4 @@
+import 'category.dart';
 import 'item_image.dart';
 
 class Item {
@@ -8,6 +9,7 @@ class Item {
   final int quantity;
   final String? locationId;
   final double? userDefinedValue;
+  final Category? category;
   final List<ItemImage> images;
   final DateTime createdAt;
 
@@ -19,6 +21,7 @@ class Item {
     required this.quantity,
     this.locationId,
     this.userDefinedValue,
+    this.category,
     required this.images,
     required this.createdAt,
   });

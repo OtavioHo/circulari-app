@@ -10,6 +10,7 @@ class CreateItemUsecase {
     required String name,
     String? description,
     int quantity = 1,
+    String? categoryId,
     String? locationId,
     double? userDefinedValue,
   }) =>
@@ -18,6 +19,7 @@ class CreateItemUsecase {
         name: name,
         description: description,
         quantity: quantity,
+        categoryId: categoryId,
         locationId: locationId,
         userDefinedValue: userDefinedValue,
       );
