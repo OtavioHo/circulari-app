@@ -1,0 +1,15 @@
+name: circulari_ui
+description: Internal UI package for Circulari.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.11.4
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

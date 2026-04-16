@@ -1,17 +1,22 @@
-# app
+# Circulari App Monorepo
 
-A new Flutter project.
+This repository is a Flutter monorepo containing the main app and internal packages.
 
-## Getting Started
+## Workspace structure
 
-This project is a starting point for a Flutter application.
+- `.`: main Flutter application
+- `packages/circulari_ui`: internal UI package (themes and reusable UI building blocks)
 
-A few resources to get you started if this is your first Flutter project:
+## Bootstrap and run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. `flutter pub get`
+2. `flutter run`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+If you want to manage all packages with Melos:
+
+1. `dart run melos bootstrap`
+
+## Notes
+
+- The app consumes `circulari_ui` via a local path dependency in `pubspec.yaml`.
+- Shared theme is exported from `packages/circulari_ui/lib/circulari_ui.dart`.

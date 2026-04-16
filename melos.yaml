@@ -1,0 +1,10 @@
+name: circulari_app
+
+packages:
+  - .
+  - packages/**
+
+scripts:
+  bootstrap:
+    run: melos bootstrap
+    description: Install and link dependencies across the workspace.

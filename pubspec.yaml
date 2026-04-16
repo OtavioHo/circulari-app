@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  circulari_ui:
+    path: packages/circulari_ui
+
   cupertino_icons: ^1.0.8
 
   # State management
@@ -56,6 +59,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  melos: ^7.1.1
 
   # Testing
   bloc_test: ^10.0.0

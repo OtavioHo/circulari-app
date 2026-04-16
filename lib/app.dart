@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:circulari_ui/circulari_ui.dart';
 import 'core/router/app_router.dart';
 
 class App extends StatelessWidget {
@@ -9,10 +10,8 @@ class App extends StatelessWidget {
     return MaterialApp.router(
       title: 'Circulari',
       routerConfig: appRouter,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: circulariLightThemeData,
+      darkTheme: circulariDarkThemeData,
     );
   }
 }
