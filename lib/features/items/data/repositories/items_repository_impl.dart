@@ -23,6 +23,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? imagePath,
   }) =>
       _source.createItem(
         listId: listId,
@@ -32,6 +33,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
         categoryId: categoryId,
         locationId: locationId,
         userDefinedValue: userDefinedValue,
+        imagePath: imagePath,
       );
 
   @override

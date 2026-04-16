@@ -6,14 +6,12 @@ class ItemCard extends StatelessWidget {
   final Item item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onAddImage;
 
   const ItemCard({
     super.key,
     required this.item,
     required this.onEdit,
     required this.onDelete,
-    required this.onAddImage,
   });
 
   @override
@@ -21,7 +19,7 @@ class ItemCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
-        leading: _ItemThumbnail(item: item, onAddImage: onAddImage),
+        leading: _ItemThumbnail(item: item),
         title: Text(item.name),
         subtitle: _subtitle(context),
         trailing: Row(
@@ -65,9 +63,8 @@ class ItemCard extends StatelessWidget {
 
 class _ItemThumbnail extends StatelessWidget {
   final Item item;
-  final VoidCallback onAddImage;
 
-  const _ItemThumbnail({required this.item, required this.onAddImage});
+  const _ItemThumbnail({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -83,10 +80,7 @@ class _ItemThumbnail extends StatelessWidget {
         ),
       );
     }
-    return GestureDetector(
-      onTap: onAddImage,
-      child: _placeholder(context),
-    );
+    return _placeholder(context);
   }
 
   Widget _placeholder(BuildContext context) {

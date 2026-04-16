@@ -41,7 +41,7 @@ class ItemModel extends Item {
           : null,
       category: category,
       images: rawImages
-          .map((e) => ItemImageModel.fromJson(e as Map<String, dynamic>, id))
+          .map((e) => ItemImageModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       createdAt: DateTime.parse(json['created_at'] as String),
     );

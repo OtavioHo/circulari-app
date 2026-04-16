@@ -54,8 +54,3 @@ final class ItemsDeleteRequested extends ItemsEvent {
   const ItemsDeleteRequested(this.id);
 }
 
-final class ItemsImageUploadRequested extends ItemsEvent {
-  final String itemId;
-  final String imagePath;
-  const ItemsImageUploadRequested(this.itemId, this.imagePath);
-}

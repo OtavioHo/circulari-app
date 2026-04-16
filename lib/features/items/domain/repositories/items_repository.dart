@@ -13,6 +13,7 @@ abstract interface class ItemsRepository {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? imagePath,
   });
   Future<Item> updateItem(
     String id, {

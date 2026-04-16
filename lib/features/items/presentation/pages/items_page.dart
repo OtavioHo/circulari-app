@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../domain/entities/item.dart';
 import '../bloc/items_bloc.dart';
@@ -68,8 +67,6 @@ class _ItemsScaffold extends StatelessWidget {
                         onEdit: () => _onEditTapped(context, item),
                         onDelete: () =>
                             _onDeleteTapped(context, item.id, item.name),
-                        onAddImage: () =>
-                            _onAddImageTapped(context, item.id),
                       );
                     },
                   ),
@@ -153,42 +150,4 @@ class _ItemsScaffold extends StatelessWidget {
     }
   }
 
-  Future<void> _onAddImageTapped(BuildContext context, String itemId) async {
-    final source = await _pickImageSource(context);
-    if (source == null) return;
-
-    final file = await ImagePicker().pickImage(
-      source: source,
-      imageQuality: 85,
-      maxWidth: 1280,
-    );
-    if (file != null && context.mounted) {
-      context
-          .read<ItemsBloc>()
-          .add(ItemsImageUploadRequested(itemId, file.path));
-    }
-  }
-
-  Future<ImageSource?> _pickImageSource(BuildContext context) {
-    return showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
-              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
-              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

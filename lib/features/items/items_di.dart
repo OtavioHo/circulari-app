@@ -9,7 +9,6 @@ import 'domain/usecases/delete_item_usecase.dart';
 import 'domain/usecases/get_categories_usecase.dart';
 import 'domain/usecases/get_items_usecase.dart';
 import 'domain/usecases/update_item_usecase.dart';
-import 'domain/usecases/upload_item_image_usecase.dart';
 import 'presentation/bloc/ai_analysis_cubit.dart';
 import 'presentation/bloc/categories_cubit.dart';
 import 'presentation/bloc/items_bloc.dart';
@@ -23,7 +22,6 @@ extension ItemsDI on GetIt {
     registerLazySingleton(() => CreateItemUsecase(call()));
     registerLazySingleton(() => UpdateItemUsecase(call()));
     registerLazySingleton(() => DeleteItemUsecase(call()));
-    registerLazySingleton(() => UploadItemImageUsecase(call()));
     registerLazySingleton(() => AnalyzeItemImageUsecase(call()));
     registerFactory(() => AiAnalysisCubit(call()));
     registerFactory(() => CategoriesCubit(call()));
@@ -33,7 +31,6 @@ extension ItemsDI on GetIt {
         createItem: call(),
         updateItem: call(),
         deleteItem: call(),
-        uploadImage: call(),
       ),
     );
   }

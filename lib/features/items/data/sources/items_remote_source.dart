@@ -54,18 +54,34 @@ class ItemsRemoteSource {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? imagePath,
   }) async {
     try {
-      final body = <String, dynamic>{
-        'list_id': listId,
-        'name': name,
-        'quantity': quantity,
-        'description': ?description,
-        'category_id': ?categoryId,
-        'location_id': ?locationId,
-        'user_defined_value': ?userDefinedValue,
-      };
-      final response = await _dio.post('/items', data: body);
+      final Response response;
+      if (imagePath != null) {
+        final formData = FormData.fromMap({
+          'list_id': listId,
+          'name': name,
+          'quantity': quantity.toString(),
+          'description': ?description,
+          'category_id': ?categoryId,
+          'location_id': ?locationId,
+          'user_defined_value': ?(userDefinedValue?.toString()),
+          'image': await MultipartFile.fromFile(imagePath),
+        });
+        response = await _dio.post('/items', data: formData);
+      } else {
+        final body = <String, dynamic>{
+          'list_id': listId,
+          'name': name,
+          'quantity': quantity,
+          'description': ?description,
+          'category_id': ?categoryId,
+          'location_id': ?locationId,
+          'user_defined_value': ?userDefinedValue,
+        };
+        response = await _dio.post('/items', data: body);
+      }
       return ItemModel.fromJson(_parseMap(response.data));
     } on DioException catch (e) {
       throw mapDioError(e);
