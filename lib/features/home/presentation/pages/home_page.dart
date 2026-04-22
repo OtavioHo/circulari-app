@@ -21,9 +21,8 @@ class HomePage extends StatelessWidget {
           );
           return CirculariListCard(
             title: 'Item $index',
-            itemCount: '10',
-            valueLabel: 'Label $index',
-            value: '42300',
+            itemCount: 10,
+            value: 42300.75,
             backgroundColor: color,
           );
         },

@@ -10,6 +10,7 @@ class CirculariBodyTextStyle {
   TextStyle get semibold => base.copyWith(fontWeight: FontWeight.w600);
   TextStyle get medium => base.copyWith(fontWeight: FontWeight.w500);
   TextStyle get regular => base.copyWith(fontWeight: FontWeight.w400);
+  TextStyle get light => base.copyWith(fontWeight: FontWeight.w300);
 }
 
 class CirculariTypographyBody {

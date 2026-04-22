@@ -5,23 +5,21 @@ import '../../theme/circulari_colors.dart';
 
 class CirculariListCard extends StatelessWidget {
   final String title;
-  final String itemCount;
-  final String valueLabel;
-  final String value;
+  final int itemCount;
+  final double value;
   final Color backgroundColor;
   final bool isValueHidden;
   final VoidCallback? onToggleVisibility;
   final VoidCallback? onTap;
   final int? seed;
 
-  static const double width = 172.0;
-  static const double height = 212.0;
+  static const double width = 200.0;
+  static const double height = 250.0;
 
   const CirculariListCard({
     super.key,
     required this.title,
     required this.itemCount,
-    required this.valueLabel,
     required this.value,
     required this.backgroundColor,
     this.isValueHidden = false,
@@ -70,7 +68,7 @@ class CirculariListCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: typography.heading6.copyWith(
+                      style: typography.body.large.medium.copyWith(
                         color: CirculariColorsTokens.greyscale800,
                       ),
                       maxLines: 1,
@@ -78,15 +76,15 @@ class CirculariListCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      itemCount,
-                      style: typography.body.small.regular.copyWith(
+                      '$itemCount items',
+                      style: typography.body.small.light.copyWith(
                         color: CirculariColorsTokens.greyscale700,
                       ),
                     ),
-                    const Spacer(),
+                    SizedBox(height: context.circulariTheme.spacing.medium),
                     Text(
-                      valueLabel,
-                      style: typography.body.small.regular.copyWith(
+                      'Valor total',
+                      style: typography.body.small.light.copyWith(
                         color: CirculariColorsTokens.greyscale700,
                       ),
                     ),
@@ -95,8 +93,8 @@ class CirculariListCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            isValueHidden ? '••••••' : value,
-                            style: typography.heading4.copyWith(
+                            isValueHidden ? '••••••' : 'R\$ ${_formatCurrency(value)}',
+                            style: typography.body.xLarge.semibold.copyWith(
                               color: CirculariColorsTokens.greyscale900,
                             ),
                             maxLines: 1,
@@ -128,6 +126,20 @@ class CirculariListCard extends StatelessWidget {
   Color _darken(Color color, double factor) {
     final hsl = HSLColor.fromColor(color);
     return hsl.withLightness((hsl.lightness - factor).clamp(0.0, 1.0)).toColor();
+  }
+  
+  String _formatCurrency(double value) {
+    final formatted = value.toStringAsFixed(0);
+    final buffer = StringBuffer();
+    int count = 0;
+    for (int i = formatted.length - 1; i >= 0; i--) {
+      if (count > 0 && count % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(formatted[i]);
+      count++;
+    }
+    return buffer.toString().split('').reversed.join('');
   }
 }
 
