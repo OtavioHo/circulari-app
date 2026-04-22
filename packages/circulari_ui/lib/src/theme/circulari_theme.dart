@@ -31,15 +31,15 @@ class CirculariTheme extends ThemeExtension<CirculariTheme> {
   }
 }
 
-const CirculariTheme circulariLightTheme =  CirculariTheme(
+CirculariTheme circulariLightTheme =  CirculariTheme(
   colors: lightColors,
-  spacing: CirculariSpacing(),
+  spacing: const CirculariSpacing(),
   typography: circulariTypography,
 );
 
-const CirculariTheme circulariDarkTheme = CirculariTheme(
+CirculariTheme circulariDarkTheme = CirculariTheme(
   colors: darkColors,
-  spacing: CirculariSpacing(small: 8, medium: 16, large: 24),
+  spacing: const CirculariSpacing(small: 8, medium: 16, large: 24),
   typography: circulariTypography,
 );
 
