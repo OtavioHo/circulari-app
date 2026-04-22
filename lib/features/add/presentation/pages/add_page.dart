@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AddPage extends StatelessWidget {
   const AddPage({super.key});
@@ -7,7 +8,12 @@ class AddPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add')),
-      body: const Center(child: Text('Add — coming soon')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () => context.push('/lists/create'),
+          child: Text('Add List'),
+        ),
+      ),
     );
   }
 }

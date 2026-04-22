@@ -6,11 +6,6 @@ final class ListsLoadRequested extends ListsEvent {
   const ListsLoadRequested();
 }
 
-final class ListsCreateRequested extends ListsEvent {
-  final String name;
-  const ListsCreateRequested(this.name);
-}
-
 final class ListsRenameRequested extends ListsEvent {
   final String id;
   final String name;

@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:app/features/lists/domain/entities/item_list.dart';
+import 'package:app/features/lists/domain/entities/list_color.dart';
+import 'package:app/features/lists/domain/entities/list_icon.dart';
+import 'package:app/features/lists/domain/entities/list_picture.dart';
 import 'package:app/features/lists/presentation/bloc/lists_bloc.dart';
 import 'package:app/features/lists/presentation/bloc/lists_event.dart';
 import 'package:app/features/lists/presentation/bloc/lists_state.dart';
@@ -13,9 +16,16 @@ import 'package:app/features/lists/presentation/pages/lists_page.dart';
 class MockListsBloc extends MockBloc<ListsEvent, ListsState>
     implements ListsBloc {}
 
+final _tColor = ListColor(hexCode: '#FF0000', name: 'Red', order: 0);
+final _tIcon = ListIcon(slug: 'home', name: 'Home', order: 0);
+final _tPicture = ListPicture(slug: 'nature', order: 0);
+
 final _tList = ItemList(
   id: 'abc',
   name: 'Groceries',
+  color: _tColor,
+  icon: _tIcon,
+  picture: _tPicture,
   itemCount: 5,
   totalValue: 200.0,
   createdAt: DateTime(2024),
@@ -29,7 +39,6 @@ Widget _makeTestable(ListsBloc bloc) => MaterialApp(
     );
 
 void main() {
-  // Required so any() and captureAny() know the fallback type for ListsEvent.
   setUpAll(() => registerFallbackValue(const ListsLoadRequested()));
 
   late MockListsBloc bloc;
@@ -93,25 +102,6 @@ void main() {
     expect((captured.single as ListsDeleteRequested).id, 'abc');
   });
 
-  testWidgets('FAB opens dialog and dispatches ListsCreateRequested',
-      (tester) async {
-    when(() => bloc.state).thenReturn(ListsSuccess([]));
-
-    await tester.pumpWidget(_makeTestable(bloc));
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AlertDialog), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), 'Tools');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final captured = verify(() => bloc.add(captureAny())).captured;
-    expect(captured.single, isA<ListsCreateRequested>());
-    expect((captured.single as ListsCreateRequested).name, 'Tools');
-  });
-
   testWidgets('long press opens rename dialog and dispatches ListsRenameRequested',
       (tester) async {
     when(() => bloc.state).thenReturn(ListsSuccess([_tList]));
@@ -122,7 +112,6 @@ void main() {
 
     expect(find.byType(AlertDialog), findsOneWidget);
 
-    // Clear the pre-filled value and type the new name.
     await tester.enterText(find.byType(TextField), 'Renamed');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

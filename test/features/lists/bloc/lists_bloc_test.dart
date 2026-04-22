@@ -4,7 +4,9 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:app/core/error/app_exception.dart';
 import 'package:app/features/lists/domain/entities/item_list.dart';
-import 'package:app/features/lists/domain/usecases/create_list_usecase.dart';
+import 'package:app/features/lists/domain/entities/list_color.dart';
+import 'package:app/features/lists/domain/entities/list_icon.dart';
+import 'package:app/features/lists/domain/entities/list_picture.dart';
 import 'package:app/features/lists/domain/usecases/delete_list_usecase.dart';
 import 'package:app/features/lists/domain/usecases/get_lists_usecase.dart';
 import 'package:app/features/lists/domain/usecases/rename_list_usecase.dart';
@@ -14,15 +16,20 @@ import 'package:app/features/lists/presentation/bloc/lists_state.dart';
 
 class MockGetListsUsecase extends Mock implements GetListsUsecase {}
 
-class MockCreateListUsecase extends Mock implements CreateListUsecase {}
-
 class MockDeleteListUsecase extends Mock implements DeleteListUsecase {}
 
 class MockRenameListUsecase extends Mock implements RenameListUsecase {}
 
+final _tColor = ListColor(hexCode: '#FF0000', name: 'Red', order: 0);
+final _tIcon = ListIcon(slug: 'home', name: 'Home', order: 0);
+final _tPicture = ListPicture(slug: 'nature', order: 0);
+
 final _tList = ItemList(
   id: 'abc',
   name: 'Books',
+  color: _tColor,
+  icon: _tIcon,
+  picture: _tPicture,
   itemCount: 2,
   totalValue: 80.0,
   createdAt: DateTime(2024),
@@ -30,22 +37,19 @@ final _tList = ItemList(
 
 void main() {
   late MockGetListsUsecase getLists;
-  late MockCreateListUsecase createList;
   late MockDeleteListUsecase deleteList;
   late MockRenameListUsecase renameList;
 
   setUp(() {
     getLists = MockGetListsUsecase();
-    createList = MockCreateListUsecase();
     deleteList = MockDeleteListUsecase();
     renameList = MockRenameListUsecase();
   });
 
   ListsBloc buildBloc() => ListsBloc(
         getLists: getLists,
-        createList: createList,
-        deleteList: deleteList,
         renameList: renameList,
+        deleteList: deleteList,
       );
 
   test('initial state is ListsInitial', () {
@@ -80,8 +84,8 @@ void main() {
     blocTest<ListsBloc, ListsState>(
       'Failure carries the exception message',
       build: buildBloc,
-      setUp: () => when(() => getLists())
-          .thenThrow(const NetworkException()),
+      setUp: () =>
+          when(() => getLists()).thenThrow(const NetworkException()),
       act: (bloc) => bloc.add(const ListsLoadRequested()),
       expect: () => [
         isA<ListsLoading>(),
@@ -110,84 +114,59 @@ void main() {
     );
   });
 
-  group('ListsCreateRequested', () {
-    blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Success] after creating and reloading',
-      build: buildBloc,
-      setUp: () {
-        when(() => createList(any())).thenAnswer((_) async => _tList);
-        when(() => getLists()).thenAnswer((_) async => [_tList]);
-      },
-      act: (bloc) => bloc.add(const ListsCreateRequested('Books')),
-      expect: () => [isA<ListsLoading>(), isA<ListsSuccess>()],
-      verify: (_) {
-        verify(() => createList('Books')).called(1);
-        verify(() => getLists()).called(1);
-      },
-    );
-
-    blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Failure] when create throws',
-      build: buildBloc,
-      setUp: () => when(() => createList(any()))
-          .thenThrow(const ServerException('Could not create.')),
-      act: (bloc) => bloc.add(const ListsCreateRequested('Books')),
-      expect: () => [isA<ListsLoading>(), isA<ListsFailure>()],
-    );
-  });
-
   group('ListsDeleteRequested', () {
     blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Success] after deleting and reloading',
+      'removes item from list on success',
       build: buildBloc,
-      setUp: () {
-        when(() => deleteList(any())).thenAnswer((_) async {});
-        when(() => getLists()).thenAnswer((_) async => []);
-      },
+      seed: () => ListsSuccess([_tList]),
+      setUp: () =>
+          when(() => deleteList(any())).thenAnswer((_) async {}),
       act: (bloc) => bloc.add(const ListsDeleteRequested('abc')),
-      expect: () => [isA<ListsLoading>(), isA<ListsSuccess>()],
-      verify: (_) {
-        verify(() => deleteList('abc')).called(1);
-        verify(() => getLists()).called(1);
-      },
+      expect: () => [
+        isA<ListsSuccess>().having((s) => s.lists, 'lists', isEmpty),
+      ],
+      verify: (_) => verify(() => deleteList('abc')).called(1),
     );
 
     blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Failure] when delete throws',
+      'emits ActionFailure when delete throws',
       build: buildBloc,
+      seed: () => ListsSuccess([_tList]),
       setUp: () => when(() => deleteList(any()))
           .thenThrow(const ServerException('Could not delete.')),
       act: (bloc) => bloc.add(const ListsDeleteRequested('abc')),
-      expect: () => [isA<ListsLoading>(), isA<ListsFailure>()],
+      expect: () => [isA<ListsActionFailure>()],
     );
   });
 
   group('ListsRenameRequested', () {
     blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Success] after renaming and reloading',
+      'updates name in existing list on success',
       build: buildBloc,
-      setUp: () {
-        when(() => renameList(any(), any()))
-            .thenAnswer((_) async => _tList);
-        when(() => getLists()).thenAnswer((_) async => [_tList]);
-      },
+      seed: () => ListsSuccess([_tList]),
+      setUp: () =>
+          when(() => renameList(any(), any())).thenAnswer((_) async {}),
       act: (bloc) =>
           bloc.add(const ListsRenameRequested('abc', 'New Name')),
-      expect: () => [isA<ListsLoading>(), isA<ListsSuccess>()],
-      verify: (_) {
-        verify(() => renameList('abc', 'New Name')).called(1);
-        verify(() => getLists()).called(1);
-      },
+      expect: () => [
+        isA<ListsSuccess>().having(
+          (s) => s.lists.first.name,
+          'name',
+          'New Name',
+        ),
+      ],
+      verify: (_) => verify(() => renameList('abc', 'New Name')).called(1),
     );
 
     blocTest<ListsBloc, ListsState>(
-      'emits [Loading, Failure] when rename throws',
+      'emits ActionFailure when rename throws',
       build: buildBloc,
+      seed: () => ListsSuccess([_tList]),
       setUp: () => when(() => renameList(any(), any()))
           .thenThrow(const ServerException('Could not rename.')),
       act: (bloc) =>
           bloc.add(const ListsRenameRequested('abc', 'New Name')),
-      expect: () => [isA<ListsLoading>(), isA<ListsFailure>()],
+      expect: () => [isA<ListsActionFailure>()],
     );
   });
 }

@@ -2,7 +2,10 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/error/app_exception.dart';
 import '../../../../core/network/dio_error_mapper.dart';
+import '../models/list_color_model.dart';
+import '../models/list_icon_model.dart';
 import '../models/list_model.dart';
+import '../models/list_picture_model.dart';
 
 class ListsRemoteSource {
   final Dio _dio;
@@ -27,30 +30,74 @@ class ListsRemoteSource {
     }
   }
 
-  Future<ListModel> createList(String name) async {
+  Future<List<ListColorModel>> getColors() async {
     try {
-      final response = await _dio.post('/lists', data: {'name': name});
-      return ListModel.fromJson(_parseMap(response.data));
+      final response = await _dio.get('/lists/colors');
+      if (response.data is! List) {
+        throw const ServerException('Unexpected response format.');
+      }
+      return (response.data as List)
+          .map((e) => ListColorModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw mapDioError(e);
     }
   }
 
-  Future<ListModel> renameList(String id, String name) async {
+  Future<List<ListIconModel>> getIcons() async {
     try {
-      final response =
-          await _dio.patch('/lists/$id', data: {'name': name});
-      return ListModel.fromJson(_parseMap(response.data));
+      final response = await _dio.get('/lists/icons');
+      if (response.data is! List) {
+        throw const ServerException('Unexpected response format.');
+      }
+      return (response.data as List)
+          .map((e) => ListIconModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw mapDioError(e);
     }
   }
 
-  Map<String, dynamic> _parseMap(dynamic data) {
-    if (data is! Map<String, dynamic>) {
-      throw const ServerException('Unexpected response format.');
+  Future<List<ListPictureModel>> getPictures() async {
+    try {
+      final response = await _dio.get('/lists/pictures');
+      if (response.data is! List) {
+        throw const ServerException('Unexpected response format.');
+      }
+      return (response.data as List)
+          .map((e) => ListPictureModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw mapDioError(e);
     }
-    return data;
+  }
+
+  Future<void> createList({
+    required String name,
+    String? location,
+    required String colorId,
+    required String iconId,
+    required String pictureId,
+  }) async {
+    try {
+      await _dio.post('/lists', data: {
+        'name': name,
+        'location': ?location,
+        'color_id': colorId,
+        'icon_id': iconId,
+        'picture_id': pictureId,
+      });
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
+
+  Future<void> renameList(String id, String name) async {
+    try {
+      await _dio.patch('/lists/$id', data: {'name': name});
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
   }
 
   Future<void> deleteList(String id) async {

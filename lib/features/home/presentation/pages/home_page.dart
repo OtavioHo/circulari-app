@@ -1,6 +1,21 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../lists/presentation/bloc/lists_bloc.dart';
+import '../../../lists/presentation/bloc/lists_event.dart';
+import '../../../lists/presentation/bloc/lists_state.dart';
+
+const _cardColors = [
+  Color(0xFF6C63FF),
+  Color(0xFF43C6AC),
+  Color(0xFFFF6584),
+  Color(0xFFFFA500),
+  Color(0xFF2196F3),
+  Color(0xFF4CAF50),
+  Color(0xFF9C27B0),
+  Color(0xFFFF5722),
+];
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -81,22 +96,44 @@ class HomePage extends StatelessWidget {
         );
       },
       children: [
-        CirculariListsCarousel(
-          itemCount: 10,
-          itemBuilder: (context, index) {
-            final random = Random();
-            final color = Color.fromARGB(
-              255,
-              random.nextInt(256),
-              random.nextInt(256),
-              random.nextInt(256),
-            );
-            return CirculariListCard(
-              title: 'Item $index',
-              itemCount: 10,
-              value: 42300.75,
-              backgroundColor: color,
-            );
+        BlocBuilder<ListsBloc, ListsState>(
+          builder: (context, state) => switch (state) {
+            ListsInitial() || ListsLoading() => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            ListsSuccess(:final lists) ||
+            ListsActionFailure(:final lists) => CirculariListsCarousel(
+              itemCount: lists.length,
+              itemBuilder: (context, index) {
+                final list = lists[index];
+                return CirculariListCard(
+                  title: list.name,
+                  itemCount: list.itemCount,
+                  value: list.totalValue,
+                  backgroundColor: Color(
+                    int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
+                  ),
+                );
+              },
+            ),
+            ListsFailure(:final message) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(message, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => context.read<ListsBloc>().add(
+                      const ListsLoadRequested(),
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
           },
         ),
         const SizedBox(height: 24),

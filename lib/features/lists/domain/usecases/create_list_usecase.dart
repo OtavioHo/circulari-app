@@ -1,9 +1,20 @@
-import '../entities/item_list.dart';
 import '../repositories/lists_repository.dart';
 
 class CreateListUsecase {
   final ListsRepository _repository;
   const CreateListUsecase(this._repository);
 
-  Future<ItemList> call(String name) => _repository.createList(name);
+  Future<void> call({
+    required String name,
+    String? location,
+    required String colorId,
+    required String iconId,
+    required String pictureId,
+  }) => _repository.createList(
+        name: name,
+        location: location,
+        colorId: colorId,
+        iconId: iconId,
+        pictureId: pictureId,
+      );
 }

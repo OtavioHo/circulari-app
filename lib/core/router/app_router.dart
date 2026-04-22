@@ -13,6 +13,8 @@ import '../../features/items/presentation/bloc/items_event.dart';
 import '../../features/items/presentation/pages/items_page.dart';
 import '../../features/lists/presentation/bloc/lists_bloc.dart';
 import '../../features/lists/presentation/bloc/lists_event.dart';
+import '../../features/lists/presentation/cubit/create_list_cubit.dart';
+import '../../features/lists/presentation/pages/create_list_page.dart';
 import '../../features/lists/presentation/pages/lists_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import 'scaffold_with_navbar.dart';
@@ -21,11 +23,11 @@ final appRouter = GoRouter(
   initialLocation: '/lists',
   refreshListenable: sl<AuthStateNotifier>(),
   redirect: (context, state) {
-    // final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
-    // final isAuthRoute = state.matchedLocation.startsWith('/auth');
+    final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
+    final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
-    // if (!isAuthenticated && !isAuthRoute) return '/auth/login';
-    // if (isAuthenticated && isAuthRoute) return '/lists';
+    if (!isAuthenticated && !isAuthRoute) return '/auth/login';
+    if (isAuthenticated && isAuthRoute) return '/lists';
     return null;
   },
   routes: [
@@ -44,7 +46,13 @@ final appRouter = GoRouter(
     ShellRoute(
       builder: (context, state, child) => ScaffoldWithNavBar(child: child),
       routes: [
-        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => BlocProvider(
+            create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+            child: const HomePage(),
+          ),
+        ),
         GoRoute(
           path: '/lists',
           builder: (context, state) => MultiBlocProvider(
@@ -63,6 +71,13 @@ final appRouter = GoRouter(
         ),
         GoRoute(path: '/add', builder: (context, state) => const AddPage()),
       ],
+    ),
+    GoRoute(
+      path: '/lists/create',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<CreateListCubit>()..loadOptions(),
+        child: const CreateListPage(),
+      ),
     ),
     GoRoute(
       path: '/lists/:id/items',

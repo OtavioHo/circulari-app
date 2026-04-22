@@ -94,9 +94,9 @@ class _ListsScaffold extends StatelessWidget {
   }
 
   Future<void> _onCreateTapped(BuildContext context) async {
-    final name = await showListNameDialog(context, title: 'New list');
-    if (name != null && context.mounted) {
-      context.read<ListsBloc>().add(ListsCreateRequested(name));
+    await context.push('/lists/create');
+    if (context.mounted) {
+      context.read<ListsBloc>().add(const ListsLoadRequested());
     }
   }
 
