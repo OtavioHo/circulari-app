@@ -10,40 +10,39 @@ class ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child,
-      // bottomNavigationBar: NavigationBar(
-      //   selectedIndex: _selectedIndex(context),
-      //   onDestinationSelected: (i) => _onTap(context, i),
-      //   destinations: const [
-      //     NavigationDestination(icon: Icon(Icons.list), label: 'Lists'),
-      //     NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
-      //   ],
-      // ),
-      bottomNavigationBar: CirculariBottomNavBar(
-        items: const [
-          CirculariNavItem(
-            icon: Icons.home,
-            activeIcon: Icons.home,
-            label: 'Home',
-          ),
-          CirculariNavItem(
-            icon: Icons.add,
-            activeIcon: Icons.add,
-            label: 'Add',
-          ),
-          CirculariNavItem(
-            icon: Icons.list_outlined,
-            activeIcon: Icons.list,
-            label: 'Lists',
-          ),
-          CirculariNavItem(
-            icon: Icons.person_outline,
-            activeIcon: Icons.person,
-            label: 'Profile',
+      body: Stack(
+        children: [
+          Positioned.fill(child: child),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: CirculariBottomNavBar(
+              items: const [
+                CirculariNavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home,
+                  label: 'Home',
+                ),
+                CirculariNavItem(
+                  icon: Icons.add_circle_outline,
+                  activeIcon: Icons.add_circle,
+                  label: 'Add',
+                ),
+                CirculariNavItem(
+                  icon: Icons.list_alt_outlined,
+                  activeIcon: Icons.list_alt,
+                  label: 'Lists',
+                ),
+                CirculariNavItem(
+                  icon: Icons.person_outline,
+                  activeIcon: Icons.person,
+                  label: 'Profile',
+                ),
+              ],
+              currentIndex: _selectedIndex(context),
+              onTap: (index) => _onTap(context, index),
+            ),
           ),
         ],
-        currentIndex: _selectedIndex(context),
-        onTap: (index) => _onTap(context, index),
       ),
     );
   }
@@ -61,6 +60,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
     switch (index) {
       case 0:
         context.go('/home');
+        break;
       case 1:
         context.go('/add');
       case 2:

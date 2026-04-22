@@ -1,5 +1,5 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
-import 'list_card.dart';
 
 class CirculariListsCarousel extends StatelessWidget {
   final int itemCount;
@@ -15,15 +15,32 @@ class CirculariListsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: CirculariListCard.height,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: padding,
-        itemCount: itemCount,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: itemBuilder,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: context.circulariTheme.spacing.medium,
+          ),
+          child: Text(
+            "Minhas Listas",
+            style: context.circulariTheme.typography.body.xLarge.bold.copyWith(
+              color: CirculariColorsTokens.greyscale800,
+            ),
+          ),
+        ),
+        SizedBox(height: context.circulariTheme.spacing.small),
+        SizedBox(
+          height: CirculariListCard.height,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: padding,
+            itemCount: itemCount,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: itemBuilder,
+          ),
+        ),
+      ],
     );
   }
 }

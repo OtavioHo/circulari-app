@@ -6,3 +6,4 @@ export 'cards/item_card.dart';
 export 'cards/list_card.dart';
 export 'cards/lists_carousel.dart';
 export 'navigation/bottom_nav_bar.dart';
+export 'layout/collapsible_body.dart';
