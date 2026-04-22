@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:circulari_ui/circulari_ui.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CirculariNavItem {
   final IconData icon;
@@ -38,17 +39,12 @@ class CirculariBottomNavBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: CirculariColorsTokens.greyscale700,
             borderRadius: BorderRadius.circular(40),
-            boxShadow: [
-              BoxShadow(
-                color: CirculariColorsTokens.greyscale900.withValues(alpha: 0.4),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final itemWidth = constraints.maxWidth / items.length;
+              final partitions = constraints.maxWidth / ((items.length *2)+1);
+              final itemWidth = partitions * 2;
+              final activeItemWidth = partitions * 3;
 
               return Stack(
                 alignment: Alignment.centerLeft,
@@ -56,10 +52,10 @@ class CirculariBottomNavBar extends StatelessWidget {
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
-                    left: currentIndex * itemWidth + 8,
-                    width: itemWidth - 16,
-                    top: 10,
-                    bottom: 10,
+                    left: currentIndex * itemWidth + 12,
+                    width: activeItemWidth - 24,
+                    top: 14,
+                    bottom: 14,
                     child: Container(
                       decoration: BoxDecoration(
                         color: CirculariColorsTokens.freshCore,
@@ -73,7 +69,7 @@ class CirculariBottomNavBar extends StatelessWidget {
                       final isActive = index == currentIndex;
 
                       return SizedBox(
-                        width: itemWidth,
+                        width: isActive ? activeItemWidth : itemWidth,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => onTap(index),
@@ -98,7 +94,9 @@ class CirculariBottomNavBar extends StatelessWidget {
                                             const SizedBox(width: 6),
                                             Text(
                                               item.label,
-                                              style: theme.typography.body.xSmall.regular.copyWith(
+                                              style: GoogleFonts.figtree(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
                                                 color: CirculariColorsTokens.greyscale700,
                                               ),
                                             ),
