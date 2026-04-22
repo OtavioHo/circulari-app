@@ -1,4 +1,6 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -7,7 +9,25 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Home')),
-      body: const Center(child: Text('Home — coming soon')),
+      body: CirculariListsCarousel(
+        itemCount: 10,
+        itemBuilder: (context, index) {
+          final random = Random();
+          final color = Color.fromARGB(
+            255,
+            random.nextInt(256),
+            random.nextInt(256),
+            random.nextInt(256),
+          );
+          return CirculariListCard(
+            title: 'Item $index',
+            itemCount: '10',
+            valueLabel: 'Label $index',
+            value: '42300',
+            backgroundColor: color,
+          );
+        },
+      ),
     );
   }
 }

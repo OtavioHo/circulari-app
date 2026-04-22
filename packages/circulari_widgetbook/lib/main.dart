@@ -5,6 +5,7 @@ import 'package:widgetbook/widgetbook.dart';
 import 'use_cases/buttons/primary_button_use_cases.dart';
 import 'use_cases/buttons/secondary_button_use_cases.dart';
 import 'use_cases/cards/item_card_use_cases.dart';
+import 'use_cases/cards/list_card_use_cases.dart';
 import 'use_cases/inputs/search_field_use_cases.dart';
 import 'use_cases/inputs/text_field_use_cases.dart';
 import 'use_cases/navigation/bottom_nav_bar_use_cases.dart';
@@ -50,6 +51,14 @@ class WidgetbookApp extends StatelessWidget {
             WidgetbookComponent(
               name: 'ItemCard',
               useCases: itemCardUseCases,
+            ),
+            WidgetbookComponent(
+              name: 'ListCard',
+              useCases: listCardUseCases,
+            ),
+            WidgetbookComponent(
+              name: 'ListsCarousel',
+              useCases: listsCarouselUseCases,
             ),
           ],
         ),
