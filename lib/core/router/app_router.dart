@@ -1,3 +1,5 @@
+import 'package:app/features/add/presentation/pages/add_page.dart';
+import 'package:app/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,25 +14,25 @@ import '../../features/items/presentation/pages/items_page.dart';
 import '../../features/lists/presentation/bloc/lists_bloc.dart';
 import '../../features/lists/presentation/bloc/lists_event.dart';
 import '../../features/lists/presentation/pages/lists_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import 'scaffold_with_navbar.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/lists',
   refreshListenable: sl<AuthStateNotifier>(),
   redirect: (context, state) {
-    final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
-    final isAuthRoute = state.matchedLocation.startsWith('/auth');
+    // final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
+    // final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
-    if (!isAuthenticated && !isAuthRoute) return '/auth/login';
-    if (isAuthenticated && isAuthRoute) return '/lists';
+    // if (!isAuthenticated && !isAuthRoute) return '/auth/login';
+    // if (isAuthenticated && isAuthRoute) return '/lists';
     return null;
   },
   routes: [
     GoRoute(
       path: '/auth/login',
-      builder: (context, state) => BlocProvider(
-        create: (_) => sl<AuthBloc>(),
-        child: const LoginPage(),
-      ),
+      builder: (context, state) =>
+          BlocProvider(create: (_) => sl<AuthBloc>(), child: const LoginPage()),
     ),
     GoRoute(
       path: '/auth/register',
@@ -39,17 +41,28 @@ final appRouter = GoRouter(
         child: const RegisterPage(),
       ),
     ),
-    GoRoute(
-      path: '/lists',
-      builder: (context, state) => MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => sl<AuthBloc>()),
-          BlocProvider(
-            create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+    ShellRoute(
+      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+      routes: [
+        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+        GoRoute(
+          path: '/lists',
+          builder: (context, state) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<AuthBloc>()),
+              BlocProvider(
+                create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+              ),
+            ],
+            child: const ListsPage(),
           ),
-        ],
-        child: const ListsPage(),
-      ),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfilePage(),
+        ),
+        GoRoute(path: '/add', builder: (context, state) => const AddPage()),
+      ],
     ),
     GoRoute(
       path: '/lists/:id/items',
@@ -57,8 +70,7 @@ final appRouter = GoRouter(
         final listId = state.pathParameters['id']!;
         final listName = state.uri.queryParameters['name'] ?? '';
         return BlocProvider(
-          create: (_) =>
-              sl<ItemsBloc>()..add(ItemsLoadRequested(listId)),
+          create: (_) => sl<ItemsBloc>()..add(ItemsLoadRequested(listId)),
           child: ItemsPage(listId: listId, listName: listName),
         );
       },
