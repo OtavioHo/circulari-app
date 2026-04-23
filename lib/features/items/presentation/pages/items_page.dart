@@ -54,22 +54,25 @@ class _ItemsScaffold extends StatelessWidget {
                     itemCount: items.length,
                     itemBuilder: (ctx, i) {
                       final item = items[i];
-                      return CirculariItemListTile(
-                        name: item.name,
-                        quantity: item.quantity,
-                        price: item.userDefinedValue ?? 0.0,
-                        listName: item.listInfo?.name ?? '',
-                        listColor: item.listInfo != null
-                            ? Color(
-                                int.parse(
-                                  item.listInfo!.color.replaceFirst(
-                                    '#',
-                                    '0xff',
+                      return GestureDetector(
+                        onTap: () => ctx.push('/items/${item.id}', extra: item),
+                        child: CirculariItemListTile(
+                          name: item.name,
+                          quantity: item.quantity,
+                          price: item.userDefinedValue ?? 0.0,
+                          listName: item.listInfo?.name ?? '',
+                          listColor: item.listInfo != null
+                              ? Color(
+                                  int.parse(
+                                    item.listInfo!.color.replaceFirst(
+                                      '#',
+                                      '0xff',
+                                    ),
                                   ),
-                                ),
-                              )
-                            : CirculariColorsTokens.greyscale300,
-                        categoryName: item.category?.name ?? '',
+                                )
+                              : CirculariColorsTokens.greyscale300,
+                          categoryName: item.category?.name ?? '',
+                        ),
                       );
                     },
                   ),

@@ -10,13 +10,19 @@ import '../di/injection.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/items/domain/entities/item.dart';
+import '../../features/items/domain/usecases/delete_item_usecase.dart';
+import '../../features/items/domain/usecases/update_item_usecase.dart';
 import '../../features/items/presentation/bloc/ai_analysis_cubit.dart';
 import '../../features/items/presentation/bloc/categories_cubit.dart';
+import '../../features/items/presentation/bloc/item_detail_bloc.dart';
 import '../../features/items/presentation/bloc/items_bloc.dart';
 import '../../features/items/presentation/bloc/items_event.dart';
 import '../../features/items/presentation/bloc/search_items_bloc.dart';
 import '../../features/items/presentation/bloc/search_items_event.dart';
+import '../../features/items/presentation/pages/item_detail_page.dart';
 import '../../features/items/presentation/pages/items_page.dart';
+import '../../features/items/presentation/pages/select_list_page.dart';
 import '../../features/lists/presentation/bloc/lists_bloc.dart';
 import '../../features/lists/presentation/bloc/lists_event.dart';
 import '../../features/lists/presentation/cubit/create_list_cubit.dart';
@@ -106,9 +112,21 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/items/add/select-list',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+        child: const SelectListPage(),
+      ),
+    ),
+    GoRoute(
       path: '/items/add',
-      builder: (context, state) {
+      redirect: (context, state) {
         final listId = state.uri.queryParameters['listId'] ?? '';
+        if (listId.isEmpty) return '/items/add/select-list';
+        return null;
+      },
+      builder: (context, state) {
+        final listId = state.uri.queryParameters['listId']!;
         return AddItemPage(listId: listId);
       },
     ),
@@ -126,6 +144,20 @@ final appRouter = GoRouter(
             imagePath: extra['imagePath']!,
             listId: extra['listId']!,
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/items/:id',
+      builder: (context, state) {
+        final item = state.extra as Item;
+        return BlocProvider(
+          create: (_) => ItemDetailBloc(
+            item: item,
+            updateItem: sl<UpdateItemUsecase>(),
+            deleteItem: sl<DeleteItemUsecase>(),
+          ),
+          child: const ItemDetailPage(),
         );
       },
     ),

@@ -191,6 +191,8 @@ class HomePage extends StatelessWidget {
                               )
                             : CirculariColorsTokens.greyscale300,
                         categoryName: item.category?.name ?? '',
+                        onTap: () =>
+                            context.push('/items/${item.id}', extra: item),
                       ),
                     ),
                   )
