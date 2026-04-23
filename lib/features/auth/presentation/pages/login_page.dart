@@ -1,3 +1,4 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -28,34 +29,35 @@ class _LoginPageState extends State<LoginPage> {
   void _onSubmit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
-          AuthLoginRequested(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          ),
-        );
+      AuthLoginRequested(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: BlocListener<AuthBloc, AuthState>(
+    return CirculariAuthScaffold(
+      child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) => switch (state) {
             AuthInitial() || AuthFailure() => _Form(
-                formKey: _formKey,
-                emailController: _emailController,
-                passwordController: _passwordController,
-                onSubmit: () => _onSubmit(context),
-              ),
-            AuthLoading() => const Center(child: CircularProgressIndicator()),
+              formKey: _formKey,
+              emailController: _emailController,
+              passwordController: _passwordController,
+              onSubmit: () => _onSubmit(context),
+            ),
+            AuthLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             AuthSuccess() => const SizedBox.shrink(),
           },
         ),
@@ -100,8 +102,9 @@ class _Form extends StatelessWidget {
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Required';
                   final email = v.trim();
-                  final valid = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
-                      .hasMatch(email);
+                  final valid = RegExp(
+                    r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                  ).hasMatch(email);
                   if (!valid) return 'Enter a valid email';
                   return null;
                 },
@@ -120,10 +123,7 @@ class _Form extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: onSubmit,
-                child: const Text('Login'),
-              ),
+              FilledButton(onPressed: onSubmit, child: const Text('Login')),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.push('/auth/register'),
