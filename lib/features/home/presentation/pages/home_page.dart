@@ -1,3 +1,4 @@
+import 'package:app/features/lists/presentation/utils/list_picture_map.dart';
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -113,6 +114,7 @@ class HomePage extends StatelessWidget {
                   title: list.name,
                   itemCount: list.itemCount,
                   value: list.totalValue,
+                  picturePath: assetForSlug(list.picture.slug) ?? '',
                   backgroundColor: Color(
                     int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
                   ),

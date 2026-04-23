@@ -15,5 +15,12 @@ const Map<String, Color> listPictureColorMap = {
   'minimal': Color(0xFF455A64),
 };
 
+const Map<String, String> listPictureAssetMap = {
+  'beach_house': 'assets/images/list_pictures/beach_house.png',
+  'storage': 'assets/images/list_pictures/storage.png',
+};
+
 Color colorForSlug(String slug) =>
     listPictureColorMap[slug] ?? const Color(0xFF9E9E9E);
+
+String? assetForSlug(String slug) => listPictureAssetMap[slug];

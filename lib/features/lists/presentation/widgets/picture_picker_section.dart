@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/list_picture.dart';
 import '../utils/list_picture_map.dart';
 
+
 class PicturePickerSection extends StatelessWidget {
   final List<ListPicture> pictures;
   final ListPicture selected;
@@ -29,6 +30,7 @@ class PicturePickerSection extends StatelessWidget {
           children: pictures.map((picture) {
             final bgColor = colorForSlug(picture.slug);
             final isSelected = picture.slug == selected.slug;
+            final assetPath = assetForSlug(picture.slug);
             return GestureDetector(
               onTap: () => onSelect(picture),
               child: AnimatedContainer(
@@ -44,6 +46,12 @@ class PicturePickerSection extends StatelessWidget {
                         : Colors.transparent,
                     width: 2.5,
                   ),
+                  image: assetPath != null
+                      ? DecorationImage(
+                          image: AssetImage(assetPath),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                   boxShadow: isSelected
                       ? [
                           BoxShadow(

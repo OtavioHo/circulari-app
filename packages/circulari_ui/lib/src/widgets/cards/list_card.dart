@@ -9,6 +9,7 @@ class CirculariListCard extends StatelessWidget {
   final double value;
   final Color backgroundColor;
   final bool isValueHidden;
+  final String picturePath;
   final VoidCallback? onToggleVisibility;
   final VoidCallback? onTap;
   final int? seed;
@@ -22,6 +23,7 @@ class CirculariListCard extends StatelessWidget {
     required this.itemCount,
     required this.value,
     required this.backgroundColor,
+    required this.picturePath,
     this.isValueHidden = false,
     this.onToggleVisibility,
     this.onTap,
@@ -31,7 +33,6 @@ class CirculariListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final typography = context.circulariTheme.typography;
-    final waveColor = _darken(backgroundColor, 0.08);
     final effectiveSeed = seed ?? title.hashCode;
 
     return GestureDetector(
@@ -43,21 +44,30 @@ class CirculariListCard extends StatelessWidget {
           height: height,
           child: Stack(
             children: [
-              Positioned.fill(child: ColoredBox(color: backgroundColor)),
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _WavePainter(color: waveColor, seed: effectiveSeed),
+              Positioned(
+                child: Image.asset(
+                  picturePath,
+                  width: width,
+                  height: height,
+                  fit: BoxFit.cover,
                 ),
               ),
-              Positioned(
-                bottom: 18,
-                left: 16,
+              Positioned.fill(
                 child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: Color.fromRGBO(0, 0, 0, 0.12),
-                    shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black.withAlpha(255)],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _WavePainter(
+                    color: backgroundColor.withAlpha(128),
+                    seed: effectiveSeed,
                   ),
                 ),
               ),
@@ -65,11 +75,12 @@ class CirculariListCard extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
                       title,
                       style: typography.body.large.medium.copyWith(
-                        color: CirculariColorsTokens.greyscale800,
+                        color: CirculariColorsTokens.greyscale100,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -78,14 +89,14 @@ class CirculariListCard extends StatelessWidget {
                     Text(
                       '$itemCount items',
                       style: typography.body.small.light.copyWith(
-                        color: CirculariColorsTokens.greyscale700,
+                        color: CirculariColorsTokens.greyscale100,
                       ),
                     ),
                     SizedBox(height: context.circulariTheme.spacing.medium),
                     Text(
                       'Valor total',
                       style: typography.body.small.light.copyWith(
-                        color: CirculariColorsTokens.greyscale700,
+                        color: CirculariColorsTokens.greyscale100,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -93,9 +104,11 @@ class CirculariListCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            isValueHidden ? '••••••' : 'R\$ ${_formatCurrency(value)}',
+                            isValueHidden
+                                ? '••••••'
+                                : 'R\$ ${_formatCurrency(value)}',
                             style: typography.body.xLarge.semibold.copyWith(
-                              color: CirculariColorsTokens.greyscale900,
+                              color: CirculariColorsTokens.greyscale100,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -108,7 +121,7 @@ class CirculariListCard extends StatelessWidget {
                                 ? Icons.visibility_off_outlined
                                 : Icons.remove_red_eye_outlined,
                             size: 18,
-                            color: CirculariColorsTokens.greyscale700,
+                            color: CirculariColorsTokens.greyscale100,
                           ),
                         ),
                       ],
@@ -123,11 +136,6 @@ class CirculariListCard extends StatelessWidget {
     );
   }
 
-  Color _darken(Color color, double factor) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl.withLightness((hsl.lightness - factor).clamp(0.0, 1.0)).toColor();
-  }
-  
   String _formatCurrency(double value) {
     final formatted = value.toStringAsFixed(0);
     final buffer = StringBuffer();
@@ -149,69 +157,58 @@ class _WavePainter extends CustomPainter {
 
   const _WavePainter({required this.color, required this.seed});
 
-  static const _margin = 20.0;
-
   @override
   void paint(Canvas canvas, Size size) {
     final rng = Random(seed);
-    final count = 2 + rng.nextInt(2); // 2 or 3 curves
 
-    for (int i = 0; i < count; i++) {
-      final paint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 20.0 + rng.nextDouble() * 16 // 20–36 px
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(_curve(size, rng), paint);
-    }
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 20
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.translate(-40, 125);
+    canvas.rotate(-0.35);
+
+    canvas.drawPath(_curve(size, rng), paint);
   }
 
   Path _curve(Size size, Random rng) {
-    final type = rng.nextDouble();
-
-    final Offset start, end, cp1, cp2;
-
-    if (type < 0.55) {
-      // Right edge → Bottom edge  (most common — classic corner sweep)
-      start = Offset(size.width + _margin, size.height * (0.05 + rng.nextDouble() * 0.55));
-      end   = Offset(size.width * (0.15 + rng.nextDouble() * 0.75), size.height + _margin);
-
-      // cp1 goes straight left (perpendicular to right edge),
-      // cp2 goes straight up (perpendicular to bottom edge) — gives a round arc.
-      final hSpan = (end.dx - start.dx).abs();
-      final vSpan = (end.dy - start.dy).abs();
-      final h = 0.50 + rng.nextDouble() * 0.25;
-      final v = 0.50 + rng.nextDouble() * 0.25;
-      cp1 = Offset(start.dx - hSpan * h, start.dy + vSpan * (rng.nextDouble() * 0.12 - 0.06));
-      cp2 = Offset(end.dx + hSpan * (rng.nextDouble() * 0.12 - 0.06), end.dy - vSpan * v);
-
-    } else if (type < 0.78) {
-      // Top-right → Bottom (flowing S or long sweep)
-      start = Offset(size.width * (0.35 + rng.nextDouble() * 0.65), -_margin);
-      end   = Offset(size.width * (0.10 + rng.nextDouble() * 0.80), size.height + _margin);
-
-      final vSpan = size.height + 2 * _margin;
-      final hDrift = end.dx - start.dx;
-      final pull = 0.42 + rng.nextDouble() * 0.18;
-      cp1 = Offset(start.dx + hDrift * (rng.nextDouble() * 0.25), start.dy + vSpan * pull);
-      cp2 = Offset(end.dx - hDrift * (rng.nextDouble() * 0.25), end.dy - vSpan * pull);
-
-    } else {
-      // Top-right → Right (downward loop back to the right edge)
-      start = Offset(size.width * (0.5 + rng.nextDouble() * 0.5), -_margin);
-      end   = Offset(size.width + _margin, size.height * (0.4 + rng.nextDouble() * 0.5));
-
-      final hSpan = (end.dx - start.dx).abs();
-      final vSpan = (end.dy - start.dy).abs();
-      final v = 0.50 + rng.nextDouble() * 0.25;
-      cp1 = Offset(start.dx + hSpan * (rng.nextDouble() * 0.10), start.dy + vSpan * v);
-      cp2 = Offset(end.dx - hSpan * v, end.dy - vSpan * (rng.nextDouble() * 0.10));
-    }
-
     return Path()
-      ..moveTo(start.dx, start.dy)
-      ..cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, end.dx, end.dy);
+      ..moveTo(0, size.height * 0.5)
+      ..cubicTo(
+        size.width * 0.2,
+        size.height * 0.2,
+        size.width * 0.3,
+        size.height * 0.7,
+        size.width * 0.5,
+        size.height * 0.5,
+      )
+      ..cubicTo(
+        size.width * 0.65,
+        size.height * 0.1,
+        size.width * 0.9,
+        size.height * 0.9,
+        size.width * 0.5,
+        size.height * 0.6,
+      )
+      ..cubicTo(
+        size.width * 0.4,
+        size.height * 0.3,
+        size.width * 0.9,
+        size.height * 0.2,
+        size.width * 0.85,
+        size.height * 0.5,
+      )
+      ..cubicTo(
+        size.width * 0.9,
+        size.height * 0.8,
+        size.width,
+        size.height * 0.3,
+        size.width * 2,
+        size.height * 0.5,
+      );
   }
 
   @override

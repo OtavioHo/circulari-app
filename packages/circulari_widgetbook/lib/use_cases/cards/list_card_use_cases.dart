@@ -28,6 +28,7 @@ final listCardUseCases = [
       seed: context.knobs.int.input(label: 'Wave seed', initialValue: 42),
       itemCount: 50,
       value: 42333.75,
+      picturePath: '',
     ),
   ),
 ];
@@ -43,6 +44,7 @@ final listsCarouselUseCases = [
         seed: index,
         itemCount: 42,
         value: 42,
+        picturePath: '',
       ),
     ),
   ),
