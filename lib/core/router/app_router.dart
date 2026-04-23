@@ -1,5 +1,6 @@
 import 'package:app/features/add/presentation/pages/add_page.dart';
 import 'package:app/features/home/presentation/pages/home_page.dart';
+import 'package:app/features/items/presentation/pages/add_item_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -79,6 +80,7 @@ final appRouter = GoRouter(
         child: const CreateListPage(),
       ),
     ),
+    //TODO: Refactor to call /details and fetch the list name instead of passing it as a query parameter
     GoRoute(
       path: '/lists/:id/items',
       builder: (context, state) {
@@ -88,6 +90,12 @@ final appRouter = GoRouter(
           create: (_) => sl<ItemsBloc>()..add(ItemsLoadRequested(listId)),
           child: ItemsPage(listId: listId, listName: listName),
         );
+      },
+    ),
+    GoRoute(
+      path: '/items/add',
+      builder: (context, state) {
+        return AddItemPage();
       },
     ),
   ],

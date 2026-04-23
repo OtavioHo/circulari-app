@@ -28,8 +28,6 @@ class CirculariBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.circulariTheme;
-
     return SafeArea(
       top: false,
       child: Padding(
@@ -42,7 +40,8 @@ class CirculariBottomNavBar extends StatelessWidget {
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final partitions = constraints.maxWidth / ((items.length *2)+1);
+              final partitions =
+                  constraints.maxWidth / ((items.length * 2) + 1);
               final itemWidth = partitions * 2;
               final activeItemWidth = partitions * 3;
 
@@ -97,7 +96,8 @@ class CirculariBottomNavBar extends StatelessWidget {
                                               style: GoogleFonts.figtree(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
-                                                color: CirculariColorsTokens.greyscale700,
+                                                color: CirculariColorsTokens
+                                                    .greyscale700,
                                               ),
                                             ),
                                           ],

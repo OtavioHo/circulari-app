@@ -2,21 +2,11 @@ import 'package:app/features/lists/presentation/utils/list_picture_map.dart';
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../lists/presentation/bloc/lists_bloc.dart';
 import '../../../lists/presentation/bloc/lists_event.dart';
 import '../../../lists/presentation/bloc/lists_state.dart';
-
-const _cardColors = [
-  Color(0xFF6C63FF),
-  Color(0xFF43C6AC),
-  Color(0xFFFF6584),
-  Color(0xFFFFA500),
-  Color(0xFF2196F3),
-  Color(0xFF4CAF50),
-  Color(0xFF9C27B0),
-  Color(0xFFFF5722),
-];
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -117,6 +107,9 @@ class HomePage extends StatelessWidget {
                   picturePath: assetForSlug(list.picture.slug) ?? '',
                   backgroundColor: Color(
                     int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
+                  ),
+                  onTap: () => context.push(
+                    '/lists/${list.id}/items?name=${Uri.encodeComponent(list.name)}',
                   ),
                 );
               },

@@ -164,51 +164,107 @@ class _WavePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
+      ..strokeWidth = 30
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    canvas.translate(-40, 125);
-    canvas.rotate(-0.35);
+    canvas.translate(-85, 100);
 
-    canvas.drawPath(_curve(size, rng), paint);
+    canvas.drawPath(_curve(Size(size.width * 2, size.height*0.8), rng), paint);
   }
 
   Path _curve(Size size, Random rng) {
-    return Path()
-      ..moveTo(0, size.height * 0.5)
-      ..cubicTo(
-        size.width * 0.2,
-        size.height * 0.2,
-        size.width * 0.3,
-        size.height * 0.7,
-        size.width * 0.5,
-        size.height * 0.5,
-      )
-      ..cubicTo(
-        size.width * 0.65,
-        size.height * 0.1,
-        size.width * 0.9,
-        size.height * 0.9,
-        size.width * 0.5,
-        size.height * 0.6,
-      )
-      ..cubicTo(
-        size.width * 0.4,
-        size.height * 0.3,
-        size.width * 0.9,
-        size.height * 0.2,
-        size.width * 0.85,
-        size.height * 0.5,
-      )
-      ..cubicTo(
-        size.width * 0.9,
-        size.height * 0.8,
-        size.width,
-        size.height * 0.3,
-        size.width * 2,
-        size.height * 0.5,
-      );
+    Path path = Path();
+    path.lineTo(-0.23, size.height * 0.41);
+    path.cubicTo(
+      -0.23,
+      size.height * 0.41,
+      size.width * 0.04,
+      size.height * 0.36,
+      size.width * 0.04,
+      size.height * 0.36,
+    );
+    path.cubicTo(
+      size.width * 0.15,
+      size.height * 0.34,
+      size.width / 4,
+      size.height * 0.41,
+      size.width * 0.3,
+      size.height * 0.55,
+    );
+    path.cubicTo(
+      size.width * 0.35,
+      size.height * 0.66,
+      size.width * 0.45,
+      size.height * 0.69,
+      size.width * 0.53,
+      size.height * 0.61,
+    );
+    path.cubicTo(
+      size.width * 0.53,
+      size.height * 0.61,
+      size.width * 0.73,
+      size.height * 0.37,
+      size.width * 0.73,
+      size.height * 0.37,
+    );
+    path.cubicTo(
+      size.width * 0.78,
+      size.height * 0.31,
+      size.width * 0.78,
+      size.height * 0.18,
+      size.width * 0.73,
+      size.height * 0.11,
+    );
+    path.cubicTo(
+      size.width * 0.68,
+      size.height * 0.05,
+      size.width * 0.6,
+      size.height * 0.06,
+      size.width * 0.55,
+      size.height * 0.14,
+    );
+    path.cubicTo(
+      size.width * 0.55,
+      size.height * 0.14,
+      size.width * 0.54,
+      size.height * 0.17,
+      size.width * 0.54,
+      size.height * 0.17,
+    );
+    path.cubicTo(
+      size.width * 0.48,
+      size.height * 0.27,
+      size.width * 0.51,
+      size.height * 0.41,
+      size.width * 0.58,
+      size.height * 0.47,
+    );
+    path.cubicTo(
+      size.width * 0.58,
+      size.height * 0.47,
+      size.width * 0.63,
+      size.height * 0.51,
+      size.width * 0.63,
+      size.height * 0.51,
+    );
+    path.cubicTo(
+      size.width * 0.71,
+      size.height * 0.57,
+      size.width * 0.75,
+      size.height * 0.7,
+      size.width * 0.72,
+      size.height * 0.82,
+    );
+    path.cubicTo(
+      size.width * 0.72,
+      size.height * 0.82,
+      size.width * 0.68,
+      size.height * 1.07,
+      size.width * 0.68,
+      size.height * 1.07,
+    );
+    return path;
   }
 
   @override

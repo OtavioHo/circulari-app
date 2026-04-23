@@ -9,9 +9,17 @@ class AddPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Add')),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () => context.push('/lists/create'),
-          child: Text('Add List'),
+        child: Column(
+          children: [
+            ElevatedButton(
+              onPressed: () => context.push('/lists/create'),
+              child: Text('Add List'),
+            ),
+            ElevatedButton(
+              onPressed: () => context.push('/items/add'),
+              child: Text('Add Item'),
+            ),
+          ],
         ),
       ),
     );
