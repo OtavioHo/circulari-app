@@ -1,5 +1,6 @@
 import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
+import '../../domain/entities/list_info.dart';
 import 'item_image_model.dart';
 
 class ItemModel extends Item {
@@ -13,6 +14,7 @@ class ItemModel extends Item {
     super.userDefinedValue,
     super.category,
     required super.images,
+    super.listInfo,
     required super.createdAt,
   });
 
@@ -26,6 +28,15 @@ class ItemModel extends Item {
       category = Category(
         id: rawCategory['id'] as String,
         name: rawCategory['name'] as String,
+      );
+    }
+
+    final rawList = json['list'];
+    ListInfo? listInfo;
+    if (rawList is Map<String, dynamic>) {
+      listInfo = ListInfo(
+        name: rawList['name'] as String,
+        color: rawList['color'] as String,
       );
     }
 
@@ -43,6 +54,7 @@ class ItemModel extends Item {
       images: rawImages
           .map((e) => ItemImageModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      listInfo: listInfo,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

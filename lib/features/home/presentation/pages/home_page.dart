@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../items/presentation/bloc/search_items_bloc.dart';
+import '../../../items/presentation/bloc/search_items_event.dart';
+import '../../../items/presentation/bloc/search_items_state.dart';
 import '../../../lists/presentation/bloc/lists_bloc.dart';
 import '../../../lists/presentation/bloc/lists_event.dart';
 import '../../../lists/presentation/bloc/lists_state.dart';
@@ -143,14 +146,59 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ),
-        ...List.generate(
-          20,
-          (index) => ListTile(
-            title: Text('List Item $index'),
-            subtitle: Text('Subtitle for item $index'),
-            leading: CircleAvatar(child: Text('$index')),
-          ),
+        BlocBuilder<SearchItemsBloc, SearchItemsState>(
+          builder: (context, state) => switch (state) {
+            SearchItemsInitial() || SearchItemsLoading() => const Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            SearchItemsFailure(:final message) => Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(message, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => context.read<SearchItemsBloc>().add(
+                        const SearchItemsLoadRequested(),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SearchItemsSuccess(:final items) => Column(
+              children: items
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CirculariItemListTile(
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.userDefinedValue ?? 0,
+                        listName: item.listInfo?.name ?? '',
+                        listColor: item.listInfo != null
+                            ? Color(
+                                int.parse(
+                                  item.listInfo!.color.replaceFirst(
+                                    '#',
+                                    '0xff',
+                                  ),
+                                ),
+                              )
+                            : CirculariColorsTokens.greyscale300,
+                        categoryName: item.category?.name ?? '',
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          },
         ),
+        const SizedBox(height: 100),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/error/app_exception.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../../../../core/network/dio_error_mapper.dart';
 import '../../domain/entities/ai_analysis_result.dart';
 import '../../domain/entities/category.dart';
@@ -41,6 +42,40 @@ class ItemsRemoteSource {
         }
         return ItemModel.fromJson(e);
       }).toList();
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
+
+  Future<PaginatedResult<ItemModel>> searchItems({
+    String? search,
+    String? cursor,
+    int? limit,
+  }) async {
+    try {
+      final response = await _dio.get('/items', queryParameters: {
+        'search': ?search,
+        'cursor': ?cursor,
+        'limit': ?limit,
+      });
+      if (response.data is! Map<String, dynamic>) {
+        throw const ServerException('Unexpected response format.');
+      }
+      final envelope = response.data as Map<String, dynamic>;
+      final list = envelope['data'];
+      if (list is! List) {
+        throw const ServerException('Unexpected response format.');
+      }
+      final items = list.map((e) {
+        if (e is! Map<String, dynamic>) {
+          throw const ServerException('Unexpected item format.');
+        }
+        return ItemModel.fromJson(e);
+      }).toList();
+      return PaginatedResult(
+        data: items,
+        nextCursor: envelope['nextCursor'] as String?,
+      );
     } on DioException catch (e) {
       throw mapDioError(e);
     }

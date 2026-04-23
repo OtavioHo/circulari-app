@@ -1,3 +1,4 @@
+import '../../../../core/models/paginated_result.dart';
 import '../entities/ai_analysis_result.dart';
 import '../entities/category.dart';
 import '../entities/item.dart';
@@ -5,6 +6,11 @@ import '../entities/item.dart';
 abstract interface class ItemsRepository {
   Future<List<Category>> getCategories();
   Future<List<Item>> getItems(String listId);
+  Future<PaginatedResult<Item>> searchItems({
+    String? search,
+    String? cursor,
+    int? limit,
+  });
   Future<Item> createItem({
     required String listId,
     required String name,

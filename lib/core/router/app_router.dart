@@ -11,6 +11,8 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/items/presentation/bloc/items_bloc.dart';
 import '../../features/items/presentation/bloc/items_event.dart';
+import '../../features/items/presentation/bloc/search_items_bloc.dart';
+import '../../features/items/presentation/bloc/search_items_event.dart';
 import '../../features/items/presentation/pages/items_page.dart';
 import '../../features/lists/presentation/bloc/lists_bloc.dart';
 import '../../features/lists/presentation/bloc/lists_event.dart';
@@ -49,8 +51,16 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          builder: (context, state) => BlocProvider(
-            create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+          builder: (context, state) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+              ),
+              BlocProvider(
+                create: (_) => sl<SearchItemsBloc>()
+                  ..add(const SearchItemsLoadRequested()),
+              ),
+            ],
             child: const HomePage(),
           ),
         ),

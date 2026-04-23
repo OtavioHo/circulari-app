@@ -8,10 +8,12 @@ import 'domain/usecases/create_item_usecase.dart';
 import 'domain/usecases/delete_item_usecase.dart';
 import 'domain/usecases/get_categories_usecase.dart';
 import 'domain/usecases/get_items_usecase.dart';
+import 'domain/usecases/search_items_usecase.dart';
 import 'domain/usecases/update_item_usecase.dart';
 import 'presentation/bloc/ai_analysis_cubit.dart';
 import 'presentation/bloc/categories_cubit.dart';
 import 'presentation/bloc/items_bloc.dart';
+import 'presentation/bloc/search_items_bloc.dart';
 
 extension ItemsDI on GetIt {
   void registerItemsFeature() {
@@ -23,7 +25,9 @@ extension ItemsDI on GetIt {
     registerLazySingleton(() => UpdateItemUsecase(call()));
     registerLazySingleton(() => DeleteItemUsecase(call()));
     registerLazySingleton(() => AnalyzeItemImageUsecase(call()));
+    registerLazySingleton(() => SearchItemsUsecase(call()));
     registerFactory(() => AiAnalysisCubit(call()));
+    registerFactory(() => SearchItemsBloc(searchItems: call()));
     registerFactory(() => CategoriesCubit(call()));
     registerFactory(
       () => ItemsBloc(

@@ -1,5 +1,6 @@
 import 'category.dart';
 import 'item_image.dart';
+import 'list_info.dart';
 
 class Item {
   final String id;
@@ -11,6 +12,7 @@ class Item {
   final double? userDefinedValue;
   final Category? category;
   final List<ItemImage> images;
+  final ListInfo? listInfo;
   final DateTime createdAt;
 
   const Item({
@@ -23,6 +25,7 @@ class Item {
     this.userDefinedValue,
     this.category,
     required this.images,
+    this.listInfo,
     required this.createdAt,
   });
 }

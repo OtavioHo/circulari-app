@@ -1,3 +1,4 @@
+import '../../../../core/models/paginated_result.dart';
 import '../../domain/entities/ai_analysis_result.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
@@ -13,6 +14,14 @@ class ItemsRepositoryImpl implements ItemsRepository {
 
   @override
   Future<List<Item>> getItems(String listId) => _source.getItems(listId);
+
+  @override
+  Future<PaginatedResult<Item>> searchItems({
+    String? search,
+    String? cursor,
+    int? limit,
+  }) =>
+      _source.searchItems(search: search, cursor: cursor, limit: limit);
 
   @override
   Future<Item> createItem({
