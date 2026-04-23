@@ -11,7 +11,7 @@ class AddItemPage extends StatefulWidget {
 }
 
 class _AddItemPageState extends State<AddItemPage> {
-  late CameraController controller;
+  CameraController? controller;
   XFile? image;
 
   @override
@@ -22,26 +22,26 @@ class _AddItemPageState extends State<AddItemPage> {
 
   Future<void> initializeCamera() async {
     final cameras = await availableCameras();
-    final firstCamera = cameras.first;
-    controller = CameraController(firstCamera, ResolutionPreset.high);
-    await controller.initialize();
+    final cam = CameraController(cameras.first, ResolutionPreset.high);
+    await cam.initialize();
     if (mounted) {
-      setState(() {});
+      setState(() => controller = cam);
     }
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final messenger = ScaffoldMessenger.of(context);
+    final cam = controller;
     final buildImage = image;
 
-    if (!controller.value.isInitialized) {
+    if (cam == null || !cam.value.isInitialized) {
       return Scaffold(
         appBar: AppBar(title: const Text('Add Item')),
         body: const Center(child: CircularProgressIndicator()),
@@ -56,17 +56,16 @@ class _AddItemPageState extends State<AddItemPage> {
             clipper: CircleClipper(),
             child: buildImage != null
                 ? Image.file(File(buildImage.path))
-                : CameraPreview(controller),
+                : CameraPreview(cam),
           ),
           ElevatedButton(
             onPressed: () async {
               try {
-                final capturedImage = await controller.takePicture();
+                final capturedImage = await cam.takePicture();
                 setState(() {
                   image = capturedImage;
                 });
               } catch (e) {
-                // Handle any errors that occur during image capture
                 messenger.showSnackBar(
                   SnackBar(content: Text('Error capturing image: $e')),
                 );
