@@ -1,5 +1,6 @@
 import 'package:app/features/add/presentation/pages/add_page.dart';
 import 'package:app/features/home/presentation/pages/home_page.dart';
+import 'package:app/features/items/presentation/pages/add_item_form_page.dart';
 import 'package:app/features/items/presentation/pages/add_item_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,8 @@ import '../di/injection.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/items/presentation/bloc/ai_analysis_cubit.dart';
+import '../../features/items/presentation/bloc/categories_cubit.dart';
 import '../../features/items/presentation/bloc/items_bloc.dart';
 import '../../features/items/presentation/bloc/items_event.dart';
 import '../../features/items/presentation/bloc/search_items_bloc.dart';
@@ -105,7 +108,25 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/items/add',
       builder: (context, state) {
-        return AddItemPage();
+        final listId = state.uri.queryParameters['listId'] ?? '';
+        return AddItemPage(listId: listId);
+      },
+    ),
+    GoRoute(
+      path: '/items/add/form',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, String>;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<AiAnalysisCubit>()),
+            BlocProvider(create: (_) => sl<CategoriesCubit>()..load()),
+            BlocProvider(create: (_) => sl<ItemsBloc>()),
+          ],
+          child: AddItemFormPage(
+            imagePath: extra['imagePath']!,
+            listId: extra['listId']!,
+          ),
+        );
       },
     ),
   ],

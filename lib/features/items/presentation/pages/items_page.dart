@@ -1,11 +1,11 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../bloc/items_bloc.dart';
 import '../bloc/items_event.dart';
 import '../bloc/items_state.dart';
-import '../widgets/item_form_sheet.dart';
 
 class ItemsPage extends StatelessWidget {
   final String listId;
@@ -92,20 +92,7 @@ class _ItemsScaffold extends StatelessWidget {
     );
   }
 
-  Future<void> _onAddTapped(BuildContext context) async {
-    final result = await showItemFormSheet(context);
-    if (result != null && context.mounted) {
-      context.read<ItemsBloc>().add(
-        ItemsCreateRequested(
-          listId: listId,
-          name: result.name,
-          description: result.description,
-          quantity: result.quantity,
-          categoryId: result.categoryId,
-          userDefinedValue: result.userDefinedValue,
-          imagePath: result.imagePath,
-        ),
-      );
-    }
+  void _onAddTapped(BuildContext context) {
+    context.push('/items/add?listId=$listId');
   }
 }
