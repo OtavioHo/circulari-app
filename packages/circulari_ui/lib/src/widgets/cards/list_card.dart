@@ -2,19 +2,17 @@ import 'package:flutter/material.dart';
 import '../../extensions/build_context_extension.dart';
 import '../../theme/circulari_colors.dart';
 
-class CirculariListCard extends StatelessWidget {
+class CirculariListCard extends StatefulWidget {
   final String title;
   final int itemCount;
   final double value;
   final Color backgroundColor;
-  final bool isValueHidden;
   final String picturePath;
-  final VoidCallback? onToggleVisibility;
   final VoidCallback? onTap;
   final int? seed;
 
-  static const double width = 200.0;
-  static const double height = 250.0;
+  static const double width = 270.0;
+  static const double height = 318.0;
 
   const CirculariListCard({
     super.key,
@@ -23,31 +21,43 @@ class CirculariListCard extends StatelessWidget {
     required this.value,
     required this.backgroundColor,
     required this.picturePath,
-    this.isValueHidden = false,
-    this.onToggleVisibility,
     this.onTap,
     this.seed,
   });
 
   @override
+  State<CirculariListCard> createState() => _CirculariListCardState();
+}
+
+class _CirculariListCardState extends State<CirculariListCard> {
+  bool isValueHidden = false;
+  bool _eyeIconTapped = false;
+
+  @override
   Widget build(BuildContext context) {
     final typography = context.circulariTheme.typography;
-    final effectiveSeed = seed ?? title.hashCode;
+    final effectiveSeed = widget.seed ?? widget.title.hashCode;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        if (_eyeIconTapped) {
+          _eyeIconTapped = false;
+          return;
+        }
+        widget.onTap?.call();
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
-          width: width,
-          height: height,
+          width: CirculariListCard.width,
+          height: CirculariListCard.height,
           child: Stack(
             children: [
               Positioned(
                 child: Image.asset(
-                  picturePath,
-                  width: width,
-                  height: height,
+                  widget.picturePath,
+                  width: CirculariListCard.width,
+                  height: CirculariListCard.height,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -65,7 +75,7 @@ class CirculariListCard extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: _WavePainter(
-                    color: backgroundColor.withAlpha(128),
+                    color: widget.backgroundColor.withAlpha(128),
                     seed: effectiveSeed,
                   ),
                 ),
@@ -77,53 +87,64 @@ class CirculariListCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      title,
-                      style: typography.body.large.medium.copyWith(
-                        color: CirculariColorsTokens.greyscale100,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$itemCount items',
-                      style: typography.body.small.light.copyWith(
-                        color: CirculariColorsTokens.greyscale100,
-                      ),
-                    ),
-                    SizedBox(height: context.circulariTheme.spacing.medium),
-                    Text(
                       'Valor total',
-                      style: typography.body.small.light.copyWith(
+                      style: typography.body.small.medium.copyWith(
                         color: CirculariColorsTokens.greyscale100,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Expanded(
-                          child: Text(
-                            isValueHidden
-                                ? '••••••'
-                                : 'R\$ ${_formatCurrency(value)}',
-                            style: typography.body.xLarge.semibold.copyWith(
-                              color: CirculariColorsTokens.greyscale100,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          isValueHidden
+                              ? 'R\$ ••••••'
+                              : 'R\$ ${_formatCurrency(widget.value)}',
+                          style: typography.body.xLarge.semibold.copyWith(
+                            color: CirculariColorsTokens.greyscale100,
+                            fontSize: 26,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        const SizedBox(width: 16),
                         GestureDetector(
-                          onTap: onToggleVisibility,
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (_) {
+                            _eyeIconTapped = true;
+                          },
+                          onTapCancel: () {
+                            _eyeIconTapped = false;
+                          },
+                          onTap: () => setState(() {
+                            isValueHidden = !isValueHidden;
+                          }),
                           child: Icon(
                             isValueHidden
-                                ? Icons.visibility_off_outlined
-                                : Icons.remove_red_eye_outlined,
+                                ? Icons.visibility_off
+                                : Icons.remove_red_eye,
                             size: 18,
                             color: CirculariColorsTokens.greyscale100,
                           ),
                         ),
                       ],
+                    ),
+                    SizedBox(height: context.circulariTheme.spacing.medium),
+                    Text(
+                      widget.title,
+                      style: typography.body.large.medium.copyWith(
+                        color: CirculariColorsTokens.greyscale100,
+                        height: 1,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '${widget.itemCount} items',
+                      style: typography.body.small.medium.copyWith(
+                        color: CirculariColorsTokens.greyscale100.withAlpha(
+                          120,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -168,7 +189,7 @@ class _WavePainter extends CustomPainter {
     switch (seed % 3) {
       case 0:
         _drawCurve1(canvas, paint);
-        break;  
+        break;
       case 1:
         _drawCurve2(canvas, paint);
         break;
@@ -179,26 +200,26 @@ class _WavePainter extends CustomPainter {
   }
 
   void _drawCurve1(Canvas canvas, Paint paint) {
-    const Size size = Size(297 * 0.8, 215 * 0.8);
+    const Size size = Size(350, 215);
 
     canvas.rotate(-0.2);
-    canvas.translate(-40, 150);
+    canvas.translate(-40, 200);
     canvas.drawPath(_curve1(size), paint);
   }
 
   void _drawCurve2(Canvas canvas, Paint paint) {
-    const Size size = Size(461 * 0.8, 335 * 0.8);
+    const Size size = Size(461, 335);
 
     canvas.rotate(-0.1);
-    canvas.translate(-20, 150);
+    canvas.translate(-20, 170);
     canvas.drawPath(_curve2(size), paint);
   }
 
   void _drawCurve3(Canvas canvas, Paint paint) {
-    const Size size = Size(443 * 0.8, 395 * 0.8);
+    const Size size = Size(443, 395);
 
-    canvas.rotate(-0.3);
-    canvas.translate(-70, 160);
+    canvas.rotate(-0.2);
+    canvas.translate(-100, 200);
     canvas.drawPath(_curve3(size), paint);
   }
 
@@ -400,7 +421,7 @@ class _WavePainter extends CustomPainter {
 
   Path _curve3(Size size) {
     Path path = Path();
-    path.lineTo(size.width * 0.96, size.height * 0.43);
+    path.lineTo(0, size.height );
     path.cubicTo(
       size.width * 0.96,
       size.height * 0.43,

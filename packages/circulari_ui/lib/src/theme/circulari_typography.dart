@@ -6,11 +6,13 @@ class CirculariBodyTextStyle {
 
   const CirculariBodyTextStyle({required this.base});
 
-  TextStyle get bold => base.copyWith(fontWeight: FontWeight.w700);
-  TextStyle get semibold => base.copyWith(fontWeight: FontWeight.w600);
-  TextStyle get medium => base.copyWith(fontWeight: FontWeight.w500);
-  TextStyle get regular => base.copyWith(fontWeight: FontWeight.w400);
-  TextStyle get light => base.copyWith(fontWeight: FontWeight.w300);
+  TextStyle get black => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w900);
+  TextStyle get extraBold => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w800);
+  TextStyle get bold => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w700);
+  TextStyle get semibold => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w600);
+  TextStyle get medium => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w500);
+  TextStyle get regular => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w400);
+  TextStyle get light => GoogleFonts.poppins(textStyle: base, fontWeight: FontWeight.w300);
 }
 
 class CirculariTypographyBody {
@@ -41,18 +43,12 @@ class CirculariTypography {
 
   CirculariTypographyBody get body => CirculariTypographyBody(base: bodyBase);
 
-  TextStyle get heading1 =>
-      heading.copyWith(fontSize: 36, fontWeight: FontWeight.w700);
-  TextStyle get heading2 =>
-      heading.copyWith(fontSize: 30, fontWeight: FontWeight.w600);
-  TextStyle get heading3 =>
-      heading.copyWith(fontSize: 24, fontWeight: FontWeight.w600);
-  TextStyle get heading4 =>
-      heading.copyWith(fontSize: 20, fontWeight: FontWeight.w500);
-  TextStyle get heading5 =>
-      heading.copyWith(fontSize: 18, fontWeight: FontWeight.w500);
-  TextStyle get heading6 =>
-      heading.copyWith(fontSize: 16, fontWeight: FontWeight.w500);
+  TextStyle get heading1 => GoogleFonts.montserrat(textStyle: heading, fontSize: 36, fontWeight: FontWeight.w700);
+  TextStyle get heading2 => GoogleFonts.montserrat(textStyle: heading, fontSize: 30, fontWeight: FontWeight.w600);
+  TextStyle get heading3 => GoogleFonts.montserrat(textStyle: heading, fontSize: 24, fontWeight: FontWeight.w600);
+  TextStyle get heading4 => GoogleFonts.montserrat(textStyle: heading, fontSize: 20, fontWeight: FontWeight.w500);
+  TextStyle get heading5 => GoogleFonts.montserrat(textStyle: heading, fontSize: 18, fontWeight: FontWeight.w500);
+  TextStyle get heading6 => GoogleFonts.montserrat(textStyle: heading, fontSize: 16, fontWeight: FontWeight.w500);
 }
 
 final circulariTypography = CirculariTypography(
