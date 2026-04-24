@@ -34,74 +34,47 @@ class HomePage extends StatelessWidget {
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             final totalValueText = switch (state) {
-              DashboardSuccess(:final summary) => _formatBRL(summary.totalValue),
+              DashboardSuccess(:final summary) => _formatBRL(
+                summary.totalValue,
+              ),
               _ => 'R\$ —',
             };
 
-            return Stack(
-              children: [
-                Opacity(
-                  opacity: (1 - t * 2).clamp(0.0, 1.0),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      spacing.medium,
-                      spacing.large,
-                      spacing.medium,
-                      0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Resumo',
-                          style: typography.heading2
-                              .copyWith(color: Colors.white),
+            return Opacity(
+              opacity: (1 - t * 2).clamp(0.0, 1.0),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  spacing.medium,
+                  spacing.large,
+                  spacing.medium,
+                  0,
+                ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Olá, Felipe!',
+                        style: typography.heading2.copyWith(
+                          color: Colors.white,
                         ),
-                        SizedBox(height: spacing.medium),
-                        Text(
-                          'Total de bens listados',
-                          style: typography.body.medium.regular,
+                      ),
+                      SizedBox(height: spacing.medium),
+                      Text(
+                        'Total de bens listados',
+                        style: typography.body.small.regular,
+                      ),
+                      Text(
+                        totalValueText,
+                        style: typography.heading1.copyWith(
+                          color: CirculariColorsTokens.vitalGlow,
                         ),
-                        Text(
-                          totalValueText,
-                          style:
-                              typography.heading1.copyWith(color: Colors.white),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                Opacity(
-                  opacity: ((t - 0.5) * 2).clamp(0.0, 1.0),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        spacing.medium,
-                        0,
-                        spacing.medium,
-                        spacing.medium,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total de bens listados',
-                            style: typography.body.medium.regular,
-                          ),
-                          Text(
-                            totalValueText,
-                            style: typography.heading1.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             );
           },
         );

@@ -32,10 +32,12 @@ class CirculariCollapsibleBody extends StatelessWidget {
     return Stack(
       children: [
         Container(color: CirculariColorsTokens.deepMoss),
-        SvgPicture.asset(
-          'assets/images/background/in_app_background.svg',
-          package: 'circulari_ui',
-          fit: BoxFit.cover,
+        Positioned.fill(
+          child: SvgPicture.asset(
+            'assets/images/background/in_app_background.svg',
+            package: 'circulari_ui',
+            fit: BoxFit.cover,
+          ),
         ),
         Container(
           decoration: BoxDecoration(
@@ -50,6 +52,27 @@ class CirculariCollapsibleBody extends StatelessWidget {
         SafeArea(
           child: CustomScrollView(
             slivers: [
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                pinned: false,
+                flexibleSpace: const SizedBox(),
+                expandedHeight: 56,
+                collapsedHeight: 56,
+                title: Text('Circulari'),
+                actions: [
+                  IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor: CirculariColorsTokens.freshCore,
+                      child: const Icon(
+                        Icons.person,
+                        color: CirculariColorsTokens.greyscale900,
+                      ),
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
               SliverPersistentHeader(
                 delegate: _CollapsingHeaderDelegate(
                   expandedHeight: expandedHeight,

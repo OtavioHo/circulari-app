@@ -10,3 +10,4 @@ export 'navigation/bottom_nav_bar.dart';
 export 'layout/collapsible_body.dart';
 export 'layout/default_background_scaffold.dart';
 export 'layout/auth_scaffold.dart';
+export 'layout/app_bar.dart';
