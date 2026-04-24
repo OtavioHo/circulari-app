@@ -21,34 +21,24 @@ class CirculariAuthScaffold extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Container(color: CirculariColorsTokens.deepMoss),
-          ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.black, Colors.transparent, Colors.black],
-              stops: const [0, 0.5, 1],
-            ).createShader(bounds),
-            blendMode: BlendMode.darken,
-            child: SvgPicture.asset(
-              'assets/images/background/background.svg',
-              package: 'circulari_ui',
-              fit: BoxFit.cover,
+          SvgPicture.asset(
+            'assets/images/background/background.svg',
+            package: 'circulari_ui',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.black, Colors.transparent, Colors.black],
+                stops: [0, 0.5, 1],
+              ),
             ),
           ),
           Column(
             children: [
-              Expanded(
-                child: ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.black, Colors.transparent],
-                    stops: const [0, 1],
-                  ).createShader(bounds),
-                  blendMode: BlendMode.darken,
-                  child: Container(),
-                ),
-              ),
+              const Expanded(child: SizedBox.shrink()),
               Container(
                 decoration: BoxDecoration(
                   color: CirculariColorsTokens.greyscale800,

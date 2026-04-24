@@ -31,7 +31,7 @@ class CirculariTheme extends ThemeExtension<CirculariTheme> {
   }
 }
 
-CirculariTheme circulariLightTheme =  CirculariTheme(
+CirculariTheme circulariLightTheme = CirculariTheme(
   colors: lightColors,
   spacing: const CirculariSpacing(),
   typography: circulariTypography,
@@ -45,14 +45,18 @@ CirculariTheme circulariDarkTheme = CirculariTheme(
 
 final ThemeData circulariLightThemeData = ThemeData(
   brightness: Brightness.light,
-  extensions: [
-    circulariLightTheme,
-  ],
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: CirculariColorsTokens.freshCore,
+    brightness: Brightness.light,
+  ),
+  extensions: [circulariLightTheme],
 );
 
 final ThemeData circulariDarkThemeData = ThemeData(
   brightness: Brightness.dark,
-  extensions: [
-    circulariDarkTheme,
-  ],
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: CirculariColorsTokens.freshCore,
+    brightness: Brightness.dark,
+  ),
+  extensions: [circulariDarkTheme],
 );
