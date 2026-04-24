@@ -29,7 +29,7 @@ class CirculariListsCarousel extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: context.circulariTheme.spacing.small),
+        SizedBox(height: context.circulariTheme.spacing.medium),
         SizedBox(
           height: CirculariListCard.height,
           child: ListView.separated(
