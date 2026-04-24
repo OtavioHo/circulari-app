@@ -3,6 +3,7 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../items/presentation/bloc/search_items_bloc.dart';
 import '../../../items/presentation/bloc/search_items_event.dart';
@@ -10,6 +11,11 @@ import '../../../items/presentation/bloc/search_items_state.dart';
 import '../../../lists/presentation/bloc/lists_bloc.dart';
 import '../../../lists/presentation/bloc/lists_event.dart';
 import '../../../lists/presentation/bloc/lists_state.dart';
+import '../bloc/dashboard_bloc.dart';
+import '../bloc/dashboard_state.dart';
+
+String _formatBRL(double value) =>
+    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(value);
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -25,68 +31,79 @@ class HomePage extends StatelessWidget {
         const maxShrink = 200.0 - 87.0;
         final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
 
-        return Stack(
-          children: [
-            Opacity(
-              opacity: (1 - t * 2).clamp(0.0, 1.0),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  spacing.medium,
-                  spacing.large,
-                  spacing.medium,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Resumo',
-                      style: typography.heading2.copyWith(color: Colors.white),
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            final totalValueText = switch (state) {
+              DashboardSuccess(:final summary) => _formatBRL(summary.totalValue),
+              _ => 'R\$ —',
+            };
+
+            return Stack(
+              children: [
+                Opacity(
+                  opacity: (1 - t * 2).clamp(0.0, 1.0),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      spacing.medium,
+                      spacing.large,
+                      spacing.medium,
+                      0,
                     ),
-                    SizedBox(height: spacing.medium),
-                    Text(
-                      'Total de bens listados',
-                      style: typography.body.medium.regular,
-                    ),
-                    Text(
-                      'R\$ 123.456,78',
-                      style: typography.heading1.copyWith(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Opacity(
-              opacity: ((t - 0.5) * 2).clamp(0.0, 1.0),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    spacing.medium,
-                    0,
-                    spacing.medium,
-                    spacing.medium,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Total de bens listados',
-                        style: typography.body.medium.regular,
-                      ),
-                      Text(
-                        'R\$ 123.456,78',
-                        style: typography.heading1.copyWith(
-                          color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Resumo',
+                          style: typography.heading2
+                              .copyWith(color: Colors.white),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: spacing.medium),
+                        Text(
+                          'Total de bens listados',
+                          style: typography.body.medium.regular,
+                        ),
+                        Text(
+                          totalValueText,
+                          style:
+                              typography.heading1.copyWith(color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                Opacity(
+                  opacity: ((t - 0.5) * 2).clamp(0.0, 1.0),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        spacing.medium,
+                        0,
+                        spacing.medium,
+                        spacing.medium,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total de bens listados',
+                            style: typography.body.medium.regular,
+                          ),
+                          Text(
+                            totalValueText,
+                            style: typography.heading1.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
       children: [

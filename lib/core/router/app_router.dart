@@ -23,6 +23,8 @@ import '../../features/items/presentation/bloc/search_items_event.dart';
 import '../../features/items/presentation/pages/item_detail_page.dart';
 import '../../features/items/presentation/pages/items_page.dart';
 import '../../features/items/presentation/pages/select_list_page.dart';
+import '../../features/home/presentation/bloc/dashboard_bloc.dart';
+import '../../features/home/presentation/bloc/dashboard_event.dart';
 import '../../features/lists/presentation/bloc/lists_bloc.dart';
 import '../../features/lists/presentation/bloc/lists_event.dart';
 import '../../features/lists/presentation/cubit/create_list_cubit.dart';
@@ -62,6 +64,10 @@ final appRouter = GoRouter(
           path: '/home',
           builder: (context, state) => MultiBlocProvider(
             providers: [
+              BlocProvider(
+                create: (_) =>
+                    sl<DashboardBloc>()..add(const DashboardLoadRequested()),
+              ),
               BlocProvider(
                 create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
               ),
