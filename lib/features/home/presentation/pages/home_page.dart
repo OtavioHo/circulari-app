@@ -68,7 +68,7 @@ class HomePage extends StatelessWidget {
                       Text(
                         totalValueText,
                         style: typography.heading1.copyWith(
-                          color: CirculariColorsTokens.vitalGlow,
+                          color: CirculariColorsTokens.freshCore500,
                         ),
                       ),
                     ],

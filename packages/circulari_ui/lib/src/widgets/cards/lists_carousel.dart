@@ -33,10 +33,11 @@ class CirculariListsCarousel extends StatelessWidget {
         SizedBox(
           height: CirculariListCard.height,
           child: ListView.separated(
+            clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             padding: padding,
             itemCount: itemCount,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 24),
             itemBuilder: itemBuilder,
           ),
         ),

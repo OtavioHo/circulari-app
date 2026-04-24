@@ -46,110 +46,129 @@ class _CirculariListCardState extends State<CirculariListCard> {
         }
         widget.onTap?.call();
       },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          width: CirculariListCard.width,
-          height: CirculariListCard.height,
-          child: Stack(
-            children: [
-              Positioned(
-                child: Image.asset(
-                  widget.picturePath,
-                  width: CirculariListCard.width,
-                  height: CirculariListCard.height,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black.withAlpha(255)],
-                    ),
+      child: Container(
+        width: CirculariListCard.width,
+        height: CirculariListCard.height,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: CirculariColorsTokens.greyscale900.withAlpha(130), // #181D3112 (ARGB)
+              offset: Offset(25, 13),
+              blurRadius: 20.0,
+              spreadRadius: 0.0,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            width: CirculariListCard.width,
+            height: CirculariListCard.height,
+            child: Stack(
+              children: [
+                Positioned(
+                  child: Image.asset(
+                    widget.picturePath,
+                    width: CirculariListCard.width,
+                    height: CirculariListCard.height,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _WavePainter(
-                    color: widget.backgroundColor.withAlpha(128),
-                    seed: effectiveSeed,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Valor total',
-                      style: typography.body.small.medium.copyWith(
-                        color: CirculariColorsTokens.greyscale100,
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withAlpha(255),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          isValueHidden
-                              ? 'R\$ ••••••'
-                              : 'R\$ ${_formatCurrency(widget.value)}',
-                          style: typography.body.xLarge.semibold.copyWith(
-                            color: CirculariColorsTokens.greyscale100,
-                            fontSize: 26,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _WavePainter(
+                      color: widget.backgroundColor.withAlpha(128),
+                      seed: effectiveSeed,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Valor total',
+                        style: typography.body.small.medium.copyWith(
+                          color: CirculariColorsTokens.greyscale100,
                         ),
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTapDown: (_) {
-                            _eyeIconTapped = true;
-                          },
-                          onTapCancel: () {
-                            _eyeIconTapped = false;
-                          },
-                          onTap: () => setState(() {
-                            isValueHidden = !isValueHidden;
-                          }),
-                          child: Icon(
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
                             isValueHidden
-                                ? Icons.visibility_off
-                                : Icons.remove_red_eye,
-                            size: 18,
-                            color: CirculariColorsTokens.greyscale100,
+                                ? 'R\$ ••••••'
+                                : 'R\$ ${_formatCurrency(widget.value)}',
+                            style: typography.body.xLarge.semibold.copyWith(
+                              color: CirculariColorsTokens.greyscale100,
+                              fontSize: 26,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTapDown: (_) {
+                              _eyeIconTapped = true;
+                            },
+                            onTapCancel: () {
+                              _eyeIconTapped = false;
+                            },
+                            onTap: () => setState(() {
+                              isValueHidden = !isValueHidden;
+                            }),
+                            child: Icon(
+                              isValueHidden
+                                  ? Icons.visibility_off
+                                  : Icons.remove_red_eye,
+                              size: 18,
+                              color: CirculariColorsTokens.greyscale100,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: context.circulariTheme.spacing.medium),
+                      Text(
+                        widget.title,
+                        style: typography.body.large.medium.copyWith(
+                          color: CirculariColorsTokens.greyscale100,
+                          height: 1,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '${widget.itemCount} items',
+                        style: typography.body.small.medium.copyWith(
+                          color: CirculariColorsTokens.greyscale100.withAlpha(
+                            120,
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: context.circulariTheme.spacing.medium),
-                    Text(
-                      widget.title,
-                      style: typography.body.large.medium.copyWith(
-                        color: CirculariColorsTokens.greyscale100,
-                        height: 1,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '${widget.itemCount} items',
-                      style: typography.body.small.medium.copyWith(
-                        color: CirculariColorsTokens.greyscale100.withAlpha(
-                          120,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -421,7 +440,7 @@ class _WavePainter extends CustomPainter {
 
   Path _curve3(Size size) {
     Path path = Path();
-    path.lineTo(0, size.height );
+    path.lineTo(0, size.height);
     path.cubicTo(
       size.width * 0.96,
       size.height * 0.43,
