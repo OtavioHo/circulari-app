@@ -19,24 +19,26 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   void _onSubmit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
-          AuthRegisterRequested(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          ),
-        );
+      AuthRegisterRequested(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
@@ -45,20 +47,21 @@ class _RegisterPageState extends State<RegisterPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) => switch (state) {
             AuthInitial() || AuthFailure() => _Form(
-                formKey: _formKey,
-                nameController: _nameController,
-                emailController: _emailController,
-                passwordController: _passwordController,
-                onSubmit: () => _onSubmit(context),
-              ),
+              formKey: _formKey,
+              nameController: _nameController,
+              emailController: _emailController,
+              passwordController: _passwordController,
+              confirmPasswordController: _confirmPasswordController,
+              onSubmit: () => _onSubmit(context),
+            ),
             AuthLoading() => const Center(child: CircularProgressIndicator()),
             AuthSuccess() => const SizedBox.shrink(),
           },
@@ -73,6 +76,7 @@ class _Form extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
   final VoidCallback onSubmit;
 
   const _Form({
@@ -80,6 +84,7 @@ class _Form extends StatelessWidget {
     required this.nameController,
     required this.emailController,
     required this.passwordController,
+    required this.confirmPasswordController,
     required this.onSubmit,
   });
 
@@ -91,57 +96,94 @@ class _Form extends StatelessWidget {
         child: Form(
           key: formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 20),
               Text(
-                'Create your account',
-                style: Theme.of(context).textTheme.headlineMedium,
+                'Cadastro',
+                style: context.circulariTheme.typography.heading3.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: CirculariColorsTokens.greyscale100,
+                ),
+              ),
+              Text(
+                'Crie sua conta e aproveite a melhor forma de organizar seus bens.',
+                textAlign: TextAlign.center,
+                style: context.circulariTheme.typography.body.medium.light
+                    .copyWith(color: CirculariColorsTokens.greyscale600),
               ),
               const SizedBox(height: 32),
-              TextFormField(
+              CirculariAuthTextFormField(
+                label: 'Name',
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
                 textInputAction: TextInputAction.next,
+                prefixIcon: Icons.person_outline,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              CirculariAuthTextFormField(
+                label: 'Email',
                 controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
+                prefixIcon: Icons.email_outlined,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Required';
                   final email = v.trim();
-                  final valid = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
-                      .hasMatch(email);
+                  final valid = RegExp(
+                    r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                  ).hasMatch(email);
                   if (!valid) return 'Enter a valid email';
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              CirculariAuthTextFormField(
+                label: 'Password',
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => onSubmit(),
+                textInputAction: TextInputAction.next,
+                prefixIcon: Icons.lock_outline,
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Required';
                   if (v.length < 8) return 'At least 8 characters';
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: onSubmit,
-                child: const Text('Register'),
+              const SizedBox(height: 16),
+              CirculariAuthTextFormField(
+                label: 'Confirmar senha',
+                controller: confirmPasswordController,
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => onSubmit(),
+                prefixIcon: Icons.lock_outline,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Required';
+                  if (v != passwordController.text) return 'Passwords do not match';
+                  return null;
+                },
               ),
+              const SizedBox(height: 24),
+              CirculariButton(onPressed: onSubmit, label: 'Cadastrar'),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.pop(),
-                child: const Text('Already have an account? Login'),
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Already have an account?',
+                    style: TextStyle(color: CirculariColorsTokens.greyscale600),
+                    children: [
+                      TextSpan(
+                        text: ' Login',
+                        style: TextStyle(
+                          color: CirculariColorsTokens.greyscale100,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

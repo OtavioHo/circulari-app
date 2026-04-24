@@ -3,18 +3,18 @@ import 'package:widgetbook/widgetbook.dart';
 
 import '../../utils/centered_use_case.dart';
 
-final secondaryButtonUseCases = [
+final buttonUseCases = [
   centeredUseCase(
     name: 'Enabled',
-    builder: (context) => CirculariSecondaryButton(
-      label: context.knobs.string(label: 'Label', initialValue: 'Cancel'),
+    builder: (context) => CirculariButton(
+      label: context.knobs.string(label: 'Label', initialValue: 'Confirm'),
       onPressed: () {},
     ),
   ),
   centeredUseCase(
     name: 'Disabled',
-    builder: (context) => CirculariSecondaryButton(
-      label: context.knobs.string(label: 'Label', initialValue: 'Cancel'),
+    builder: (context) => CirculariButton(
+      label: context.knobs.string(label: 'Label', initialValue: 'Confirm'),
       onPressed: null,
     ),
   ),

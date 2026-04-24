@@ -2,8 +2,7 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'use_cases/buttons/primary_button_use_cases.dart';
-import 'use_cases/buttons/secondary_button_use_cases.dart';
+import 'use_cases/buttons/button_use_cases.dart';
 import 'use_cases/cards/item_card_use_cases.dart';
 import 'use_cases/cards/list_card_use_cases.dart';
 import 'use_cases/inputs/search_field_use_cases.dart';
@@ -24,11 +23,11 @@ class WidgetbookApp extends StatelessWidget {
           children: [
             WidgetbookComponent(
               name: 'PrimaryButton',
-              useCases: primaryButtonUseCases,
+              useCases: buttonUseCases,
             ),
             WidgetbookComponent(
               name: 'SecondaryButton',
-              useCases: secondaryButtonUseCases,
+              useCases: buttonUseCases,
             ),
           ],
         ),

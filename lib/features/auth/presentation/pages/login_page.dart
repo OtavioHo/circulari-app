@@ -55,9 +55,7 @@ class _LoginPageState extends State<LoginPage> {
               passwordController: _passwordController,
               onSubmit: () => _onSubmit(context),
             ),
-            AuthLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
+            AuthLoading() => const Center(child: CircularProgressIndicator()),
             AuthSuccess() => const SizedBox.shrink(),
           },
         ),
@@ -87,18 +85,29 @@ class _Form extends StatelessWidget {
         child: Form(
           key: formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 20),
               Text(
-                'Welcome back',
-                style: Theme.of(context).textTheme.headlineMedium,
+                'Login',
+                style: context.circulariTheme.typography.heading3.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: CirculariColorsTokens.greyscale100,
+                ),
+              ),
+              Text(
+                'Faça seu login e aproveite a melhor forma de organizar seus bens. ',
+                textAlign: TextAlign.center,
+                style: context.circulariTheme.typography.body.medium.light
+                    .copyWith(color: CirculariColorsTokens.greyscale600),
               ),
               const SizedBox(height: 32),
-              TextFormField(
+              CirculariAuthTextFormField(
+                label: 'Email',
                 controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
+                prefixIcon: Icons.email_outlined,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Required';
                   final email = v.trim();
@@ -110,12 +119,13 @@ class _Form extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              CirculariAuthTextFormField(
+                label: 'Password',
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => onSubmit(),
+                prefixIcon: Icons.lock_outline,
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Required';
                   if (v.length < 8) return 'At least 8 characters';
@@ -123,11 +133,41 @@ class _Form extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 24),
-              FilledButton(onPressed: onSubmit, child: const Text('Login')),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Esqueci minha senha',
+                    style: context.circulariTheme.typography.body.medium.light
+                        .copyWith(color: CirculariColorsTokens.greyscale600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              CirculariButton(onPressed: onSubmit, label: 'Login'),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.push('/auth/register'),
-                child: const Text("Don't have an account? Register"),
+                child: RichText(
+                  text: TextSpan(
+                    text: "Don't have an account? ",
+                    style: TextStyle(color: CirculariColorsTokens.greyscale600),
+                    children: [
+                      TextSpan(
+                        text: ' Register',
+                        style: TextStyle(
+                          color: CirculariColorsTokens.greyscale100,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
