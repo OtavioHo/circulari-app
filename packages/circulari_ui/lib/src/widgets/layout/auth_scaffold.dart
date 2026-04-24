@@ -22,7 +22,7 @@ class CirculariAuthScaffold extends StatelessWidget {
         children: [
           Container(color: CirculariColorsTokens.deepMoss),
           SvgPicture.asset(
-            'assets/images/background/background.svg',
+            'assets/images/background/auth_background.svg',
             package: 'circulari_ui',
             fit: BoxFit.cover,
           ),
