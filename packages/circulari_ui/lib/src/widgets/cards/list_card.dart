@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import '../../extensions/build_context_extension.dart';
 import '../../theme/circulari_colors.dart';
 
@@ -159,8 +158,6 @@ class _WavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rng = Random(seed);
-
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -168,22 +165,46 @@ class _WavePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    canvas.translate(-85, 100);
-
-    canvas.drawPath(_curve(Size(size.width * 2, size.height*0.8), rng), paint);
+    switch (seed % 3) {
+      case 0:
+        _drawCurve1(canvas, paint);
+        break;  
+      case 1:
+        _drawCurve2(canvas, paint);
+        break;
+      case 2:
+        _drawCurve3(canvas, paint);
+        break;
+    }
   }
 
-  Path _curve(Size size, Random rng) {
+  void _drawCurve1(Canvas canvas, Paint paint) {
+    const Size size = Size(297 * 0.8, 215 * 0.8);
+
+    canvas.rotate(-0.2);
+    canvas.translate(-40, 150);
+    canvas.drawPath(_curve1(size), paint);
+  }
+
+  void _drawCurve2(Canvas canvas, Paint paint) {
+    const Size size = Size(461 * 0.8, 335 * 0.8);
+
+    canvas.rotate(-0.1);
+    canvas.translate(-20, 150);
+    canvas.drawPath(_curve2(size), paint);
+  }
+
+  void _drawCurve3(Canvas canvas, Paint paint) {
+    const Size size = Size(443 * 0.8, 395 * 0.8);
+
+    canvas.rotate(-0.3);
+    canvas.translate(-70, 160);
+    canvas.drawPath(_curve3(size), paint);
+  }
+
+  Path _curve1(Size size) {
     Path path = Path();
-    path.lineTo(-0.23, size.height * 0.41);
-    path.cubicTo(
-      -0.23,
-      size.height * 0.41,
-      size.width * 0.04,
-      size.height * 0.36,
-      size.width * 0.04,
-      size.height * 0.36,
-    );
+    path.lineTo(0, size.height * 0.5);
     path.cubicTo(
       size.width * 0.15,
       size.height * 0.34,
@@ -263,6 +284,234 @@ class _WavePainter extends CustomPainter {
       size.height * 1.07,
       size.width * 0.68,
       size.height * 1.07,
+    );
+    return path;
+  }
+
+  Path _curve2(Size size) {
+    Path path = Path();
+    path.lineTo(-0.08, size.height * 0.02);
+    path.cubicTo(
+      -0.08,
+      size.height * 0.02,
+      size.width * 0.11,
+      size.height * 0.45,
+      size.width * 0.11,
+      size.height * 0.45,
+    );
+    path.cubicTo(
+      size.width * 0.14,
+      size.height * 0.53,
+      size.width * 0.26,
+      size.height * 0.51,
+      size.width * 0.26,
+      size.height * 0.42,
+    );
+    path.cubicTo(
+      size.width * 0.26,
+      size.height * 0.35,
+      size.width * 0.34,
+      size.height * 0.31,
+      size.width * 0.4,
+      size.height * 0.34,
+    );
+    path.cubicTo(
+      size.width * 0.4,
+      size.height * 0.34,
+      size.width * 0.7,
+      size.height * 0.51,
+      size.width * 0.7,
+      size.height * 0.51,
+    );
+    path.cubicTo(
+      size.width * 0.82,
+      size.height * 0.58,
+      size.width * 0.95,
+      size.height * 0.47,
+      size.width * 0.91,
+      size.height * 0.34,
+    );
+    path.cubicTo(
+      size.width * 0.91,
+      size.height * 0.34,
+      size.width * 0.86,
+      size.height * 0.17,
+      size.width * 0.86,
+      size.height * 0.17,
+    );
+    path.cubicTo(
+      size.width * 0.83,
+      size.height * 0.1,
+      size.width * 0.75,
+      size.height * 0.07,
+      size.width * 0.68,
+      size.height * 0.1,
+    );
+    path.cubicTo(
+      size.width * 0.68,
+      size.height * 0.1,
+      size.width * 0.68,
+      size.height * 0.1,
+      size.width * 0.68,
+      size.height * 0.1,
+    );
+    path.cubicTo(
+      size.width * 0.65,
+      size.height * 0.11,
+      size.width * 0.63,
+      size.height * 0.11,
+      size.width * 0.6,
+      size.height * 0.1,
+    );
+    path.cubicTo(
+      size.width * 0.51,
+      size.height * 0.08,
+      size.width * 0.43,
+      size.height * 0.18,
+      size.width * 0.47,
+      size.height * 0.27,
+    );
+    path.cubicTo(
+      size.width * 0.47,
+      size.height * 0.27,
+      size.width * 0.64,
+      size.height * 0.61,
+      size.width * 0.64,
+      size.height * 0.61,
+    );
+    path.cubicTo(
+      size.width * 0.7,
+      size.height * 0.72,
+      size.width * 0.67,
+      size.height * 0.85,
+      size.width * 0.58,
+      size.height * 0.92,
+    );
+    path.cubicTo(
+      size.width * 0.58,
+      size.height * 0.92,
+      size.width * 0.47,
+      size.height * 1.02,
+      size.width * 0.47,
+      size.height * 1.02,
+    );
+    return path;
+  }
+
+  Path _curve3(Size size) {
+    Path path = Path();
+    path.lineTo(size.width * 0.96, size.height * 0.43);
+    path.cubicTo(
+      size.width * 0.96,
+      size.height * 0.43,
+      size.width * 0.42,
+      size.height * 0.24,
+      size.width * 0.42,
+      size.height * 0.24,
+    );
+    path.cubicTo(
+      size.width * 0.32,
+      size.height / 5,
+      size.width / 5,
+      size.height * 0.23,
+      size.width * 0.13,
+      size.height * 0.32,
+    );
+    path.cubicTo(
+      size.width * 0.05,
+      size.height * 0.41,
+      size.width * 0.02,
+      size.height * 0.54,
+      size.width * 0.05,
+      size.height * 0.66,
+    );
+    path.cubicTo(
+      size.width * 0.05,
+      size.height * 0.66,
+      size.width * 0.08,
+      size.height * 0.82,
+      size.width * 0.08,
+      size.height * 0.82,
+    );
+    path.cubicTo(
+      size.width * 0.11,
+      size.height * 0.96,
+      size.width * 0.23,
+      size.height * 1.06,
+      size.width * 0.36,
+      size.height * 1.05,
+    );
+    path.cubicTo(
+      size.width * 0.36,
+      size.height * 1.05,
+      size.width * 0.71,
+      size.height * 1.02,
+      size.width * 0.71,
+      size.height * 1.02,
+    );
+    path.cubicTo(
+      size.width * 0.78,
+      size.height,
+      size.width * 0.84,
+      size.height * 0.93,
+      size.width * 0.82,
+      size.height * 0.85,
+    );
+    path.cubicTo(
+      size.width * 0.82,
+      size.height * 0.81,
+      size.width * 0.82,
+      size.height * 0.78,
+      size.width * 0.84,
+      size.height * 0.75,
+    );
+    path.cubicTo(
+      size.width * 0.84,
+      size.height * 0.75,
+      size.width * 0.92,
+      size.height * 0.59,
+      size.width * 0.92,
+      size.height * 0.59,
+    );
+    path.cubicTo(
+      size.width * 0.95,
+      size.height * 0.53,
+      size.width * 0.96,
+      size.height * 0.47,
+      size.width * 0.95,
+      size.height * 0.4,
+    );
+    path.cubicTo(
+      size.width * 0.95,
+      size.height * 0.4,
+      size.width * 0.93,
+      size.height * 0.29,
+      size.width * 0.93,
+      size.height * 0.29,
+    );
+    path.cubicTo(
+      size.width * 0.89,
+      size.height * 0.03,
+      size.width * 0.59,
+      -0.04,
+      size.width * 0.46,
+      size.height * 0.17,
+    );
+    path.cubicTo(
+      size.width * 0.46,
+      size.height * 0.17,
+      size.width * 0.32,
+      size.height * 0.39,
+      size.width * 0.32,
+      size.height * 0.39,
+    );
+    path.cubicTo(
+      size.width * 0.23,
+      size.height * 0.54,
+      size.width * 0.03,
+      size.height * 0.52,
+      -0.04,
+      size.height * 0.36,
     );
     return path;
   }

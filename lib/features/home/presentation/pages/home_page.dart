@@ -107,6 +107,7 @@ class HomePage extends StatelessWidget {
                   title: list.name,
                   itemCount: list.itemCount,
                   value: list.totalValue,
+                  seed: index,
                   picturePath: assetForSlug(list.picture.slug) ?? '',
                   backgroundColor: Color(
                     int.parse(list.color.hexCode.replaceFirst('#', '0xff')),

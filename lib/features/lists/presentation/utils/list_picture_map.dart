@@ -18,6 +18,8 @@ const Map<String, Color> listPictureColorMap = {
 const Map<String, String> listPictureAssetMap = {
   'beach_house': 'assets/images/list_pictures/beach_house.png',
   'storage': 'assets/images/list_pictures/storage.png',
+  'country_house': 'assets/images/list_pictures/country_house.png',
+  'assets': 'assets/images/list_pictures/assets.png',
 };
 
 Color colorForSlug(String slug) =>
