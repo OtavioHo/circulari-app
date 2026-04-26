@@ -1,6 +1,7 @@
 import 'package:circulari_ui/src/extensions/build_context_extension.dart';
 import 'package:circulari_ui/src/theme/circulari_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CirculariInAppScaffold extends StatelessWidget {
   final String title;
@@ -26,6 +27,11 @@ class CirculariInAppScaffold extends StatelessWidget {
       backgroundColor: CirculariColorsTokens.greyscale200,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
         elevation: 0,
         centerTitle: true,
         title: Text(

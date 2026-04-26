@@ -15,6 +15,7 @@ class CirculariTextFormField extends StatefulWidget {
   final int lines;
   final void Function()? onSuffixIconPressed;
   final void Function(String)? onFieldSubmitted;
+  final bool aiGenerated;
 
   const CirculariTextFormField({
     super.key,
@@ -31,6 +32,7 @@ class CirculariTextFormField extends StatefulWidget {
     this.textInputAction,
     this.onFieldSubmitted,
     this.lines = 1,
+    this.aiGenerated = false,
   });
 
   @override
@@ -61,9 +63,8 @@ class _CirculariTextFormFieldState extends State<CirculariTextFormField> {
           SizedBox(height: context.circulariTheme.spacing.small),
           Text(
             widget.description!,
-            style: context.circulariTheme.typography.body.small.regular.copyWith(
-              color: CirculariColorsTokens.greyscale500,
-            ),
+            style: context.circulariTheme.typography.body.small.regular
+                .copyWith(color: CirculariColorsTokens.greyscale500),
           ),
         ],
         SizedBox(height: context.circulariTheme.spacing.small),
@@ -75,14 +76,30 @@ class _CirculariTextFormFieldState extends State<CirculariTextFormField> {
           keyboardType: widget.keyboardType,
           textInputAction: widget.textInputAction,
           minLines: widget.lines,
-          maxLines: widget.lines, 
-          style: context.circulariTheme.typography.body.large.regular.copyWith(
+          maxLines: widget.lines,
+          style: context.circulariTheme.typography.body.large.medium.copyWith(
             color: CirculariColorsTokens.greyscale800,
           ),
           cursorColor: CirculariColorsTokens.greyscale900,
           decoration: InputDecoration(
             hintText: widget.hintText,
             contentPadding: const EdgeInsets.all(18),
+            suffixIcon: widget.aiGenerated
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.auto_awesome,
+                        color: CirculariColorsTokens.greyscale600,
+                      ),
+                      for (int i = 0; i < widget.lines - 1; i++)
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: Colors.transparent,
+                        ),
+                    ],
+                  )
+                : null,
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,

@@ -4,7 +4,6 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/entities/category.dart';
 import '../bloc/ai_analysis_cubit.dart';
 import '../bloc/categories_cubit.dart';
 import '../bloc/items_bloc.dart';
@@ -32,6 +31,11 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   late final TextEditingController _qtyCtrl;
   late final TextEditingController _valueCtrl;
   String? _selectedCategoryId;
+  bool _nameAiGenerated = false;
+  bool _descAiGenerated = false;
+  bool _valueAiGenerated = false;
+  bool _categoryAiGenerated = false;
+  String? _aiPriceDescription;
 
   @override
   void initState() {
@@ -55,14 +59,26 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   void _onAnalysisState(BuildContext context, AiAnalysisState state) {
     if (state is AiAnalysisSuccess) {
       final result = state.result;
-      if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.name;
-      if (_descCtrl.text.isEmpty) _descCtrl.text = result.description;
-      if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
-        _valueCtrl.text = result.priceMin.toStringAsFixed(2);
-      }
-      if (result.categoryId != null) {
-        setState(() => _selectedCategoryId = result.categoryId);
-      }
+      setState(() {
+        if (_nameCtrl.text.isEmpty) {
+          _nameCtrl.text = result.name;
+          _nameAiGenerated = true;
+        }
+        if (_descCtrl.text.isEmpty) {
+          _descCtrl.text = result.description;
+          _descAiGenerated = true;
+        }
+        if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
+          _valueCtrl.text = result.priceMin.toStringAsFixed(2);
+          _valueAiGenerated = true;
+          _aiPriceDescription =
+              'Preço estimado pela IA: R\$${result.priceMin.toStringAsFixed(2)}';
+        }
+        if (result.categoryId != null) {
+          _selectedCategoryId = result.categoryId;
+          _categoryAiGenerated = true;
+        }
+      });
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not analyse image: ${state.message}')),
@@ -169,101 +185,90 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                       ? 'Name is required'
                       : null,
                   label: 'Name *',
+                  aiGenerated: _nameAiGenerated,
+                  onChanged: (_) =>
+                      setState(() => _nameAiGenerated = false),
                 ),
                 SizedBox(height: theme.spacing.large),
                 CirculariTextFormField(
                   controller: _descCtrl,
                   label: 'Descreva o item',
+                  aiGenerated: _descAiGenerated,
                   lines: 4,
+                  onChanged: (_) =>
+                      setState(() => _descAiGenerated = false),
                 ),
                 SizedBox(height: theme.spacing.large),
                 CirculariTextFormField(
                   controller: _valueCtrl,
                   label: 'Preço',
-                  description: 'Preço estimado pela IA: R\$5.000,00',
+                  description: _aiPriceDescription,
+                  aiGenerated: _valueAiGenerated,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  onChanged: (_) =>
+                      setState(() => _valueAiGenerated = false),
                 ),
                 SizedBox(height: theme.spacing.large),
-                _CategoryDropdown(
-                  selectedCategoryId: _selectedCategoryId,
-                  onChanged: (id) => setState(() => _selectedCategoryId = id),
+                BlocBuilder<CategoriesCubit, CategoriesState>(
+                  builder: (context, state) => switch (state) {
+                    CategoriesLoading() => const SizedBox(
+                      height: 56,
+                      child: Center(child: LinearProgressIndicator()),
+                    ),
+                    CategoriesSuccess(:final categories) =>
+                      CirculariDropdownFormField<String?>(
+                        label: 'Categoria',
+                        aiGenerated: _categoryAiGenerated,
+                        value:
+                            categories.any((c) => c.id == _selectedCategoryId)
+                            ? _selectedCategoryId
+                            : null,
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('Sem categoria'),
+                          ),
+                          ...categories.map(
+                            (c) => DropdownMenuItem(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (id) => setState(() {
+                          _selectedCategoryId = id;
+                          _categoryAiGenerated = false;
+                        }),
+                      ),
+                    CategoriesFailure() => const SizedBox.shrink(),
+                    CategoriesInitial() => const SizedBox.shrink(),
+                  },
                 ),
                 SizedBox(height: theme.spacing.large),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                   builder: (context, aiState) =>
                       BlocBuilder<ItemsBloc, ItemsState>(
-                        builder: (context, itemsState) => FilledButton(
+                        builder: (context, itemsState) => CirculariButton(
                           onPressed:
                               aiState is AiAnalysisLoading ||
                                   itemsState is ItemsLoading
                               ? null
                               : _submit,
-                          child: itemsState is ItemsLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Add item'),
+                          label: 'Criar Item',
+                          isLoading:
+                              aiState is AiAnalysisLoading ||
+                              itemsState is ItemsLoading,
                         ),
                       ),
                 ),
+                SizedBox(height: theme.spacing.medium),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CategoryDropdown extends StatelessWidget {
-  final String? selectedCategoryId;
-  final ValueChanged<String?> onChanged;
-
-  const _CategoryDropdown({
-    required this.selectedCategoryId,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CategoriesCubit, CategoriesState>(
-      builder: (context, state) => switch (state) {
-        CategoriesLoading() => const SizedBox(
-          height: 56,
-          child: Center(child: LinearProgressIndicator()),
-        ),
-        CategoriesSuccess(:final categories) => _buildDropdown(categories),
-        CategoriesFailure() => const SizedBox.shrink(),
-        CategoriesInitial() => const SizedBox.shrink(),
-      },
-    );
-  }
-
-  Widget _buildDropdown(List<Category> categories) {
-    final validId = categories.any((c) => c.id == selectedCategoryId)
-        ? selectedCategoryId
-        : null;
-
-    return DropdownButtonFormField<String>(
-      key: ValueKey(validId),
-      initialValue: validId,
-      decoration: const InputDecoration(
-        labelText: 'Category',
-        border: OutlineInputBorder(),
-      ),
-      items: [
-        const DropdownMenuItem(value: null, child: Text('No category')),
-        ...categories.map(
-          (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
-        ),
-      ],
-      onChanged: onChanged,
     );
   }
 }
