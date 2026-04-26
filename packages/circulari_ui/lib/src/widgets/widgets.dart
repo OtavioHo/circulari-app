@@ -1,5 +1,5 @@
 export 'buttons/button.dart';
-export 'inputs/text_field.dart';
+export 'inputs/text_form_field.dart';
 export 'inputs/search_field.dart';
 export 'inputs/auth_text_form_field.dart';
 export 'cards/item_card.dart';
@@ -11,3 +11,4 @@ export 'layout/collapsible_body.dart';
 export 'layout/default_background_scaffold.dart';
 export 'layout/auth_scaffold.dart';
 export 'layout/app_bar.dart';
+export 'layout/in_app_scaffold.dart';

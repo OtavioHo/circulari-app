@@ -1,7 +1,7 @@
 import 'package:app/features/add/presentation/pages/add_page.dart';
 import 'package:app/features/home/presentation/pages/home_page.dart';
 import 'package:app/features/items/presentation/pages/add_item_form_page.dart';
-import 'package:app/features/items/presentation/pages/add_item_page.dart';
+import 'package:app/features/items/presentation/pages/add_item_picture_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -138,7 +138,7 @@ final appRouter = GoRouter(
       },
       builder: (context, state) {
         final listId = state.uri.queryParameters['listId']!;
-        return AddItemPage(listId: listId);
+        return AddItemPicturePage(listId: listId);
       },
     ),
     GoRoute(

@@ -4,16 +4,16 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class AddItemPage extends StatefulWidget {
+class AddItemPicturePage extends StatefulWidget {
   final String listId;
 
-  const AddItemPage({super.key, required this.listId});
+  const AddItemPicturePage({super.key, required this.listId});
 
   @override
-  State<AddItemPage> createState() => _AddItemPageState();
+  State<AddItemPicturePage> createState() => _AddItemPicturePageState();
 }
 
-class _AddItemPageState extends State<AddItemPage> {
+class _AddItemPicturePageState extends State<AddItemPicturePage> {
   CameraController? _controller;
   bool _isCapturing = false;
 

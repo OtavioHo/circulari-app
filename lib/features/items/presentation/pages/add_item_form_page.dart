@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -73,9 +74,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     if (state is ItemsSuccess) {
       Navigator.of(context).pop();
     } else if (state is ItemsActionFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(state.message)));
     }
   }
 
@@ -101,6 +102,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.circulariTheme;
     return MultiBlocListener(
       listeners: [
         BlocListener<AiAnalysisCubit, AiAnalysisState>(
@@ -108,8 +110,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         ),
         BlocListener<ItemsBloc, ItemsState>(listener: _onItemsState),
       ],
-      child: Scaffold(
-        appBar: AppBar(title: const Text('New item')),
+      child: CirculariInAppScaffold(
+        title: 'Criar item',
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -117,6 +119,26 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Text(
+                  'Especificações do item',
+                  style: theme.typography.heading3.copyWith(
+                    color: CirculariColorsTokens.greyscale900,
+                  ),
+                ),
+                Text(
+                  'Para entendermos melhor, preencha as informações básicas do item.',
+                  style: theme.typography.body.large.regular.copyWith(
+                    color: CirculariColorsTokens.greyscale500,
+                  ),
+                ),
+                SizedBox(height: theme.spacing.medium),
+                Text(
+                  'Foto do item',
+                  style: theme.typography.body.large.semibold.copyWith(
+                    color: CirculariColorsTokens.greyscale500,
+                  ),
+                ),
+                SizedBox(height: theme.spacing.medium),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.file(
@@ -124,6 +146,13 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                  ),
+                ),
+                SizedBox(height: theme.spacing.medium),
+                Text(
+                  'Descrição do item',
+                  style: theme.typography.body.large.semibold.copyWith(
+                    color: CirculariColorsTokens.greyscale500,
                   ),
                 ),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
@@ -134,82 +163,54 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                         )
                       : const SizedBox(height: 16),
                 ),
-                TextFormField(
+                CirculariTextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Name *',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Name is required'
+                      : null,
+                  label: 'Name *',
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
+                SizedBox(height: theme.spacing.large),
+                CirculariTextFormField(
                   controller: _descCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                  maxLines: 2,
+                  label: 'Descreva o item',
+                  lines: 4,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: theme.spacing.large),
+                CirculariTextFormField(
+                  controller: _valueCtrl,
+                  label: 'Preço',
+                  description: 'Preço estimado pela IA: R\$5.000,00',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                SizedBox(height: theme.spacing.large),
                 _CategoryDropdown(
                   selectedCategoryId: _selectedCategoryId,
                   onChanged: (id) => setState(() => _selectedCategoryId = id),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _qtyCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantity',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (v) {
-                          final n = int.tryParse(v ?? '');
-                          if (n == null || n < 1) return 'Min 1';
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _valueCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Value (R\$)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                SizedBox(height: theme.spacing.large),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                   builder: (context, aiState) =>
                       BlocBuilder<ItemsBloc, ItemsState>(
-                    builder: (context, itemsState) => FilledButton(
-                      onPressed: aiState is AiAnalysisLoading ||
-                              itemsState is ItemsLoading
-                          ? null
-                          : _submit,
-                      child: itemsState is ItemsLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Add item'),
-                    ),
-                  ),
+                        builder: (context, itemsState) => FilledButton(
+                          onPressed:
+                              aiState is AiAnalysisLoading ||
+                                  itemsState is ItemsLoading
+                              ? null
+                              : _submit,
+                          child: itemsState is ItemsLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Add item'),
+                        ),
+                      ),
                 ),
               ],
             ),
@@ -234,11 +235,10 @@ class _CategoryDropdown extends StatelessWidget {
     return BlocBuilder<CategoriesCubit, CategoriesState>(
       builder: (context, state) => switch (state) {
         CategoriesLoading() => const SizedBox(
-            height: 56,
-            child: Center(child: LinearProgressIndicator()),
-          ),
-        CategoriesSuccess(:final categories) =>
-          _buildDropdown(categories),
+          height: 56,
+          child: Center(child: LinearProgressIndicator()),
+        ),
+        CategoriesSuccess(:final categories) => _buildDropdown(categories),
         CategoriesFailure() => const SizedBox.shrink(),
         CategoriesInitial() => const SizedBox.shrink(),
       },
