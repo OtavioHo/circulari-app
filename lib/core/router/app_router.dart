@@ -30,6 +30,8 @@ import '../../features/lists/presentation/bloc/lists_event.dart';
 import '../../features/lists/presentation/cubit/create_list_cubit.dart';
 import '../../features/lists/presentation/pages/create_list_page.dart';
 import '../../features/lists/presentation/pages/lists_page.dart';
+import '../../features/profile/presentation/bloc/plan_bloc.dart';
+import '../../features/profile/presentation/bloc/plan_event.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import 'scaffold_with_navbar.dart';
 
@@ -93,7 +95,10 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => const ProfilePage(),
+          builder: (context, state) => BlocProvider(
+            create: (_) => sl<PlanBloc>()..add(const PlanLoadRequested()),
+            child: const ProfilePage(),
+          ),
         ),
         GoRoute(path: '/add', builder: (context, state) => const AddPage()),
       ],

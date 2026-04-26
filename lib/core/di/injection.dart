@@ -9,6 +9,7 @@ import '../../features/auth/auth_di.dart';
 import '../../features/home/home_di.dart';
 import '../../features/items/items_di.dart';
 import '../../features/lists/lists_di.dart';
+import '../../features/profile/profile_di.dart';
 
 final sl = GetIt.instance;
 
@@ -27,4 +28,5 @@ void setupInjection() {
   sl.registerHomeFeature();
   sl.registerListsFeature();
   sl.registerItemsFeature();
+  sl.registerProfileFeature();
 }
