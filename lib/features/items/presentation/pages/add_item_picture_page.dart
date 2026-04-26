@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddItemPicturePage extends StatefulWidget {
   final String listId;
@@ -36,6 +38,13 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickFromGallery() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null || !mounted) return;
+    await _showConfirmation(file.path);
   }
 
   Future<void> _capture() async {
@@ -77,43 +86,104 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: const Text('Take a photo'),
-      ),
       body: cam == null || !cam.value.isInitialized
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : Stack(
               fit: StackFit.expand,
               children: [
                 CameraPreview(cam),
+                const _CameraFrame(),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: SafeArea(
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: const Icon(
+                        Icons.close,
+                        color: CirculariColorsTokens.greyscale50,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 100,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Escaneie o Produto',
+                            textAlign: TextAlign.center,
+                            style: context.circulariTheme.typography.heading3
+                                .copyWith(
+                                  color: CirculariColorsTokens.greyscale50,
+                                ),
+                          ),
+                          Text(
+                            'Aponte a câmera do celular para o produto que deseja adicionar.',
+                            textAlign: TextAlign.center,
+                            style: context
+                                .circulariTheme
+                                .typography
+                                .body
+                                .medium
+                                .regular
+                                .copyWith(
+                                  color: CirculariColorsTokens.greyscale50,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   bottom: 40,
                   left: 0,
                   right: 0,
                   child: Center(
-                    child: GestureDetector(
-                      onTap: _isCapturing ? null : _capture,
-                      child: Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _isCapturing
-                                  ? Colors.white54
-                                  : Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        children: [
+                          CirculariButton(
+                            label: 'Carregar da galeria',
+                            onPressed: _pickFromGallery,
+                          ),
+                          SizedBox(
+                            height: context.circulariTheme.spacing.medium,
+                          ),
+                          GestureDetector(
+                            onTap: _isCapturing ? null : _capture,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _isCapturing
+                                        ? Colors.white54
+                                        : Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
@@ -122,6 +192,59 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
             ),
     );
   }
+}
+
+class _CameraFrame extends StatelessWidget {
+  const _CameraFrame();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _FramePainter(),
+      child: const SizedBox.expand(),
+    );
+  }
+}
+
+class _FramePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const radius = Radius.circular(16);
+    const horizontalPadding = 40.0;
+    const aspectRatio = 4 / 3;
+
+    final cutoutWidth = size.width - horizontalPadding * 2;
+    final cutoutHeight = cutoutWidth / aspectRatio;
+    final cutoutTop = (size.height - cutoutHeight) / 2;
+    final cutoutRect = RRect.fromLTRBR(
+      horizontalPadding,
+      cutoutTop,
+      size.width - horizontalPadding,
+      cutoutTop + cutoutHeight,
+      radius,
+    );
+
+    final overlayPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(cutoutRect)
+      ..fillType = PathFillType.evenOdd;
+
+    canvas.drawPath(
+      overlayPath,
+      Paint()..color = Colors.black.withValues(alpha: 0.55),
+    );
+
+    canvas.drawRRect(
+      cutoutRect,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _PhotoConfirmationSheet extends StatelessWidget {
@@ -145,11 +268,7 @@ class _PhotoConfirmationSheet extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              File(imagePath),
-              height: 300,
-              fit: BoxFit.cover,
-            ),
+            child: Image.file(File(imagePath), height: 300, fit: BoxFit.cover),
           ),
           const SizedBox(height: 16),
           Text(
@@ -158,15 +277,9 @@ class _PhotoConfirmationSheet extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: onUse,
-            child: const Text('Use photo'),
-          ),
+          FilledButton(onPressed: onUse, child: const Text('Use photo')),
           const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: onRetake,
-            child: const Text('Retake'),
-          ),
+          OutlinedButton(onPressed: onRetake, child: const Text('Retake')),
         ],
       ),
     );
