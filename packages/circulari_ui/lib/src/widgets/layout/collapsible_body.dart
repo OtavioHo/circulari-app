@@ -8,11 +8,18 @@ import 'package:flutter_svg/svg.dart';
 /// the user scrolls. [headerBuilder] receives the current [shrinkOffset]
 /// (0 = fully expanded, grows toward expandedHeight − collapsedHeight as the
 /// user scrolls down) so callers can drive opacity, size, or layout transitions.
-class CirculariCollapsibleBody extends StatelessWidget {
+///
+/// [backgroundBuilder] works the same way but its output is rendered in the
+/// outer Stack, behind the scroll view. This lets painted content (e.g. a wave
+/// decoration) extend visually below the header and appear behind the body card
+/// instead of being clipped by the sliver boundary.
+class CirculariCollapsibleBody extends StatefulWidget {
   final double expandedHeight;
   final double collapsedHeight;
   final Widget Function(BuildContext context, double shrinkOffset)
   headerBuilder;
+  final Widget Function(BuildContext context, double shrinkOffset)?
+  backgroundBuilder;
   final List<Widget> children;
   final EdgeInsetsGeometry? padding;
 
@@ -22,12 +29,39 @@ class CirculariCollapsibleBody extends StatelessWidget {
     required this.collapsedHeight,
     required this.headerBuilder,
     required this.children,
+    this.backgroundBuilder,
     this.padding,
   });
 
   @override
+  State<CirculariCollapsibleBody> createState() =>
+      _CirculariCollapsibleBodyState();
+}
+
+class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
+  final _scrollController = ScrollController();
+
+  // The transparent SliverAppBar above the collapsing header consumes this
+  // much scroll offset before the header starts shrinking.
+  static const _appBarHeight = 56.0;
+
+  double get _shrinkOffset {
+    if (!_scrollController.hasClients) return 0.0;
+    return (_scrollController.offset - _appBarHeight)
+        .clamp(0.0, widget.expandedHeight - widget.collapsedHeight);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final gradientEnd = expandedHeight / MediaQuery.sizeOf(context).height;
+    final gradientEnd =
+        widget.expandedHeight / MediaQuery.sizeOf(context).height;
+    final topPadding = MediaQuery.paddingOf(context).top;
 
     return Stack(
       children: [
@@ -49,8 +83,23 @@ class CirculariCollapsibleBody extends StatelessWidget {
             ),
           ),
         ),
+        if (widget.backgroundBuilder != null)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            // Extend 24 px past the header so the background bleeds behind
+            // the rounded top edge of the body card.
+            height: topPadding + _appBarHeight + widget.expandedHeight + 24,
+            child: ListenableBuilder(
+              listenable: _scrollController,
+              builder: (context, _) =>
+                  widget.backgroundBuilder!(context, _shrinkOffset),
+            ),
+          ),
         SafeArea(
           child: CustomScrollView(
+            controller: _scrollController,
             slivers: [
               SliverAppBar(
                 backgroundColor: Colors.transparent,
@@ -75,9 +124,9 @@ class CirculariCollapsibleBody extends StatelessWidget {
               ),
               SliverPersistentHeader(
                 delegate: _CollapsingHeaderDelegate(
-                  expandedHeight: expandedHeight,
-                  collapsedHeight: collapsedHeight,
-                  builder: headerBuilder,
+                  expandedHeight: widget.expandedHeight,
+                  collapsedHeight: widget.collapsedHeight,
+                  builder: widget.headerBuilder,
                 ),
               ),
               DecoratedSliver(
@@ -88,14 +137,19 @@ class CirculariCollapsibleBody extends StatelessWidget {
                     topRight: Radius.circular(24),
                   ),
                 ),
-                sliver: SliverPadding(
-                  padding: padding ?? EdgeInsets.zero,
-                  sliver: SliverPadding(
-                    padding: const EdgeInsets.only(top: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate(children),
+                sliver: SliverMainAxisGroup(
+                  slivers: [
+                    SliverPadding(
+                      padding: widget.padding ?? EdgeInsets.zero,
+                      sliver: SliverPadding(
+                        padding: const EdgeInsets.only(top: 24),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate(widget.children),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SliverFillRemaining(hasScrollBody: false),
+                  ],
                 ),
               ),
             ],

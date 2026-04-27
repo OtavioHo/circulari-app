@@ -103,7 +103,8 @@ class HomePage extends StatelessWidget {
                     int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
                   ),
                   onTap: () => context.push(
-                    '/lists/${list.id}/items?name=${Uri.encodeComponent(list.name)}',
+                    '/lists/${list.id}/items',
+                    extra: list,
                   ),
                 );
               },

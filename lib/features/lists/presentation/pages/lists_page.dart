@@ -65,7 +65,8 @@ class _ListsScaffold extends StatelessWidget {
                       return ListCard(
                         list: list,
                         onTap: () => context.push(
-                          '/lists/${list.id}/items?name=${Uri.encodeComponent(list.name)}',
+                          '/lists/${list.id}/items',
+                          extra: list,
                         ),
                         onDelete: () => _onDeleteTapped(context, list.id, list.name),
                         onRename: () =>

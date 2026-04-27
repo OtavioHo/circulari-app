@@ -1,4 +1,5 @@
 import 'package:app/features/add/presentation/pages/add_page.dart';
+import 'package:flutter/material.dart';
 import 'package:app/features/home/presentation/pages/home_page.dart';
 import 'package:app/features/items/presentation/pages/add_item_form_page.dart';
 import 'package:app/features/items/presentation/pages/add_item_picture_page.dart';
@@ -21,7 +22,9 @@ import '../../features/items/presentation/bloc/items_event.dart';
 import '../../features/items/presentation/bloc/search_items_bloc.dart';
 import '../../features/items/presentation/bloc/search_items_event.dart';
 import '../../features/items/presentation/pages/item_detail_page.dart';
-import '../../features/items/presentation/pages/items_page.dart';
+import '../../features/lists/domain/entities/item_list.dart';
+import '../../features/lists/presentation/pages/list_detail_page.dart';
+import '../../features/lists/presentation/utils/list_picture_map.dart';
 import '../../features/items/presentation/pages/select_list_page.dart';
 import '../../features/home/presentation/bloc/dashboard_bloc.dart';
 import '../../features/home/presentation/bloc/dashboard_event.dart';
@@ -110,15 +113,25 @@ final appRouter = GoRouter(
         child: const CreateListPage(),
       ),
     ),
-    //TODO: Refactor to call /details and fetch the list name instead of passing it as a query parameter
     GoRoute(
       path: '/lists/:id/items',
       builder: (context, state) {
         final listId = state.pathParameters['id']!;
-        final listName = state.uri.queryParameters['name'] ?? '';
+        final list = state.extra as ItemList?;
+        final picturePath = list != null ? assetForSlug(list.picture.slug) : null;
+        final backgroundColor = list != null
+            ? Color(int.parse(list.color.hexCode.replaceFirst('#', '0xff')))
+            : null;
         return BlocProvider(
           create: (_) => sl<ItemsBloc>()..add(ItemsLoadRequested(listId)),
-          child: ItemsPage(listId: listId, listName: listName),
+          child: ListDetailPage(
+            listId: listId,
+            listName: list?.name ?? '',
+            picturePath: picturePath,
+            backgroundColor: backgroundColor,
+            initialTotalValue: list?.totalValue,
+            seed: list?.picture.slug.hashCode,
+          ),
         );
       },
     ),
