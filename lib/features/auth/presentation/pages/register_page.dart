@@ -90,14 +90,14 @@ class _Form extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
               const SizedBox(height: 20),
               Text(
                 'Cadastro',
@@ -143,6 +143,7 @@ class _Form extends StatelessWidget {
                 label: 'Senha',
                 controller: passwordController,
                 obscureText: true,
+                isAuth: true,
                 textInputAction: TextInputAction.next,
                 prefixIcon: Icons.lock_outline,
                 validator: (v) {
@@ -156,6 +157,7 @@ class _Form extends StatelessWidget {
                 label: 'Confirmar senha',
                 controller: confirmPasswordController,
                 obscureText: true,
+                isAuth: true,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => onSubmit(),
                 prefixIcon: Icons.lock_outline,
@@ -185,8 +187,7 @@ class _Form extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

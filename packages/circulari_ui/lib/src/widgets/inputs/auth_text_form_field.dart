@@ -9,6 +9,7 @@ class CirculariAuthTextFormField extends StatefulWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final bool obscureText;
+  final bool isAuth;
   final TextInputType keyboardType;
   final IconData? prefixIcon;
   final void Function()? onSuffixIconPressed;
@@ -22,6 +23,7 @@ class CirculariAuthTextFormField extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.obscureText = false,
+    this.isAuth = false,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
     this.onSuffixIconPressed,
@@ -66,6 +68,16 @@ class _CirculariAuthTextFormFieldState
                 widget.prefixIcon,
                 color: CirculariColorsTokens.greyscale600,
                 size: 20,
+              )
+            : null,
+        suffixIcon: widget.isAuth
+            ? IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: CirculariColorsTokens.greyscale600,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _obscureText = !_obscureText),
               )
             : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

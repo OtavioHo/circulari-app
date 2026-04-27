@@ -79,14 +79,14 @@ class _Form extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
               const SizedBox(height: 20),
               Text(
                 'Login',
@@ -120,9 +120,9 @@ class _Form extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               CirculariAuthTextFormField(
-                label: 'Password',
+                label: 'Senha',
                 controller: passwordController,
-                obscureText: true,
+                isAuth: true,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => onSubmit(),
                 prefixIcon: Icons.lock_outline,
@@ -169,8 +169,7 @@ class _Form extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

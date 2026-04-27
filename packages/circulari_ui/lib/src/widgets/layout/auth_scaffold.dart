@@ -17,41 +17,52 @@ class CirculariAuthScaffold extends StatelessWidget {
     final bg = backgroundColor ?? Theme.of(context).colorScheme.surface;
     return Scaffold(
       backgroundColor: bg,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(color: CirculariColorsTokens.deepMoss),
-          SvgPicture.asset(
-            'assets/images/background/auth_background.svg',
-            package: 'circulari_ui',
-            fit: BoxFit.cover,
-          ),
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.black, Colors.transparent, Colors.black],
-                stops: [0, 0.5, 1],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final height =
+              constraints.maxHeight + MediaQuery.viewInsetsOf(context).bottom;
+          return SingleChildScrollView(
+            child: SizedBox(
+              height: height,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(color: CirculariColorsTokens.deepMoss),
+                  SvgPicture.asset(
+                    'assets/images/background/auth_background.svg',
+                    package: 'circulari_ui',
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.black, Colors.transparent, Colors.black],
+                        stops: [0, 0.5, 1],
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      const Expanded(child: SizedBox.shrink()),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: CirculariColorsTokens.greyscale800,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(36),
+                            topRight: Radius.circular(36),
+                          ),
+                        ),
+                        child: child,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-          Column(
-            children: [
-              const Expanded(child: SizedBox.shrink()),
-              Container(
-                decoration: BoxDecoration(
-                  color: CirculariColorsTokens.greyscale800,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(36),
-                    topRight: Radius.circular(36),
-                  ),
-                ),
-                child: child,
-              )
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
