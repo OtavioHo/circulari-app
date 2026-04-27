@@ -1,5 +1,6 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CirculariAuthTextFormField extends StatefulWidget {
   final String label;
@@ -14,6 +15,8 @@ class CirculariAuthTextFormField extends StatefulWidget {
   final IconData? prefixIcon;
   final void Function()? onSuffixIconPressed;
   final void Function(String)? onFieldSubmitted;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   const CirculariAuthTextFormField({
     super.key,
@@ -29,6 +32,8 @@ class CirculariAuthTextFormField extends StatefulWidget {
     this.onSuffixIconPressed,
     this.textInputAction,
     this.onFieldSubmitted,
+    this.inputFormatters,
+    this.maxLength,
   });
 
   @override
@@ -55,6 +60,8 @@ class _CirculariAuthTextFormFieldState
       obscureText: _obscureText,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
+      inputFormatters: widget.inputFormatters,
+      maxLength: widget.maxLength,
       style: context.circulariTheme.typography.body.small.regular.copyWith(
         color: CirculariColorsTokens.greyscale100,
       ),

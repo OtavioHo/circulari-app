@@ -66,6 +66,49 @@ class AuthRemoteSource {
     }
   }
 
+  Future<void> forgotPassword({required String email}) async {
+    try {
+      await _dio.post('/auth/forgot-password', data: {'email': email});
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<String> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/verify-reset-otp',
+        data: {'email': email, 'otp': otp},
+      );
+      final data = _parseBody(response.data);
+      return _requireString(data, 'resetToken');
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post(
+        '/auth/reset-password',
+        data: {
+          'email': email,
+          'resetToken': resetToken,
+          'newPassword': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   Map<String, dynamic> _parseBody(dynamic data) {
     if (data is! Map<String, dynamic>) {
       throw const ServerException('Unexpected response format.');

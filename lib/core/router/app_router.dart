@@ -9,8 +9,13 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_state_notifier.dart';
 import '../di/injection.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/recovery_bloc.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/recovery_route_args.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
+import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/items/domain/entities/item.dart';
 import '../../features/items/domain/usecases/delete_item_usecase.dart';
 import '../../features/items/domain/usecases/update_item_usecase.dart';
@@ -61,6 +66,33 @@ final appRouter = GoRouter(
         create: (_) => sl<AuthBloc>(),
         child: const RegisterPage(),
       ),
+    ),
+    GoRoute(
+      path: '/auth/forgot-password',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<RecoveryBloc>(),
+        child: const ForgotPasswordPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/auth/verify-otp',
+      builder: (context, state) {
+        final args = state.extra as VerifyOtpArgs;
+        return BlocProvider(
+          create: (_) => sl<RecoveryBloc>(),
+          child: VerifyOtpPage(args: args),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/auth/reset-password',
+      builder: (context, state) {
+        final args = state.extra as ResetPasswordArgs;
+        return BlocProvider(
+          create: (_) => sl<RecoveryBloc>(),
+          child: ResetPasswordPage(args: args),
+        );
+      },
     ),
     ShellRoute(
       builder: (context, state, child) => ScaffoldWithNavBar(child: child),

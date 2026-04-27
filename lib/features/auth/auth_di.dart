@@ -4,11 +4,15 @@ import '../../core/auth/auth_state_notifier.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/sources/auth_remote_source.dart';
 import 'domain/repositories/auth_repository.dart';
+import 'domain/usecases/forgot_password_usecase.dart';
 import 'domain/usecases/get_me_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/usecases/register_usecase.dart';
+import 'domain/usecases/reset_password_usecase.dart';
+import 'domain/usecases/verify_reset_otp_usecase.dart';
 import 'presentation/bloc/auth_bloc.dart';
+import 'presentation/bloc/recovery_bloc.dart';
 
 extension AuthDI on GetIt {
   void registerAuthFeature() {
@@ -26,6 +30,16 @@ extension AuthDI on GetIt {
         register: call(),
         logout: call(),
         authStateNotifier: call<AuthStateNotifier>(),
+      ),
+    );
+    registerLazySingleton(() => ForgotPasswordUsecase(call()));
+    registerLazySingleton(() => VerifyResetOtpUsecase(call()));
+    registerLazySingleton(() => ResetPasswordUsecase(call()));
+    registerFactory(
+      () => RecoveryBloc(
+        forgotPassword: call(),
+        verifyOtp: call(),
+        resetPassword: call(),
       ),
     );
   }
