@@ -33,9 +33,11 @@ class ListDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: CirculariColorsTokens.freshCore,
         onPressed: () => context.push('/items/add?listId=$listId'),
-        tooltip: 'New item',
-        child: const Icon(Icons.add),
+        tooltip: 'Novo Item',
+        child: const Icon(Icons.add, color: CirculariColorsTokens.greyscale100),
       ),
       body: BlocConsumer<ItemsBloc, ItemsState>(
         listener: (context, state) {

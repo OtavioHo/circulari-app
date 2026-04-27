@@ -60,7 +60,7 @@ class CirculariItemListTile extends StatelessWidget {
                     Text(
                       categoryName,
                       style: typography.body.small.regular.copyWith(
-                        color: CirculariColorsTokens.greyscale600,
+                        color: CirculariColorsTokens.greyscale400,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -74,7 +74,7 @@ class CirculariItemListTile extends StatelessWidget {
                   Text(
                     listName,
                     style: typography.body.small.regular.copyWith(
-                      color: CirculariColorsTokens.greyscale600,
+                      color: CirculariColorsTokens.greyscale400,
                     ),
                   ),
                   Text(
