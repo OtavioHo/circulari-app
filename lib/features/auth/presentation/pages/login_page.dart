@@ -156,11 +156,11 @@ class _Form extends StatelessWidget {
                 onPressed: () => context.push('/auth/register'),
                 child: RichText(
                   text: TextSpan(
-                    text: "Don't have an account? ",
+                    text: "Ainda não tem uma conta? ",
                     style: TextStyle(color: CirculariColorsTokens.greyscale600),
                     children: [
                       TextSpan(
-                        text: ' Register',
+                        text: 'Crie uma conta',
                         style: TextStyle(
                           color: CirculariColorsTokens.greyscale100,
                         ),

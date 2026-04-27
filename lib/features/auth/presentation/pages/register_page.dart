@@ -114,7 +114,7 @@ class _Form extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               CirculariAuthTextFormField(
-                label: 'Name',
+                label: 'Nome Completo',
                 controller: nameController,
                 textInputAction: TextInputAction.next,
                 prefixIcon: Icons.person_outline,
@@ -134,20 +134,20 @@ class _Form extends StatelessWidget {
                   final valid = RegExp(
                     r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
                   ).hasMatch(email);
-                  if (!valid) return 'Enter a valid email';
+                  if (!valid) return 'Digite um email válido';
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               CirculariAuthTextFormField(
-                label: 'Password',
+                label: 'Senha',
                 controller: passwordController,
                 obscureText: true,
                 textInputAction: TextInputAction.next,
                 prefixIcon: Icons.lock_outline,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (v.length < 8) return 'At least 8 characters';
+                  if (v == null || v.isEmpty) return 'Obrigatório';
+                  if (v.length < 8) return 'Pelo menos 8 caracteres';
                   return null;
                 },
               ),
@@ -160,8 +160,8 @@ class _Form extends StatelessWidget {
                 onFieldSubmitted: (_) => onSubmit(),
                 prefixIcon: Icons.lock_outline,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (v != passwordController.text) return 'Passwords do not match';
+                  if (v == null || v.isEmpty) return 'Obrigatório';
+                  if (v != passwordController.text) return 'As senhas não coincidem';
                   return null;
                 },
               ),
@@ -172,7 +172,7 @@ class _Form extends StatelessWidget {
                 onPressed: () => context.pop(),
                 child: RichText(
                   text: TextSpan(
-                    text: 'Already have an account?',
+                    text: 'Já tem uma conta? ',
                     style: TextStyle(color: CirculariColorsTokens.greyscale600),
                     children: [
                       TextSpan(
