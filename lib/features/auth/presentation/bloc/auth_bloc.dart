@@ -35,7 +35,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      await _login(email: event.email, password: event.password);
+      final user = await _login(email: event.email, password: event.password);
+      _authStateNotifier.setUserName(user.name);
       _authStateNotifier.setAuthenticated(true);
       emit(const AuthSuccess());
     } on AppException catch (e) {
@@ -49,11 +50,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      await _register(
+      final user = await _register(
         name: event.name,
         email: event.email,
         password: event.password,
       );
+      _authStateNotifier.setUserName(user.name);
       _authStateNotifier.setAuthenticated(true);
       emit(const AuthSuccess());
     } on AppException catch (e) {
@@ -68,6 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
     try {
       await _logout();
+      _authStateNotifier.setUserName(null);
       _authStateNotifier.setAuthenticated(false);
       emit(const AuthSuccess());
     } on AppException catch (e) {

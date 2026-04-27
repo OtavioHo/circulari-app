@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/auth/auth_state_notifier.dart';
+import '../../../../core/di/injection.dart';
+
 import '../../../items/presentation/bloc/search_items_bloc.dart';
 import '../../../items/presentation/bloc/search_items_event.dart';
 import '../../../items/presentation/bloc/search_items_state.dart';
@@ -57,11 +60,17 @@ class HomePage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Olá, Felipe!',
-                          style: typography.heading2.copyWith(
-                            color: Colors.white,
-                          ),
+                        ListenableBuilder(
+                          listenable: sl<AuthStateNotifier>(),
+                          builder: (context, _) {
+                            final name = sl<AuthStateNotifier>().userName ?? '';
+                            return Text(
+                              'Olá, $name!',
+                              style: typography.heading2.copyWith(
+                                color: Colors.white,
+                              ),
+                            );
+                          },
                         ),
                         SizedBox(height: spacing.medium),
                         Text(

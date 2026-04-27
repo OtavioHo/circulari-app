@@ -4,6 +4,7 @@ import '../../core/auth/auth_state_notifier.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/sources/auth_remote_source.dart';
 import 'domain/repositories/auth_repository.dart';
+import 'domain/usecases/get_me_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/usecases/register_usecase.dart';
@@ -15,6 +16,7 @@ extension AuthDI on GetIt {
     registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(call(), call()),
     );
+    registerLazySingleton(() => GetMeUsecase(call()));
     registerLazySingleton(() => LoginUsecase(call()));
     registerLazySingleton(() => RegisterUsecase(call()));
     registerLazySingleton(() => LogoutUsecase(call()));

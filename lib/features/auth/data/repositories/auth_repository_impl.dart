@@ -20,31 +20,44 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
       name: name,
     );
-    await _tokenStorage.saveTokens(
-      accessToken: result.token,
-      refreshToken: result.refreshToken,
-    );
+    await Future.wait([
+      _tokenStorage.saveTokens(
+        accessToken: result.token,
+        refreshToken: result.refreshToken,
+      ),
+      _tokenStorage.saveUserName(result.user.name),
+    ]);
     return result.user;
   }
 
   @override
-  Future<void> login({
+  Future<User> login({
     required String email,
     required String password,
   }) async {
     final result = await _source.login(email: email, password: password);
-    await _tokenStorage.saveTokens(
-      accessToken: result.token,
-      refreshToken: result.refreshToken,
-    );
+    await Future.wait([
+      _tokenStorage.saveTokens(
+        accessToken: result.token,
+        refreshToken: result.refreshToken,
+      ),
+      _tokenStorage.saveUserName(result.user.name),
+    ]);
+    return result.user;
   }
+
+  @override
+  Future<User> getMe() => _source.getMe();
 
   @override
   Future<void> logout() async {
     try {
       await _source.logout();
     } finally {
-      await _tokenStorage.clearTokens();
+      await Future.wait([
+        _tokenStorage.clearTokens(),
+        _tokenStorage.clearUserName(),
+      ]);
     }
   }
 }

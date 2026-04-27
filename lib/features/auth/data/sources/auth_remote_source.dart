@@ -29,7 +29,7 @@ class AuthRemoteSource {
     }
   }
 
-  Future<({String token, String refreshToken})> login({
+  Future<({String token, String refreshToken, UserModel user})> login({
     required String email,
     required String password,
   }) async {
@@ -42,7 +42,17 @@ class AuthRemoteSource {
       return (
         token: _requireString(data, 'token'),
         refreshToken: _requireString(data, 'refreshToken'),
+        user: UserModel.fromJson(_requireMap(data, 'user')),
       );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<UserModel> getMe() async {
+    try {
+      final response = await _dio.get('/auth/me');
+      return UserModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _mapError(e);
     }

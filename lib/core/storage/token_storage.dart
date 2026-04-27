@@ -10,12 +10,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class TokenStorage {
   static const _accessKey = 'access_token';
   static const _refreshKey = 'refresh_token';
+  static const _userNameKey = 'user_name';
 
   final FlutterSecureStorage _storage;
 
   // In-memory fallback — cleared on cold start, survives hot reload.
   String? _accessToken;
   String? _refreshToken;
+  String? _userName;
 
   TokenStorage(this._storage);
 
@@ -65,6 +67,34 @@ class TokenStorage {
       ]);
     } catch (e) {
       debugPrint('TokenStorage: failed to clear tokens — $e');
+    }
+  }
+
+  Future<String?> getUserName() async {
+    if (_userName != null) return _userName;
+    try {
+      _userName = await _storage.read(key: _userNameKey);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to read user name — $e');
+    }
+    return _userName;
+  }
+
+  Future<void> saveUserName(String name) async {
+    _userName = name;
+    try {
+      await _storage.write(key: _userNameKey, value: name);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to persist user name — $e');
+    }
+  }
+
+  Future<void> clearUserName() async {
+    _userName = null;
+    try {
+      await _storage.delete(key: _userNameKey);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to clear user name — $e');
     }
   }
 }
