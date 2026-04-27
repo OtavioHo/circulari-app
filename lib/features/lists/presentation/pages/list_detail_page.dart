@@ -181,7 +181,9 @@ class ListDetailPage extends StatelessWidget {
     return switch (state) {
       ItemsInitial() => [],
       ItemsLoading() => [const Center(child: CircularProgressIndicator())],
-      ItemsSuccess(:final items) || ItemsActionFailure(:final items) =>
+      ItemsSuccess(:final items) ||
+      ItemsActionFailure(:final items) ||
+      ItemsQuotaExceeded(:final items) =>
         items.isEmpty
             ? [const Center(child: Text('No items yet. Tap + to add one.'))]
             : [

@@ -29,3 +29,10 @@ final class ItemsActionFailure extends ItemsState {
   final String message;
   const ItemsActionFailure(this.items, this.message);
 }
+
+/// Emitted when item creation is blocked by a plan limit.
+/// The [items] from before the attempt are preserved so the UI stays interactive.
+final class ItemsQuotaExceeded extends ItemsState {
+  final List<Item> items;
+  const ItemsQuotaExceeded(this.items);
+}

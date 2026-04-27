@@ -18,3 +18,12 @@ final class ServerException extends AppException {
 final class NetworkException extends AppException {
   const NetworkException() : super('No internet connection.');
 }
+
+final class PlanLimitException extends AppException {
+  final int? limit;
+  const PlanLimitException({this.limit}) : super('You have reached your plan limit.');
+}
+
+final class TierRequiredException extends AppException {
+  const TierRequiredException() : super('This feature requires a premium plan.');
+}

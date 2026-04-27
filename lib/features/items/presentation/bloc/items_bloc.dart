@@ -61,6 +61,10 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         imagePath: event.imagePath,
       );
       emit(ItemsSuccess([...previous, created]));
+    } on PlanLimitException {
+      emit(ItemsQuotaExceeded(previous));
+    } on TierRequiredException {
+      emit(ItemsQuotaExceeded(previous));
     } on AppException catch (e) {
       emit(ItemsActionFailure(previous, e.message));
     }
@@ -105,6 +109,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
   List<Item> _currentItems() => switch (state) {
         ItemsSuccess(:final items) => items,
         ItemsActionFailure(:final items) => items,
+        ItemsQuotaExceeded(:final items) => items,
         _ => const [],
       };
 }

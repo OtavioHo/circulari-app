@@ -26,6 +26,11 @@ final class AiAnalysisFailure extends AiAnalysisState {
   const AiAnalysisFailure(this.message);
 }
 
+/// Emitted when AI analysis is blocked by a plan limit.
+final class AiAnalysisQuotaExceeded extends AiAnalysisState {
+  const AiAnalysisQuotaExceeded();
+}
+
 class AiAnalysisCubit extends Cubit<AiAnalysisState> {
   final AnalyzeItemImageUsecase _analyze;
 
@@ -36,6 +41,10 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
     try {
       final result = await _analyze(imagePath);
       emit(AiAnalysisSuccess(result));
+    } on PlanLimitException {
+      emit(const AiAnalysisQuotaExceeded());
+    } on TierRequiredException {
+      emit(const AiAnalysisQuotaExceeded());
     } on AppException catch (e) {
       emit(AiAnalysisFailure(e.message));
     }

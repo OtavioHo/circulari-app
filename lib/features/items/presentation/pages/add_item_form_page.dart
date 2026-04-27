@@ -79,6 +79,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
           _categoryAiGenerated = true;
         }
       });
+    } else if (state is AiAnalysisQuotaExceeded) {
+      PaywallBottomSheet.show(context, resourceName: 'análises de IA');
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not analyse image: ${state.message}')),
@@ -89,6 +91,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   void _onItemsState(BuildContext context, ItemsState state) {
     if (state is ItemsSuccess) {
       Navigator.of(context).pop();
+    } else if (state is ItemsQuotaExceeded) {
+      PaywallBottomSheet.show(context, resourceName: 'itens');
     } else if (state is ItemsActionFailure) {
       ScaffoldMessenger.of(
         context,

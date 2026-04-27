@@ -1,3 +1,4 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,6 +17,8 @@ class CreateListPage extends StatelessWidget {
       listener: (context, state) {
         if (state is CreateListSuccess) {
           Navigator.of(context).pop();
+        } else if (state is CreateListQuotaExceeded) {
+          PaywallBottomSheet.show(context, resourceName: 'listas');
         }
       },
       child: const _CreateListScaffold(),
@@ -76,6 +79,7 @@ class _CreateListScaffoldState extends State<_CreateListScaffold> {
               ),
             ),
           CreateListSuccess() => const SizedBox.shrink(),
+          CreateListQuotaExceeded() => const SizedBox.shrink(),
           CreateListReady(
             :final colors,
             :final icons,

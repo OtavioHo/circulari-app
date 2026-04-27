@@ -62,3 +62,8 @@ final class CreateListOptionsFailure extends CreateListState {
   final String message;
   const CreateListOptionsFailure(this.message);
 }
+
+/// Emitted when list creation is blocked by a plan limit.
+final class CreateListQuotaExceeded extends CreateListState {
+  const CreateListQuotaExceeded();
+}

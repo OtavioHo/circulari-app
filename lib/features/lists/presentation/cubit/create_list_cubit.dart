@@ -92,6 +92,10 @@ class CreateListCubit extends Cubit<CreateListState> {
         pictureId: ready.selectedPicture.slug,
       );
       emit(const CreateListSuccess());
+    } on PlanLimitException {
+      emit(const CreateListQuotaExceeded());
+    } on TierRequiredException {
+      emit(const CreateListQuotaExceeded());
     } on AppException catch (e) {
       emit(ready.copyWith(submitting: false, errorMessage: e.message));
     }
