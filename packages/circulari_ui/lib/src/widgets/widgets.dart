@@ -3,6 +3,7 @@ export 'inputs/text_form_field.dart';
 export 'inputs/search_field.dart';
 export 'inputs/auth_text_form_field.dart';
 export 'inputs/dropdown_form_field.dart';
+export 'inputs/select_box.dart';
 export 'cards/item_card.dart';
 export 'cards/item_list_tile.dart';
 export 'cards/list_card.dart';

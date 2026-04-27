@@ -22,6 +22,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
   backgroundBuilder;
   final List<Widget> children;
   final EdgeInsetsGeometry? padding;
+  final Widget? appBarTitle;
 
   const CirculariCollapsibleBody({
     super.key,
@@ -31,6 +32,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
     required this.children,
     this.backgroundBuilder,
     this.padding,
+    this.appBarTitle,
   });
 
   @override
@@ -108,7 +110,7 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                 flexibleSpace: const SizedBox(),
                 expandedHeight: 56,
                 collapsedHeight: 56,
-                title: Text('Circulari'),
+                title: widget.appBarTitle,
                 actions: [
                   IconButton(
                     icon: CircleAvatar(
