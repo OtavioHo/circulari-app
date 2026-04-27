@@ -139,20 +139,19 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                     topRight: Radius.circular(24),
                   ),
                 ),
-                sliver: SliverMainAxisGroup(
-                  slivers: [
-                    SliverPadding(
-                      padding: widget.padding ?? EdgeInsets.zero,
-                      sliver: SliverPadding(
-                        padding: const EdgeInsets.only(top: 24),
-                        sliver: SliverList(
-                          delegate: SliverChildListDelegate(widget.children),
-                        ),
-                      ),
+                sliver: SliverPadding(
+                  padding: widget.padding ?? EdgeInsets.zero,
+                  sliver: SliverPadding(
+                    padding: const EdgeInsets.only(top: 24),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate(widget.children),
                     ),
-                    const SliverFillRemaining(hasScrollBody: false),
-                  ],
+                  ),
                 ),
+              ),
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: ColoredBox(color: Color.fromRGBO(255, 255, 255, 1)),
               ),
             ],
           ),

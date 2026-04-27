@@ -1,6 +1,7 @@
 import 'package:app/features/lists/presentation/utils/list_picture_map.dart';
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -22,149 +23,148 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CirculariCollapsibleBody(
-      expandedHeight: 200,
-      collapsedHeight: 87,
-      headerBuilder: (context, shrinkOffset) {
-        final typography = context.circulariTheme.typography;
-        final spacing = context.circulariTheme.spacing;
-        const maxShrink = 200.0 - 87.0;
-        final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: CirculariCollapsibleBody(
+        expandedHeight: 200,
+        collapsedHeight: 87,
+        headerBuilder: (context, shrinkOffset) {
+          final typography = context.circulariTheme.typography;
+          final spacing = context.circulariTheme.spacing;
+          const maxShrink = 200.0 - 87.0;
+          final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
 
-        return BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            final totalValueText = switch (state) {
-              DashboardSuccess(:final summary) => _formatBRL(
-                summary.totalValue,
-              ),
-              _ => 'R\$ —',
-            };
+          return BlocBuilder<DashboardBloc, DashboardState>(
+            builder: (context, state) {
+              final totalValueText = switch (state) {
+                DashboardSuccess(:final summary) => _formatBRL(
+                  summary.totalValue,
+                ),
+                _ => 'R\$ —',
+              };
 
-            return Opacity(
-              opacity: (1 - t * 2).clamp(0.0, 1.0),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  spacing.medium,
-                  spacing.large,
-                  spacing.medium,
-                  0,
-                ),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Olá, Felipe!',
-                        style: typography.heading2.copyWith(
-                          color: Colors.white,
+              return Opacity(
+                opacity: (1 - t * 2).clamp(0.0, 1.0),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    spacing.medium,
+                    spacing.large,
+                    spacing.medium,
+                    0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Olá, Felipe!',
+                          style: typography.heading2.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: spacing.medium),
-                      Text(
-                        'Total de bens listados',
-                        style: typography.body.small.regular,
-                      ),
-                      Text(
-                        totalValueText,
-                        style: typography.heading1.copyWith(
-                          color: CirculariColorsTokens.freshCore500,
+                        SizedBox(height: spacing.medium),
+                        Text(
+                          'Total de bens listados',
+                          style: typography.body.small.regular,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-      children: [
-        BlocBuilder<ListsBloc, ListsState>(
-          builder: (context, state) => switch (state) {
-            ListsInitial() || ListsLoading() => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-            ListsSuccess(:final lists) ||
-            ListsActionFailure(:final lists) => CirculariListsCarousel(
-              itemCount: lists.length,
-              itemBuilder: (context, index) {
-                final list = lists[index];
-                return CirculariListCard(
-                  title: list.name,
-                  itemCount: list.itemCount,
-                  value: list.totalValue,
-                  seed: index,
-                  picturePath: assetForSlug(list.picture.slug) ?? '',
-                  backgroundColor: Color(
-                    int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
-                  ),
-                  onTap: () => context.push(
-                    '/lists/${list.id}/items',
-                    extra: list,
-                  ),
-                );
-              },
-            ),
-            ListsFailure(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message, textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context.read<ListsBloc>().add(
-                      const ListsLoadRequested(),
+                        Text(
+                          totalValueText,
+                          style: typography.heading1.copyWith(
+                            color: CirculariColorsTokens.freshCore500,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Text('Retry'),
                   ),
-                ],
+                ),
+              );
+            },
+          );
+        },
+        children: [
+          BlocBuilder<ListsBloc, ListsState>(
+            builder: (context, state) => switch (state) {
+              ListsInitial() || ListsLoading() => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            ),
-          },
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.circulariTheme.spacing.medium,
-          ),
-          child: Text(
-            "Items recentes",
-            style: context.circulariTheme.typography.body.xLarge.bold.copyWith(
-              color: CirculariColorsTokens.greyscale800,
-            ),
-          ),
-        ),
-        BlocBuilder<SearchItemsBloc, SearchItemsState>(
-          builder: (context, state) => switch (state) {
-            SearchItemsInitial() || SearchItemsLoading() => const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            SearchItemsFailure(:final message) => Padding(
-              padding: const EdgeInsets.all(32),
-              child: Center(
+              ListsSuccess(:final lists) ||
+              ListsActionFailure(:final lists) => CirculariListsCarousel(
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  return CirculariListCard(
+                    title: list.name,
+                    itemCount: list.itemCount,
+                    value: list.totalValue,
+                    seed: index,
+                    picturePath: assetForSlug(list.picture.slug) ?? '',
+                    backgroundColor: Color(
+                      int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
+                    ),
+                    onTap: () =>
+                        context.push('/lists/${list.id}/items', extra: list),
+                  );
+                },
+              ),
+              ListsFailure(:final message) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(message, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () => context.read<SearchItemsBloc>().add(
-                        const SearchItemsLoadRequested(),
+                      onPressed: () => context.read<ListsBloc>().add(
+                        const ListsLoadRequested(),
                       ),
                       child: const Text('Retry'),
                     ),
                   ],
                 ),
               ),
+            },
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.circulariTheme.spacing.medium,
             ),
-            SearchItemsSuccess(:final items) => Column(
-              children: items
-                  .map(
+            child: Text(
+              "Items recentes",
+              style: context.circulariTheme.typography.body.xLarge.bold
+                  .copyWith(color: CirculariColorsTokens.greyscale800),
+            ),
+          ),
+          BlocBuilder<SearchItemsBloc, SearchItemsState>(
+            builder: (context, state) => switch (state) {
+              SearchItemsInitial() || SearchItemsLoading() => const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              SearchItemsFailure(:final message) => Padding(
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(message, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => context.read<SearchItemsBloc>().add(
+                          const SearchItemsLoadRequested(),
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SearchItemsSuccess(:final items) => Column(
+                children: [
+                  ...items.map(
                     (item) => Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: CirculariItemListTile(
@@ -187,13 +187,14 @@ class HomePage extends StatelessWidget {
                             context.push('/items/${item.id}', extra: item),
                       ),
                     ),
-                  )
-                  .toList(),
-            ),
-          },
-        ),
-        const SizedBox(height: 100),
-      ],
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            },
+          ),
+        ],
+      ),
     );
   }
 }

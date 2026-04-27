@@ -68,6 +68,7 @@ class ListDetailPage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               ..._buildChildren(context, state),
+              const SizedBox(height: 100),
             ],
           );
         },
@@ -146,7 +147,7 @@ class ListDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            if (displayTotal != null && progress < 1.0)
+            if (displayTotal != null && progress < 0.6)
               Opacity(
                 opacity: (1.0 - progress).clamp(0.0, 1.0),
                 child: _buildTotalValue(displayTotal),
@@ -192,6 +193,7 @@ class ListDetailPage extends StatelessWidget {
                   child: ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
                     itemCount: items.length,
                     itemBuilder: (context, index) =>
                         _buildItemTile(context, items[index]),
