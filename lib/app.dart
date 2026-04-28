@@ -1,6 +1,6 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 import 'core/auth/auth_state_notifier.dart';
 import 'core/di/injection.dart';
@@ -11,7 +11,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<AuthStateNotifier>.value(
+    return ChangeNotifierProvider<AuthStateNotifier>.value(
       value: sl<AuthStateNotifier>(),
       child: MaterialApp.router(
         title: 'Circulari',
