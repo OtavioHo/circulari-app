@@ -44,7 +44,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import 'scaffold_with_navbar.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/lists',
+  initialLocation: '/home',
   refreshListenable: sl<AuthStateNotifier>(),
   redirect: (context, state) {
     final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
@@ -122,7 +122,15 @@ final appRouter = GoRouter(
             providers: [
               BlocProvider(create: (_) => sl<AuthBloc>()),
               BlocProvider(
+                create: (_) =>
+                    sl<DashboardBloc>()..add(const DashboardLoadRequested()),
+              ),
+              BlocProvider(
                 create: (_) => sl<ListsBloc>()..add(const ListsLoadRequested()),
+              ),
+              BlocProvider(
+                create: (_) => sl<SearchItemsBloc>()
+                  ..add(const SearchItemsLoadRequested()),
               ),
             ],
             child: const ListsPage(),

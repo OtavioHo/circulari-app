@@ -1,145 +1,211 @@
+import 'package:app/features/lists/presentation/utils/list_picture_map.dart';
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../../core/auth/auth_state_notifier.dart';
+
+import '../../../items/presentation/bloc/search_items_bloc.dart';
+import '../../../items/presentation/bloc/search_items_event.dart';
+import '../../../items/presentation/bloc/search_items_state.dart';
+import '../../../home/presentation/bloc/dashboard_bloc.dart';
+import '../../../home/presentation/bloc/dashboard_state.dart';
 import '../bloc/lists_bloc.dart';
 import '../bloc/lists_event.dart';
 import '../bloc/lists_state.dart';
-import '../widgets/list_card.dart';
-import '../widgets/list_name_dialog.dart';
+
+String _formatBRL(double value) =>
+    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(value);
 
 class ListsPage extends StatelessWidget {
   const ListsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ListsBloc, ListsState>(
-      listener: (context, state) {
-        if (state is ListsActionFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
-      child: const _ListsScaffold(),
-    );
-  }
-}
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: CirculariCollapsibleBody(
+        expandedHeight: 200,
+        collapsedHeight: 87,
+        headerBuilder: (context, shrinkOffset) {
+          final typography = context.circulariTheme.typography;
+          final spacing = context.circulariTheme.spacing;
+          const maxShrink = 200.0 - 87.0;
+          final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
 
-class _ListsScaffold extends StatelessWidget {
-  const _ListsScaffold();
+          return BlocBuilder<DashboardBloc, DashboardState>(
+            builder: (context, state) {
+              final totalValueText = switch (state) {
+                DashboardSuccess(:final summary) => _formatBRL(
+                  summary.totalValue,
+                ),
+                _ => 'R\$ —',
+              };
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Lists'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () =>
-                context.read<AuthBloc>().add(const AuthLogoutRequested()),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onCreateTapped(context),
-        tooltip: 'New list',
-        child: const Icon(Icons.add),
-      ),
-      body: BlocBuilder<ListsBloc, ListsState>(
-        builder: (context, state) => switch (state) {
-          ListsInitial() => const SizedBox.shrink(),
-          ListsLoading() => const Center(child: CircularProgressIndicator()),
-          ListsSuccess(:final lists) ||
-          ListsActionFailure(:final lists) =>
-            lists.isEmpty
-                ? const Center(child: Text('No lists yet. Tap + to create one.'))
-                : ListView.builder(
-                    itemCount: lists.length,
-                    itemBuilder: (ctx, i) {
-                      final list = lists[i];
-                      return ListCard(
-                        list: list,
-                        onTap: () => context.push(
-                          '/lists/${list.id}/items',
-                          extra: list,
+              return Opacity(
+                opacity: (1 - t * 2).clamp(0.0, 1.0),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    spacing.medium,
+                    spacing.large,
+                    spacing.medium,
+                    0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ListenableBuilder(
+                          listenable: context.read<AuthStateNotifier>(),
+                          builder: (context, _) {
+                            final name = context
+                                    .read<AuthStateNotifier>()
+                                    .userName ??
+                                '';
+                            return Text(
+                              'Olá, $name!',
+                              style: typography.heading2.copyWith(
+                                color: Colors.white,
+                              ),
+                            );
+                          },
                         ),
-                        onDelete: () => _onDeleteTapped(context, list.id, list.name),
-                        onRename: () =>
-                            _onRenameTapped(context, list.id, list.name),
-                      );
-                    },
+                        SizedBox(height: spacing.medium),
+                        Text(
+                          'Total de bens listados',
+                          style: typography.body.small.regular,
+                        ),
+                        Text(
+                          totalValueText,
+                          style: typography.heading1.copyWith(
+                            color: CirculariColorsTokens.freshCore500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-          ListsFailure(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+                ),
+              );
+            },
+          );
+        },
+        children: [
+          BlocBuilder<ListsBloc, ListsState>(
+            builder: (context, state) => switch (state) {
+              ListsInitial() || ListsLoading() => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              ListsSuccess(:final lists) ||
+              ListsActionFailure(:final lists) => CirculariListsCarousel(
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  return CirculariListCard(
+                    title: list.name,
+                    itemCount: list.itemCount,
+                    value: list.totalValue,
+                    seed: index,
+                    picturePath: assetForSlug(list.picture.slug) ?? '',
+                    backgroundColor: Color(
+                      int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
+                    ),
+                    onTap: () =>
+                        context.push('/lists/${list.id}/items', extra: list),
+                  );
+                },
+              ),
+              ListsFailure(:final message) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(message, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => context.read<ListsBloc>().add(
+                        const ListsLoadRequested(),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            },
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.circulariTheme.spacing.medium,
+            ),
+            child: Text(
+              "Items recentes",
+              style: context.circulariTheme.typography.body.xLarge.bold
+                  .copyWith(color: CirculariColorsTokens.greyscale800),
+            ),
+          ),
+          BlocBuilder<SearchItemsBloc, SearchItemsState>(
+            builder: (context, state) => switch (state) {
+              SearchItemsInitial() || SearchItemsLoading() => const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              SearchItemsFailure(:final message) => Padding(
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(message, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => context.read<SearchItemsBloc>().add(
+                          const SearchItemsLoadRequested(),
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SearchItemsSuccess(:final items) => Column(
                 children: [
-                  Text(message, textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context
-                        .read<ListsBloc>()
-                        .add(const ListsLoadRequested()),
-                    child: const Text('Retry'),
+                  ...items.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CirculariItemListTile(
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.userDefinedValue ?? 0,
+                        listName: item.listInfo?.name ?? '',
+                        listColor: item.listInfo != null
+                            ? Color(
+                                int.parse(
+                                  item.listInfo!.color.replaceFirst(
+                                    '#',
+                                    '0xff',
+                                  ),
+                                ),
+                              )
+                            : CirculariColorsTokens.greyscale300,
+                        categoryName: item.category?.name ?? '',
+                        onTap: () =>
+                            context.push('/items/${item.id}', extra: item),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 100),
                 ],
               ),
-            ),
-        },
-      ),
-    );
-  }
-
-  Future<void> _onCreateTapped(BuildContext context) async {
-    await context.push('/lists/create');
-    if (context.mounted) {
-      context.read<ListsBloc>().add(const ListsLoadRequested());
-    }
-  }
-
-  Future<void> _onRenameTapped(
-    BuildContext context,
-    String id,
-    String currentName,
-  ) async {
-    final name = await showListNameDialog(
-      context,
-      title: 'Rename list',
-      initialValue: currentName,
-    );
-    if (name != null && context.mounted) {
-      context.read<ListsBloc>().add(ListsRenameRequested(id, name));
-    }
-  }
-
-  Future<void> _onDeleteTapped(
-    BuildContext context,
-    String id,
-    String name,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete list'),
-        content: Text('Delete "$name"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            },
           ),
         ],
       ),
     );
-    if (confirmed == true && context.mounted) {
-      context.read<ListsBloc>().add(ListsDeleteRequested(id));
-    }
   }
 }
