@@ -48,36 +48,36 @@ class _CreateListScaffoldState extends State<_CreateListScaffold> {
   void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
     context.read<CreateListCubit>().submit(
-          name: _nameController.text.trim(),
-          location: _locationController.text.trim().isEmpty
-              ? null
-              : _locationController.text.trim(),
-        );
+      name: _nameController.text.trim(),
+      location: _locationController.text.trim().isEmpty
+          ? null
+          : _locationController.text.trim(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('New List')),
+    return CirculariInAppScaffold(
+      title: 'Criar Lista',
       body: BlocBuilder<CreateListCubit, CreateListState>(
         builder: (context, state) => switch (state) {
           CreateListInitial() || CreateListLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: CircularProgressIndicator(),
+          ),
           CreateListOptionsFailure(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message, textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () =>
-                        context.read<CreateListCubit>().loadOptions(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(message, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () =>
+                      context.read<CreateListCubit>().loadOptions(),
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
+          ),
           CreateListSuccess() => const SizedBox.shrink(),
           CreateListQuotaExceeded() => const SizedBox.shrink(),
           CreateListReady(
@@ -95,27 +95,17 @@ class _CreateListScaffoldState extends State<_CreateListScaffold> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  TextFormField(
+                  CirculariTextFormField(
                     controller: _nameController,
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Name *',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Name is required' : null,
-                    enabled: !submitting,
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? 'Name is required'
+                        : null,
+                    label: 'Nome',
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  CirculariTextFormField(
                     controller: _locationController,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Location (optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    enabled: !submitting,
+                    label: 'Location (optional)',
                   ),
                   const SizedBox(height: 28),
                   ColorPickerSection(
@@ -152,15 +142,10 @@ class _CreateListScaffoldState extends State<_CreateListScaffold> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  FilledButton(
+                  CirculariButton(
                     onPressed: submitting ? null : () => _submit(context),
-                    child: submitting
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Create List'),
+                    isLoading: submitting,
+                    label: 'Criar Lista',
                   ),
                   const SizedBox(height: 20),
                 ],

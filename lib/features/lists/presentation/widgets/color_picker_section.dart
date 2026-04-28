@@ -1,3 +1,4 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/list_color.dart';
@@ -19,7 +20,18 @@ class ColorPickerSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Color', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          'Cor',
+          style: context.circulariTheme.typography.body.large.regular.copyWith(
+            color: CirculariColorsTokens.greyscale600,
+          ),
+        ),
+        Text(
+          'Escolha uma cor para identificar sua lista visualmente.',
+          style: context.circulariTheme.typography.body.small.regular.copyWith(
+            color: CirculariColorsTokens.greyscale500,
+          ),
+        ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 12,
@@ -52,7 +64,7 @@ class ColorPickerSection extends StatelessWidget {
                               color: dartColor.withValues(alpha: 0.5),
                               blurRadius: 6,
                               spreadRadius: 1,
-                            )
+                            ),
                           ]
                         : null,
                   ),
@@ -60,7 +72,8 @@ class ColorPickerSection extends StatelessWidget {
                       ? Icon(
                           Icons.check,
                           size: 18,
-                          color: ThemeData.estimateBrightnessForColor(dartColor) ==
+                          color:
+                              ThemeData.estimateBrightnessForColor(dartColor) ==
                                   Brightness.dark
                               ? Colors.white
                               : Colors.black,

@@ -1,3 +1,4 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/list_icon.dart';
@@ -17,11 +18,21 @@ class IconPickerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Icon', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          'Icone',
+          style: context.circulariTheme.typography.body.large.regular.copyWith(
+            color: CirculariColorsTokens.greyscale600,
+          ),
+        ),
+        Text(
+          'Escolha um ícone para identificar sua lista visualmente.',
+          style: context.circulariTheme.typography.body.small.regular.copyWith(
+            color: CirculariColorsTokens.greyscale500,
+          ),
+        ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -38,12 +49,12 @@ class IconPickerSection extends StatelessWidget {
                   height: 52,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
+                        ? CirculariColorsTokens.freshCore
+                        : CirculariColorsTokens.greyscale100,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
-                          ? colorScheme.primary
+                          ? CirculariColorsTokens.freshCore
                           : Colors.transparent,
                       width: 2,
                     ),
@@ -51,8 +62,8 @@ class IconPickerSection extends StatelessWidget {
                   child: Icon(
                     iconForSlug(icon.slug),
                     color: isSelected
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
+                        ? CirculariColorsTokens.freshCore
+                        : CirculariColorsTokens.greyscale500,
                     size: 24,
                   ),
                 ),
