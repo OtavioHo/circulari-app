@@ -27,11 +27,14 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
 
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
+    if (!mounted) return;
     final cam = CameraController(cameras.first, ResolutionPreset.high);
     await cam.initialize();
-    if (mounted) {
-      setState(() => _controller = cam);
+    if (!mounted) {
+      await cam.dispose();
+      return;
     }
+    setState(() => _controller = cam);
   }
 
   @override

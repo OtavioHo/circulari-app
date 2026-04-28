@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/auth/auth_state_notifier.dart';
-import '../../../../core/di/injection.dart';
 
 import '../../../items/presentation/bloc/search_items_bloc.dart';
 import '../../../items/presentation/bloc/search_items_event.dart';
@@ -61,9 +60,12 @@ class HomePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         ListenableBuilder(
-                          listenable: sl<AuthStateNotifier>(),
+                          listenable: context.read<AuthStateNotifier>(),
                           builder: (context, _) {
-                            final name = sl<AuthStateNotifier>().userName ?? '';
+                            final name = context
+                                    .read<AuthStateNotifier>()
+                                    .userName ??
+                                '';
                             return Text(
                               'Olá, $name!',
                               style: typography.heading2.copyWith(
