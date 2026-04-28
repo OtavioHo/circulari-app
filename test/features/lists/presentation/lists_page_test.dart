@@ -90,16 +90,38 @@ void main() {
     expect(captured.single, isA<ListsLoadRequested>());
   });
 
-  testWidgets('delete button dispatches ListsDeleteRequested with correct id',
+  testWidgets('delete button opens confirmation dialog; '
+      'confirming dispatches ListsDeleteRequested with correct id',
       (tester) async {
     when(() => bloc.state).thenReturn(ListsSuccess([_tList]));
 
     await tester.pumpWidget(_makeTestable(bloc));
     await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Delete list'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
 
     final captured = verify(() => bloc.add(captureAny())).captured;
     expect(captured.single, isA<ListsDeleteRequested>());
     expect((captured.single as ListsDeleteRequested).id, 'abc');
+  });
+
+  testWidgets('cancelling the delete dialog does not dispatch any event',
+      (tester) async {
+    when(() => bloc.state).thenReturn(ListsSuccess([_tList]));
+
+    await tester.pumpWidget(_makeTestable(bloc));
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => bloc.add(any()));
   });
 
   testWidgets('long press opens rename dialog and dispatches ListsRenameRequested',
