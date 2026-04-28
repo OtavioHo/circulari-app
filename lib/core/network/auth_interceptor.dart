@@ -41,21 +41,29 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // A refresh is already in flight — wait for it, then retry with the new token.
-    if (_refreshCompleter != null) {
+    // Claim the refresh slot atomically. In single-threaded Dart this assignment
+    // happens-before any further `await`, so concurrent 401s either see a
+    // non-null completer (and wait) or claim it themselves once it is cleared.
+    final existing = _refreshCompleter;
+    if (existing != null) {
       try {
-        await _refreshCompleter!.future;
+        await existing.future;
         return handler.resolve(await _retry(err.requestOptions));
       } catch (_) {
         return handler.reject(_unauthorizedError(err.requestOptions));
       }
     }
 
-    _refreshCompleter = Completer<void>();
+    final completer = Completer<void>();
+    _refreshCompleter = completer;
+    // Pre-attach a no-op listener so an error never surfaces as "unhandled"
+    // when no concurrent waiter happens to be attached.
+    completer.future.ignore();
+
     try {
       final refreshToken = await _tokenStorage.getRefreshToken();
       if (refreshToken == null) {
-        throw Exception('no_refresh_token');
+        throw const UnauthorizedException();
       }
 
       final response = await _refreshDio.post(
@@ -63,23 +71,29 @@ class AuthInterceptor extends Interceptor {
         data: {'refreshToken': refreshToken},
       );
 
-      final newAccess = response.data['token'] as String;
-      final newRefresh = response.data['refreshToken'] as String;
+      final data = response.data;
+      if (data is! Map) {
+        throw const UnauthorizedException();
+      }
+      final newAccess = data['token'];
+      final newRefresh = data['refreshToken'];
+      if (newAccess is! String || newAccess.isEmpty ||
+          newRefresh is! String || newRefresh.isEmpty) {
+        throw const UnauthorizedException();
+      }
+
       await _tokenStorage.saveTokens(
         accessToken: newAccess,
         refreshToken: newRefresh,
       );
 
-      final completer = _refreshCompleter!;
       _refreshCompleter = null;
       completer.complete();
 
       return handler.resolve(await _retry(err.requestOptions));
     } catch (e) {
-      final completer = _refreshCompleter!;
       _refreshCompleter = null;
       completer.completeError(e);
-      completer.future.ignore(); // prevent unhandled-exception when no concurrent waiter
       await _tokenStorage.clearTokens();
       return handler.reject(_unauthorizedError(err.requestOptions));
     }
