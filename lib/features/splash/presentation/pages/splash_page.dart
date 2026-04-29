@@ -1,0 +1,54 @@
+import 'package:circulari_ui/circulari_ui.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../core/auth/auth_state_notifier.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/storage/token_storage.dart';
+import '../../../auth/domain/usecases/get_me_usecase.dart';
+
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final storage = sl<TokenStorage>();
+    final authNotifier = sl<AuthStateNotifier>();
+
+    try {
+      final token = await storage.getAccessToken();
+      if (token != null) {
+        authNotifier.setAuthenticated(true);
+        var name = await storage.getUserName();
+        if (name == null) {
+          final user = await sl<GetMeUsecase>()();
+          await storage.saveUserName(user.name);
+          name = user.name;
+        }
+        authNotifier.setUserName(name);
+      }
+    } catch (e) {
+      debugPrint('SplashPage: failed to restore auth — $e');
+    } finally {
+      authNotifier.setInitializing(false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const CirculariAuthScaffold(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}

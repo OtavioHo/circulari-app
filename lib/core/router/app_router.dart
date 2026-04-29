@@ -41,20 +41,30 @@ import '../../features/lists/presentation/pages/lists_page.dart';
 import '../../features/profile/presentation/bloc/plan_bloc.dart';
 import '../../features/profile/presentation/bloc/plan_event.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/splash/presentation/pages/splash_page.dart';
 import 'scaffold_with_navbar.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/splash',
   refreshListenable: sl<AuthStateNotifier>(),
   redirect: (context, state) {
-    final isAuthenticated = sl<AuthStateNotifier>().isAuthenticated;
+    final notifier = sl<AuthStateNotifier>();
+    if (notifier.isInitializing) return null;
+
+    final isAuthenticated = notifier.isAuthenticated;
+    final isSplash = state.matchedLocation == '/splash';
     final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
+    if (isSplash) return isAuthenticated ? '/home' : '/auth/login';
     if (!isAuthenticated && !isAuthRoute) return '/auth/login';
     if (isAuthenticated && isAuthRoute) return '/home';
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashPage(),
+    ),
     GoRoute(
       path: '/auth/login',
       builder: (context, state) =>

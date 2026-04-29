@@ -38,14 +38,20 @@ class CirculariAuthScaffold extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.black, Colors.transparent, Colors.black],
+                        colors: [
+                          Colors.black,
+                          Colors.transparent,
+                          Colors.black,
+                        ],
                         stops: [0, 0.5, 1],
                       ),
                     ),
                   ),
                   Column(
                     children: [
-                      const Expanded(child: SizedBox.shrink()),
+                      const Expanded(
+                        child: Center(child: FlutterLogo(size: 80)),
+                      ),
                       Container(
                         decoration: BoxDecoration(
                           color: CirculariColorsTokens.greyscale800,
