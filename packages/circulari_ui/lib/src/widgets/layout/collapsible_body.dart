@@ -51,6 +51,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
 
 class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
   final _scrollController = ScrollController();
+  double _displayCardsHeight = 0;
 
   // The transparent SliverAppBar above the collapsing header consumes this
   // much scroll offset before the header starts shrinking.
@@ -60,6 +61,11 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
     if (!_scrollController.hasClients) return 0.0;
     return (_scrollController.offset - _appBarHeight)
         .clamp(0.0, widget.expandedHeight - widget.collapsedHeight);
+  }
+
+  void _onDisplayCardsSizeChanged(Size size) {
+    if ((_displayCardsHeight - size.height).abs() < 0.5) return;
+    setState(() => _displayCardsHeight = size.height);
   }
 
   @override
@@ -109,69 +115,89 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
             ),
           ),
         SafeArea(
-          child: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                pinned: false,
-                flexibleSpace: const SizedBox(),
-                expandedHeight: 56,
-                collapsedHeight: 56,
-                title: widget.appBarTitle,
-                actions: [
-                  IconButton(
-                    icon: CircleAvatar(
-                      backgroundColor: CirculariColorsTokens.freshCore,
-                      child: const Icon(
-                        Icons.person,
-                        color: CirculariColorsTokens.greyscale900,
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverAppBar(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    pinned: false,
+                    flexibleSpace: const SizedBox(),
+                    expandedHeight: 56,
+                    collapsedHeight: 56,
+                    title: widget.appBarTitle,
+                    actions: [
+                      IconButton(
+                        icon: CircleAvatar(
+                          backgroundColor: CirculariColorsTokens.freshCore,
+                          child: const Icon(
+                            Icons.person,
+                            color: CirculariColorsTokens.greyscale900,
+                          ),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                  SliverPersistentHeader(
+                    delegate: _CollapsingHeaderDelegate(
+                      expandedHeight: widget.expandedHeight,
+                      collapsedHeight: widget.collapsedHeight,
+                      builder: widget.headerBuilder,
+                    ),
+                  ),
+                  DecoratedSliver(
+                    decoration: const BoxDecoration(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
                       ),
                     ),
-                    onPressed: () {},
+                    sliver: SliverPadding(
+                      padding: widget.padding ?? EdgeInsets.zero,
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          if (widget.displayCardsBuilder != null)
+                            SizedBox(height: _displayCardsHeight / 2),
+                          const SizedBox(height: 24),
+                          ...widget.children,
+                        ]),
+                      ),
+                    ),
+                  ),
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ColoredBox(color: Color.fromRGBO(255, 255, 255, 1)),
                   ),
                 ],
               ),
-              SliverPersistentHeader(
-                delegate: _CollapsingHeaderDelegate(
-                  expandedHeight: widget.expandedHeight,
-                  collapsedHeight: widget.collapsedHeight,
-                  builder: widget.headerBuilder,
-                ),
-              ),
-              DecoratedSliver(
-                decoration: const BoxDecoration(
-                  color: Color.fromRGBO(255, 255, 255, 1),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                ),
-                sliver: SliverPadding(
-                  padding: widget.padding ?? EdgeInsets.zero,
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      if (widget.displayCardsBuilder != null)
-                        ListenableBuilder(
-                          listenable: _scrollController,
-                          builder: (context, _) => _ScrollingFloatingActionsSlot(
-                            child: widget.displayCardsBuilder!(
-                              context,
-                              _shrinkOffset,
-                            ),
-                          ),
+              if (widget.displayCardsBuilder != null)
+                ListenableBuilder(
+                  listenable: _scrollController,
+                  builder: (context, _) {
+                    final scrollOffset = _scrollController.hasClients
+                        ? _scrollController.offset
+                        : 0.0;
+                    final cardsCenter =
+                        _appBarHeight + widget.expandedHeight - scrollOffset;
+                    return Positioned(
+                      top: cardsCenter - _displayCardsHeight / 2,
+                      left: 0,
+                      right: 0,
+                      child: _MeasureSize(
+                        onChange: _onDisplayCardsSizeChanged,
+                        child: widget.displayCardsBuilder!(
+                          context,
+                          _shrinkOffset,
                         ),
-                      const SizedBox(height: 24),
-                      ...widget.children,
-                    ]),
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: ColoredBox(color: Color.fromRGBO(255, 255, 255, 1)),
-              ),
             ],
           ),
         ),
@@ -180,43 +206,37 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
   }
 }
 
-class _ScrollingFloatingActionsSlot extends StatefulWidget {
-  final Widget child;
+class _CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double expandedHeight;
+  final double collapsedHeight;
+  final Widget Function(BuildContext context, double shrinkOffset) builder;
 
-  const _ScrollingFloatingActionsSlot({required this.child});
+  const _CollapsingHeaderDelegate({
+    required this.expandedHeight,
+    required this.collapsedHeight,
+    required this.builder,
+  });
 
   @override
-  State<_ScrollingFloatingActionsSlot> createState() =>
-      _ScrollingFloatingActionsSlotState();
-}
+  double get maxExtent => expandedHeight;
 
-class _ScrollingFloatingActionsSlotState
-    extends State<_ScrollingFloatingActionsSlot> {
-  double _childHeight = 0;
+  @override
+  double get minExtent => collapsedHeight;
 
-  void _onChildSizeChanged(Size size) {
-    if ((_childHeight - size.height).abs() < 0.5) return;
-    setState(() => _childHeight = size.height);
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return builder(context, shrinkOffset);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: _childHeight / 2,
-      child: OverflowBox(
-        alignment: Alignment.topCenter,
-        minHeight: 0,
-        maxHeight: double.infinity,
-        child: Transform.translate(
-          offset: Offset(0, -_childHeight / 2),
-          child: _MeasureSize(
-            onChange: _onChildSizeChanged,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
+  bool shouldRebuild(_CollapsingHeaderDelegate oldDelegate) =>
+      oldDelegate.expandedHeight != expandedHeight ||
+      oldDelegate.collapsedHeight != collapsedHeight ||
+      oldDelegate.builder != builder;
 }
 
 class _MeasureSize extends SingleChildRenderObjectWidget {
@@ -255,37 +275,4 @@ class _MeasureSizeRenderObject extends RenderProxyBox {
       onChange(newSize);
     });
   }
-}
-
-class _CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double expandedHeight;
-  final double collapsedHeight;
-  final Widget Function(BuildContext context, double shrinkOffset) builder;
-
-  const _CollapsingHeaderDelegate({
-    required this.expandedHeight,
-    required this.collapsedHeight,
-    required this.builder,
-  });
-
-  @override
-  double get maxExtent => expandedHeight;
-
-  @override
-  double get minExtent => collapsedHeight;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return builder(context, shrinkOffset);
-  }
-
-  @override
-  bool shouldRebuild(_CollapsingHeaderDelegate oldDelegate) =>
-      oldDelegate.expandedHeight != expandedHeight ||
-      oldDelegate.collapsedHeight != collapsedHeight ||
-      oldDelegate.builder != builder;
 }

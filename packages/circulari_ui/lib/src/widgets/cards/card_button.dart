@@ -42,13 +42,12 @@ class CirculariCardButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Card(
+        child: Material(
           elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: const RoundedRectangleBorder(borderRadius: borderRadius),
+          borderRadius: borderRadius,
           color: backgroundColor ?? CirculariColorsTokens.greyscale50,
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: borderRadius,
             onTap: onTap,
             child: Padding(
               padding:

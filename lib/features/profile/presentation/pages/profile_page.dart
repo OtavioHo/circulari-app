@@ -2,6 +2,8 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_event.dart';
 import '../bloc/plan_bloc.dart';
 import '../bloc/plan_event.dart';
 import '../bloc/plan_state.dart';
@@ -9,6 +11,20 @@ import '../widgets/plan_card.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
+  Widget _logoutButton(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+    return TextButton(
+      onPressed: () =>
+          context.read<AuthBloc>().add(const AuthLogoutRequested()),
+      child: Text(
+        'Sair',
+        style: typography.body.medium.regular.copyWith(
+          color: const Color(0xFFD32F2F),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +56,8 @@ class ProfilePage extends StatelessWidget {
                   ),
                   child: const Text('Tentar novamente'),
                 ),
+                const SizedBox(height: 12),
+                _logoutButton(context),
               ],
             ),
           ),
@@ -60,6 +78,8 @@ class ProfilePage extends StatelessWidget {
               ),
               PlanCard(plan: plan),
               SizedBox(height: spacing.large),
+              _logoutButton(context),
+              SizedBox(height: spacing.medium),
             ],
           ),
         },

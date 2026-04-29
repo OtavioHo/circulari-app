@@ -110,19 +110,25 @@ class HomePage extends StatelessWidget {
                       CirculariCardButton(
                         icon: Icons.add,
                         label: 'Crie\n Item/Lista',
-                        onTap: () {},
+                        onTap: () {
+                          context.go('/add');
+                        },
                       ),
                       const SizedBox(width: 8),
                       CirculariCardButton(
                         icon: Icons.edit,
                         label: 'Gerencie Listas',
-                        onTap: () {},
+                        onTap: () {
+                          context.go('/lists');
+                        },
                       ),
                       const SizedBox(width: 8),
                       CirculariCardButton(
                         icon: Icons.list,
                         label: 'Minhas listas',
-                        onTap: () {},
+                        onTap: () {
+                          context.go('/lists');
+                        },
                       ),
                     ],
                   ),

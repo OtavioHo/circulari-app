@@ -138,8 +138,13 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => BlocProvider(
-            create: (_) => sl<PlanBloc>()..add(const PlanLoadRequested()),
+          builder: (context, state) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => sl<PlanBloc>()..add(const PlanLoadRequested()),
+              ),
+              BlocProvider(create: (_) => sl<AuthBloc>()),
+            ],
             child: const ProfilePage(),
           ),
         ),
