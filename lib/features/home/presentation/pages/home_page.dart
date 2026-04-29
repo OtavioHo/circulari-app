@@ -28,13 +28,14 @@ class HomePage extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: CirculariCollapsibleBody(
-        expandedHeight: 200,
+        expandedHeight: 250,
         collapsedHeight: 87,
         headerBuilder: (context, shrinkOffset) {
           final typography = context.circulariTheme.typography;
           final spacing = context.circulariTheme.spacing;
-          const maxShrink = 200.0 - 87.0;
+          const maxShrink = 250.0 - 87.0;
           final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
+          final scale = 1.0 - (t);
 
           return BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
@@ -45,48 +46,85 @@ class HomePage extends StatelessWidget {
                 _ => 'R\$ —',
               };
 
-              return Opacity(
-                opacity: (1 - t * 2).clamp(0.0, 1.0),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    spacing.medium,
-                    spacing.large,
-                    spacing.medium,
-                    0,
-                  ),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ListenableBuilder(
-                          listenable: context.read<AuthStateNotifier>(),
-                          builder: (context, _) {
-                            final name = context
-                                    .read<AuthStateNotifier>()
-                                    .userName ??
-                                '';
-                            return Text(
-                              'Olá, $name!',
-                              style: typography.heading2.copyWith(
-                                color: Colors.white,
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: spacing.medium),
-                        Text(
-                          'Total de bens listados',
-                          style: typography.body.small.regular,
-                        ),
-                        Text(
-                          totalValueText,
-                          style: typography.heading1.copyWith(
-                            color: CirculariColorsTokens.freshCore500,
-                          ),
-                        ),
-                      ],
+              return Transform.scale(
+                scale: scale,
+                alignment: Alignment.center,
+                child: Opacity(
+                  opacity: (1 - t * 2).clamp(0.0, 1.0),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      spacing.medium,
+                      spacing.large,
+                      spacing.medium,
+                      0,
                     ),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ListenableBuilder(
+                            listenable: context.read<AuthStateNotifier>(),
+                            builder: (context, _) {
+                              final name =
+                                  context.read<AuthStateNotifier>().userName ??
+                                  '';
+                              return Text(
+                                'Olá, $name!',
+                                style: typography.heading2.copyWith(
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: spacing.medium),
+                          Text(
+                            'Total de bens listados',
+                            style: typography.body.small.regular,
+                          ),
+                          Text(
+                            totalValueText,
+                            style: typography.heading1.copyWith(
+                              color: CirculariColorsTokens.freshCore500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        displayCardsBuilder: (context, shrinkOffset) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CirculariCardButton(
+                        icon: Icons.add,
+                        label: 'Crie\n Item/Lista',
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 8),
+                      CirculariCardButton(
+                        icon: Icons.edit,
+                        label: 'Gerencie Listas',
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 8),
+                      CirculariCardButton(
+                        icon: Icons.list,
+                        label: 'Minhas listas',
+                        onTap: () {},
+                      ),
+                    ],
                   ),
                 ),
               );

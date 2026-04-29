@@ -28,13 +28,14 @@ class ListsPage extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: CirculariCollapsibleBody(
-        expandedHeight: 200,
+        expandedHeight: 250,
         collapsedHeight: 87,
         headerBuilder: (context, shrinkOffset) {
           final typography = context.circulariTheme.typography;
           final spacing = context.circulariTheme.spacing;
-          const maxShrink = 200.0 - 87.0;
+          const maxShrink = 250.0 - 87.0;
           final t = (shrinkOffset / maxShrink).clamp(0.0, 1.0);
+          final scale = 1.0 - t;
 
           return BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
@@ -45,9 +46,12 @@ class ListsPage extends StatelessWidget {
                 _ => 'R\$ —',
               };
 
-              return Opacity(
-                opacity: (1 - t * 2).clamp(0.0, 1.0),
-                child: Padding(
+              return Transform.scale(
+                scale: scale,
+                alignment: Alignment.center,
+                child: Opacity(
+                  opacity: (1 - t * 2).clamp(0.0, 1.0),
+                  child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     spacing.medium,
                     spacing.large,
@@ -62,12 +66,8 @@ class ListsPage extends StatelessWidget {
                         ListenableBuilder(
                           listenable: context.read<AuthStateNotifier>(),
                           builder: (context, _) {
-                            final name = context
-                                    .read<AuthStateNotifier>()
-                                    .userName ??
-                                '';
                             return Text(
-                              'Olá, $name!',
+                              'Resumo das listas',
                               style: typography.heading2.copyWith(
                                 color: Colors.white,
                               ),
@@ -89,6 +89,53 @@ class ListsPage extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
+            );
+            },
+          );
+        },
+        displayCardsBuilder: (context, shrinkOffset) {
+          return BlocBuilder<DashboardBloc, DashboardState>(
+            builder: (context, state) {
+              final listCount = switch (state) {
+                DashboardSuccess(:final summary) => '${summary.listCount}',
+                _ => '—',
+              };
+              final itemCount = switch (state) {
+                DashboardSuccess(:final summary) => '${summary.itemCount}',
+                _ => '—',
+              };
+
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: constraints.maxWidth,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CirculariDataCard(
+                            value: listCount,
+                            label: 'Listas\ncriadas',
+                          ),
+                          const SizedBox(width: 8),
+                          CirculariDataCard(
+                            value: itemCount,
+                            label: 'Itens\ncriados',
+                          ),
+                          const SizedBox(width: 8),
+                          const CirculariDataCard(
+                            value: '—',
+                            label: 'Em\nbreve',
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
             },
           );

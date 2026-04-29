@@ -1,5 +1,6 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 
 /// A scaffold body with a pinned collapsible header above a sliver list.
@@ -13,11 +14,18 @@ import 'package:flutter_svg/svg.dart';
 /// outer Stack, behind the scroll view. This lets painted content (e.g. a wave
 /// decoration) extend visually below the header and appear behind the body card
 /// instead of being clipped by the sliver boundary.
+///
+/// [displayCardsBuilder] is rendered in the sliver flow, not pinned to the
+/// viewport. The returned widget is vertically centered on the seam between the
+/// persistent header and the body sliver so it naturally overlaps both sections
+/// while scrolling together with the rest of the content.
 class CirculariCollapsibleBody extends StatefulWidget {
   final double expandedHeight;
   final double collapsedHeight;
   final Widget Function(BuildContext context, double shrinkOffset)
   headerBuilder;
+  final Widget Function(BuildContext context, double shrinkOffset)?
+  displayCardsBuilder;
   final Widget Function(BuildContext context, double shrinkOffset)?
   backgroundBuilder;
   final List<Widget> children;
@@ -30,6 +38,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
     required this.collapsedHeight,
     required this.headerBuilder,
     required this.children,
+    this.displayCardsBuilder,
     this.backgroundBuilder,
     this.padding,
     this.appBarTitle,
@@ -141,11 +150,21 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                 ),
                 sliver: SliverPadding(
                   padding: widget.padding ?? EdgeInsets.zero,
-                  sliver: SliverPadding(
-                    padding: const EdgeInsets.only(top: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate(widget.children),
-                    ),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      if (widget.displayCardsBuilder != null)
+                        ListenableBuilder(
+                          listenable: _scrollController,
+                          builder: (context, _) => _ScrollingFloatingActionsSlot(
+                            child: widget.displayCardsBuilder!(
+                              context,
+                              _shrinkOffset,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      ...widget.children,
+                    ]),
                   ),
                 ),
               ),
@@ -158,6 +177,83 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
         ),
       ],
     );
+  }
+}
+
+class _ScrollingFloatingActionsSlot extends StatefulWidget {
+  final Widget child;
+
+  const _ScrollingFloatingActionsSlot({required this.child});
+
+  @override
+  State<_ScrollingFloatingActionsSlot> createState() =>
+      _ScrollingFloatingActionsSlotState();
+}
+
+class _ScrollingFloatingActionsSlotState
+    extends State<_ScrollingFloatingActionsSlot> {
+  double _childHeight = 0;
+
+  void _onChildSizeChanged(Size size) {
+    if ((_childHeight - size.height).abs() < 0.5) return;
+    setState(() => _childHeight = size.height);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _childHeight / 2,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        minHeight: 0,
+        maxHeight: double.infinity,
+        child: Transform.translate(
+          offset: Offset(0, -_childHeight / 2),
+          child: _MeasureSize(
+            onChange: _onChildSizeChanged,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MeasureSize extends SingleChildRenderObjectWidget {
+  final ValueChanged<Size> onChange;
+
+  const _MeasureSize({required this.onChange, super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _MeasureSizeRenderObject(onChange);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant _MeasureSizeRenderObject renderObject,
+  ) {
+    renderObject.onChange = onChange;
+  }
+}
+
+class _MeasureSizeRenderObject extends RenderProxyBox {
+  _MeasureSizeRenderObject(this.onChange);
+
+  ValueChanged<Size> onChange;
+  Size? _oldSize;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+
+    final newSize = child?.size;
+    if (newSize == null || _oldSize == newSize) return;
+    _oldSize = newSize;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onChange(newSize);
+    });
   }
 }
 

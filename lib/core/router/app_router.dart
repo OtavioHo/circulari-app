@@ -51,7 +51,7 @@ final appRouter = GoRouter(
     final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
     if (!isAuthenticated && !isAuthRoute) return '/auth/login';
-    if (isAuthenticated && isAuthRoute) return '/lists';
+    if (isAuthenticated && isAuthRoute) return '/home';
     return null;
   },
   routes: [
