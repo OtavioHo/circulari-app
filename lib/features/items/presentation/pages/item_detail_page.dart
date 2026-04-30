@@ -1,3 +1,4 @@
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,9 @@ import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart
 import 'package:circulari/features/items/presentation/bloc/item_detail_event.dart';
 import 'package:circulari/features/items/presentation/bloc/item_detail_state.dart';
 import 'package:circulari/features/items/presentation/widgets/item_form_sheet.dart';
+
+const _expandedHeight = 260.0;
+const _collapsedHeight = 56.0;
 
 class ItemDetailPage extends StatelessWidget {
   const ItemDetailPage({super.key});
@@ -46,26 +50,188 @@ class _ItemDetailScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mainImageUrl = item.images.firstOrNull?.url;
+    final hasImage = mainImageUrl != null;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(item.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete',
-            onPressed: isLoading ? null : () => _confirmDelete(context),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: CirculariColorsTokens.freshCore,
+        foregroundColor: CirculariColorsTokens.greyscale900,
+        onPressed: isLoading ? null : () => _onEditTapped(context),
+        icon: const Icon(Icons.edit_outlined),
+        label: const Text('Editar'),
+      ),
+      body: CirculariCollapsibleBody(
+        expandedHeight: _expandedHeight,
+        collapsedHeight: _collapsedHeight,
+        backgroundBuilder: hasImage
+            ? (context, shrinkOffset) =>
+                _buildImageBackground(mainImageUrl, shrinkOffset)
+            : null,
+        headerBuilder: (context, shrinkOffset) =>
+            _buildHeader(context, shrinkOffset),
+        children: [
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            ..._buildBody(context),
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageBackground(String url, double shrinkOffset) {
+    final progress =
+        (shrinkOffset / (_expandedHeight - _collapsedHeight)).clamp(0.0, 1.0);
+    return Opacity(
+      opacity: (1.0 - progress).clamp(0.0, 1.0),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black,
+                    Colors.black.withAlpha(100),
+                    Colors.black.withAlpha(200),
+                  ],
+                  stops: const [0.0, 0.4, 1.0],
+                ),
+              ),
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: isLoading ? null : () => _onEditTapped(context),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('Edit'),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _ItemDetailBody(item: item),
     );
+  }
+
+  Widget _buildHeader(BuildContext context, double shrinkOffset) {
+    final progress =
+        (shrinkOffset / (_expandedHeight - _collapsedHeight)).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Align(
+        alignment:
+            Alignment.lerp(Alignment.topLeft, Alignment.centerLeft, progress)!,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.name,
+              style: TextStyle.lerp(
+                circulariTypography.heading2.copyWith(color: Colors.white),
+                circulariTypography.heading5.copyWith(color: Colors.white),
+                progress,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (item.category != null && progress < 0.6)
+              Opacity(
+                opacity: (1.0 - progress).clamp(0.0, 1.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(40),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white.withAlpha(80)),
+                  ),
+                  child: Text(
+                    item.category!.name,
+                    style: circulariTypography.body.small.regular.copyWith(
+                      color: CirculariColorsTokens.greyscale100,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildBody(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+    return [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.description != null && item.description!.isNotEmpty) ...[
+              Text(
+                item.description!,
+                style: typography.body.medium.regular.copyWith(
+                  color: CirculariColorsTokens.greyscale700,
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+            Text(
+              'Detalhes',
+              style: typography.body.xLarge.bold.copyWith(
+                color: CirculariColorsTokens.greyscale800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _DetailRow(
+              icon: Icons.inventory_2_outlined,
+              label: 'Quantidade',
+              value: item.quantity.toString(),
+            ),
+            if (item.userDefinedValue != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.attach_money_outlined,
+                label: 'Valor',
+                value: 'R\$ ${item.userDefinedValue!.toStringAsFixed(2)}',
+              ),
+            ],
+            if (item.listInfo != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.list_alt_outlined,
+                label: 'Lista',
+                value: item.listInfo!.name,
+                accent: _hexColor(item.listInfo!.color),
+              ),
+            ],
+            const SizedBox(height: 12),
+            _DetailRow(
+              icon: Icons.calendar_today_outlined,
+              label: 'Adicionado',
+              value: _formatDate(item.createdAt),
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: TextButton.icon(
+                onPressed: isLoading ? null : () => _confirmDelete(context),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                label: Text(
+                  'Excluir item',
+                  style: typography.body.medium.bold.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
   }
 
   Future<void> _onEditTapped(BuildContext context) async {
@@ -87,12 +253,12 @@ class _ItemDetailScaffold extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete item'),
-        content: Text('Delete "${item.name}"? This cannot be undone.'),
+        title: const Text('Excluir item'),
+        content: Text('Excluir "${item.name}"? Essa ação não pode ser desfeita.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Cancelar'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -100,94 +266,15 @@ class _ItemDetailScaffold extends StatelessWidget {
               foregroundColor: Theme.of(ctx).colorScheme.onError,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            child: const Text('Excluir'),
           ),
         ],
       ),
     );
 
     if (confirmed == true && context.mounted) {
-      context
-          .read<ItemDetailBloc>()
-          .add(ItemDetailDeleteRequested(item.id));
+      context.read<ItemDetailBloc>().add(ItemDetailDeleteRequested(item.id));
     }
-  }
-}
-
-class _ItemDetailBody extends StatelessWidget {
-  final Item item;
-
-  const _ItemDetailBody({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final mainImage = item.images.firstOrNull;
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _ItemImage(url: mainImage?.url),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (item.category != null) ...[
-                  Chip(label: Text(item.category!.name)),
-                  const SizedBox(height: 12),
-                ],
-                Text(
-                  item.name,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                if (item.description != null && item.description!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    item.description!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Quantity',
-                  value: item.quantity.toString(),
-                ),
-                if (item.userDefinedValue != null) ...[
-                  const SizedBox(height: 12),
-                  _DetailRow(
-                    icon: Icons.attach_money_outlined,
-                    label: 'Value',
-                    value: 'R\$ ${item.userDefinedValue!.toStringAsFixed(2)}',
-                  ),
-                ],
-                if (item.listInfo != null) ...[
-                  const SizedBox(height: 12),
-                  _DetailRow(
-                    icon: Icons.list_alt_outlined,
-                    label: 'List',
-                    value: item.listInfo!.name,
-                    accent: _hexColor(item.listInfo!.color),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                _DetailRow(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Added',
-                  value: _formatDate(item.createdAt),
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   String _formatDate(DateTime date) {
@@ -206,38 +293,6 @@ class _ItemDetailBody extends StatelessWidget {
   }
 }
 
-class _ItemImage extends StatelessWidget {
-  final String? url;
-
-  const _ItemImage({this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    if (url != null) {
-      return Image.network(
-        url!,
-        height: 260,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _placeholder(context),
-      );
-    }
-    return _placeholder(context);
-  }
-
-  Widget _placeholder(BuildContext context) {
-    return Container(
-      height: 260,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Icon(
-        Icons.image_not_supported_outlined,
-        size: 64,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-}
-
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -253,35 +308,31 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 20, color: CirculariColorsTokens.greyscale600),
         const SizedBox(width: 12),
         Text(
           '$label: ',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: typography.body.medium.regular.copyWith(
+            color: CirculariColorsTokens.greyscale600,
+          ),
         ),
         if (accent != null) ...[
           Container(
             width: 10,
             height: 10,
-            decoration: BoxDecoration(
-              color: accent,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
         ],
         Expanded(
           child: Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: typography.body.medium.regular.copyWith(
+              color: CirculariColorsTokens.greyscale800,
+            ),
           ),
         ),
       ],

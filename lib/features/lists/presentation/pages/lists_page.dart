@@ -289,7 +289,6 @@ class ListsPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 100),
                 ],
               ),
             },
