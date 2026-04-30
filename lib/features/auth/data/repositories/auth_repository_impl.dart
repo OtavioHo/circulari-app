@@ -26,6 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: result.refreshToken,
       ),
       _tokenStorage.saveUserName(result.user.name),
+      _tokenStorage.saveUserEmail(result.user.email),
     ]);
     return result.user;
   }
@@ -42,6 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: result.refreshToken,
       ),
       _tokenStorage.saveUserName(result.user.name),
+      _tokenStorage.saveUserEmail(result.user.email),
     ]);
     return result.user;
   }
@@ -57,6 +59,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await Future.wait([
         _tokenStorage.clearTokens(),
         _tokenStorage.clearUserName(),
+        _tokenStorage.clearUserEmail(),
       ]);
     }
   }

@@ -5,12 +5,14 @@ import 'package:flutter/foundation.dart';
 class AuthStateNotifier extends ChangeNotifier {
   bool _isAuthenticated;
   String? _userName;
+  String? _userEmail;
   bool _isInitializing = true;
 
   AuthStateNotifier(this._isAuthenticated);
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userName => _userName;
+  String? get userEmail => _userEmail;
   bool get isInitializing => _isInitializing;
 
   void setAuthenticated(bool value) {
@@ -22,6 +24,12 @@ class AuthStateNotifier extends ChangeNotifier {
   void setUserName(String? name) {
     if (_userName == name) return;
     _userName = name;
+    notifyListeners();
+  }
+
+  void setUserEmail(String? email) {
+    if (_userEmail == email) return;
+    _userEmail = email;
     notifyListeners();
   }
 

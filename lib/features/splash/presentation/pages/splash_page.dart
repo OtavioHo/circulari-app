@@ -29,12 +29,18 @@ class _SplashPageState extends State<SplashPage> {
       if (token != null) {
         authNotifier.setAuthenticated(true);
         var name = await storage.getUserName();
-        if (name == null) {
+        var email = await storage.getUserEmail();
+        if (name == null || email == null) {
           final user = await sl<GetMeUsecase>()();
-          await storage.saveUserName(user.name);
+          await Future.wait([
+            storage.saveUserName(user.name),
+            storage.saveUserEmail(user.email),
+          ]);
           name = user.name;
+          email = user.email;
         }
         authNotifier.setUserName(name);
+        authNotifier.setUserEmail(email);
       }
     } catch (e) {
       debugPrint('SplashPage: failed to restore auth — $e');

@@ -11,6 +11,7 @@ class TokenStorage {
   static const _accessKey = 'access_token';
   static const _refreshKey = 'refresh_token';
   static const _userNameKey = 'user_name';
+  static const _userEmailKey = 'user_email';
 
   final FlutterSecureStorage _storage;
 
@@ -18,6 +19,7 @@ class TokenStorage {
   String? _accessToken;
   String? _refreshToken;
   String? _userName;
+  String? _userEmail;
 
   TokenStorage(this._storage);
 
@@ -95,6 +97,34 @@ class TokenStorage {
       await _storage.delete(key: _userNameKey);
     } catch (e) {
       debugPrint('TokenStorage: failed to clear user name — $e');
+    }
+  }
+
+  Future<String?> getUserEmail() async {
+    if (_userEmail != null) return _userEmail;
+    try {
+      _userEmail = await _storage.read(key: _userEmailKey);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to read user email — $e');
+    }
+    return _userEmail;
+  }
+
+  Future<void> saveUserEmail(String email) async {
+    _userEmail = email;
+    try {
+      await _storage.write(key: _userEmailKey, value: email);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to persist user email — $e');
+    }
+  }
+
+  Future<void> clearUserEmail() async {
+    _userEmail = null;
+    try {
+      await _storage.delete(key: _userEmailKey);
+    } catch (e) {
+      debugPrint('TokenStorage: failed to clear user email — $e');
     }
   }
 }

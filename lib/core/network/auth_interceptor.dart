@@ -103,6 +103,7 @@ class AuthInterceptor extends Interceptor {
       await _tokenStorage.clearTokens();
       _authStateNotifier.setAuthenticated(false);
       _authStateNotifier.setUserName(null);
+      _authStateNotifier.setUserEmail(null);
       return handler.reject(_unauthorizedError(err.requestOptions));
     }
   }
