@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import '../auth/auth_state_notifier.dart';
 import '../error/app_exception.dart';
 import '../storage/token_storage.dart';
 
@@ -14,11 +15,16 @@ import '../storage/token_storage.dart';
 class AuthInterceptor extends Interceptor {
   final TokenStorage _tokenStorage;
   final Dio _refreshDio;
+  final AuthStateNotifier _authStateNotifier;
 
   /// Non-null while a refresh is in flight. All other 401 handlers wait on it.
   Completer<void>? _refreshCompleter;
 
-  AuthInterceptor(this._tokenStorage, this._refreshDio);
+  AuthInterceptor(
+    this._tokenStorage,
+    this._refreshDio,
+    this._authStateNotifier,
+  );
 
   @override
   Future<void> onRequest(
@@ -95,6 +101,8 @@ class AuthInterceptor extends Interceptor {
       _refreshCompleter = null;
       completer.completeError(e);
       await _tokenStorage.clearTokens();
+      _authStateNotifier.setAuthenticated(false);
+      _authStateNotifier.setUserName(null);
       return handler.reject(_unauthorizedError(err.requestOptions));
     }
   }

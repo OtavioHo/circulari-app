@@ -19,9 +19,9 @@ void setupInjection() {
     () => const FlutterSecureStorage(),
   );
   sl.registerLazySingleton<TokenStorage>(() => TokenStorage(sl()));
-  sl.registerLazySingleton<Dio>(() => createApiClient(sl()));
   // Starts unauthenticated; main.dart updates it after reading token storage.
   sl.registerSingleton(AuthStateNotifier(false));
+  sl.registerLazySingleton<Dio>(() => createApiClient(sl(), sl()));
 
   // ── Features ──────────────────────────────────────────────────────────────
   sl.registerAuthFeature();
