@@ -1,5 +1,6 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class CirculariAuthScaffold extends StatelessWidget {
@@ -15,9 +16,11 @@ class CirculariAuthScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = backgroundColor ?? Theme.of(context).colorScheme.surface;
-    return Scaffold(
-      backgroundColor: bg,
-      body: LayoutBuilder(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: bg,
+        body: LayoutBuilder(
         builder: (context, constraints) {
           final height =
               constraints.maxHeight + MediaQuery.viewInsetsOf(context).bottom;
@@ -69,6 +72,7 @@ class CirculariAuthScaffold extends StatelessWidget {
             ),
           );
         },
+        ),
       ),
     );
   }
