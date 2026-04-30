@@ -22,38 +22,52 @@ class SelectListPage extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
             ListsSuccess(:final lists) ||
-            ListsActionFailure(:final lists) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Escolha uma lista',
-                  style: context.circulariTheme.typography.heading3.copyWith(
-                    color: CirculariColorsTokens.greyscale900,
-                  ),
-                ),
-                Text(
-                  'Selecione a lista onde o item será adicionado.',
-                  style: context.circulariTheme.typography.body.medium.regular
-                      .copyWith(color: CirculariColorsTokens.greyscale500),
-                ),
-                SizedBox(height: context.circulariTheme.spacing.xLarge),
-                if (lists.isEmpty)
-                  const Text('Nenhuma lista ainda.')
-                else
-                  CirculariSelectBox<String>(
-                    options: [
-                      for (final list in lists)
-                        CirculariSelectOption(
-                          label: list.name,
-                          value: list.id,
-                        ),
+            ListsActionFailure(:final lists) => lists.isEmpty
+                ? CirculariEmptyState(
+                    icon: Icons.folder_open,
+                    title: 'Sem listas ainda',
+                    description:
+                        'Crie sua primeira lista para adicionar itens.',
+                    ctaLabel: 'Criar lista',
+                    onCtaPressed: () => context.push('/lists/create'),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Escolha uma lista',
+                        style: context.circulariTheme.typography.heading3
+                            .copyWith(
+                              color: CirculariColorsTokens.greyscale900,
+                            ),
+                      ),
+                      Text(
+                        'Selecione a lista onde o item será adicionado.',
+                        style: context
+                            .circulariTheme
+                            .typography
+                            .body
+                            .medium
+                            .regular
+                            .copyWith(
+                              color: CirculariColorsTokens.greyscale500,
+                            ),
+                      ),
+                      SizedBox(height: context.circulariTheme.spacing.xLarge),
+                      CirculariSelectBox<String>(
+                        options: [
+                          for (final list in lists)
+                            CirculariSelectOption(
+                              label: list.name,
+                              value: list.id,
+                            ),
+                        ],
+                        selected: null,
+                        onSelected: (value) =>
+                            context.push('/items/add?listId=$value'),
+                      ),
                     ],
-                    selected: null,
-                    onSelected: (value) =>
-                        context.push('/items/add?listId=$value'),
                   ),
-              ],
-            ),
             ListsFailure(:final message) => Center(child: Text(message)),
           },
         ),

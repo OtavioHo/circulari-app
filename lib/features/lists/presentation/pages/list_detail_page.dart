@@ -186,7 +186,16 @@ class ListDetailPage extends StatelessWidget {
       ItemsActionFailure(:final items) ||
       ItemsQuotaExceeded(:final items) =>
         items.isEmpty
-            ? [const Center(child: Text('No items yet. Tap + to add one.'))]
+            ? [
+                CirculariEmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Esta lista está vazia',
+                  description: 'Adicione o primeiro item para começar.',
+                  ctaLabel: 'Adicionar item',
+                  onCtaPressed: () =>
+                      context.push('/items/add?listId=$listId'),
+                ),
+              ]
             : [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),

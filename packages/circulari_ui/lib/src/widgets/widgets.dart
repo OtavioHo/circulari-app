@@ -17,4 +17,5 @@ export 'layout/auth_scaffold.dart';
 export 'layout/app_bar.dart';
 export 'layout/in_app_scaffold.dart';
 export 'feedback/paywall_bottom_sheet.dart';
+export 'feedback/empty_state.dart';
 export 'branding/circulari_logo.dart';

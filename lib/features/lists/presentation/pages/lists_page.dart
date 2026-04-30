@@ -150,24 +150,37 @@ class ListsPage extends StatelessWidget {
                 ),
               ),
               ListsSuccess(:final lists) ||
-              ListsActionFailure(:final lists) => CirculariListsCarousel(
-                itemCount: lists.length,
-                itemBuilder: (context, index) {
-                  final list = lists[index];
-                  return CirculariListCard(
-                    title: list.name,
-                    itemCount: list.itemCount,
-                    value: list.totalValue,
-                    seed: index,
-                    picturePath: assetForSlug(list.picture.slug) ?? '',
-                    backgroundColor: Color(
-                      int.parse(list.color.hexCode.replaceFirst('#', '0xff')),
+              ListsActionFailure(:final lists) => lists.isEmpty
+                  ? CirculariEmptyState(
+                      icon: Icons.folder_open,
+                      title: 'Sem listas ainda',
+                      description:
+                          'Crie sua primeira lista para começar a organizar seus bens.',
+                      ctaLabel: 'Criar lista',
+                      onCtaPressed: () => context.go('/add'),
+                    )
+                  : CirculariListsCarousel(
+                      itemCount: lists.length,
+                      itemBuilder: (context, index) {
+                        final list = lists[index];
+                        return CirculariListCard(
+                          title: list.name,
+                          itemCount: list.itemCount,
+                          value: list.totalValue,
+                          seed: index,
+                          picturePath: assetForSlug(list.picture.slug) ?? '',
+                          backgroundColor: Color(
+                            int.parse(
+                              list.color.hexCode.replaceFirst('#', '0xff'),
+                            ),
+                          ),
+                          onTap: () => context.push(
+                            '/lists/${list.id}/items',
+                            extra: list,
+                          ),
+                        );
+                      },
                     ),
-                    onTap: () =>
-                        context.push('/lists/${list.id}/items', extra: list),
-                  );
-                },
-              ),
               ListsFailure(:final message) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -185,18 +198,47 @@ class ListsPage extends StatelessWidget {
               ),
             },
           ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: context.circulariTheme.spacing.medium,
-            ),
-            child: Text(
-              "Items recentes",
-              style: context.circulariTheme.typography.body.xLarge.bold
-                  .copyWith(color: CirculariColorsTokens.greyscale800),
-            ),
+          BlocBuilder<ListsBloc, ListsState>(
+            buildWhen: (prev, curr) => _hasListsChanged(prev, curr),
+            builder: (context, listsState) {
+              if (!_hasLists(listsState)) return const SizedBox.shrink();
+              return Column(
+                children: [
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.circulariTheme.spacing.medium,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Items recentes",
+                        style: context.circulariTheme.typography.body.xLarge.bold
+                            .copyWith(color: CirculariColorsTokens.greyscale800),
+                      ),
+                    ),
+                  ),
+                  _buildRecentItems(context),
+                ],
+              );
+            },
           ),
-          BlocBuilder<SearchItemsBloc, SearchItemsState>(
+        ],
+      ),
+    );
+  }
+
+  static bool _hasLists(ListsState state) => switch (state) {
+    ListsSuccess(:final lists) ||
+    ListsActionFailure(:final lists) => lists.isNotEmpty,
+    _ => false,
+  };
+
+  static bool _hasListsChanged(ListsState prev, ListsState curr) =>
+      _hasLists(prev) != _hasLists(curr);
+
+  Widget _buildRecentItems(BuildContext context) {
+    return BlocBuilder<SearchItemsBloc, SearchItemsState>(
             builder: (context, state) => switch (state) {
               SearchItemsInitial() || SearchItemsLoading() => const Padding(
                 padding: EdgeInsets.all(32),
@@ -250,9 +292,6 @@ class ListsPage extends StatelessWidget {
                 ],
               ),
             },
-          ),
-        ],
-      ),
-    );
+          );
   }
 }
