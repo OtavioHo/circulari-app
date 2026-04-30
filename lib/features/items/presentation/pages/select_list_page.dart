@@ -63,8 +63,15 @@ class SelectListPage extends StatelessWidget {
                             ),
                         ],
                         selected: null,
-                        onSelected: (value) =>
-                            context.push('/items/add?listId=$value'),
+                        onSelected: (value) {
+                          final picked = lists.firstWhere(
+                            (l) => l.id == value,
+                          );
+                          context.push(
+                            '/items/add?listId=$value',
+                            extra: picked,
+                          );
+                        },
                       ),
                     ],
                   ),

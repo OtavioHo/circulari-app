@@ -7,6 +7,7 @@ import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
 import 'package:circulari/features/items/presentation/bloc/items_state.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 
 const _expandedHeight = 260.0;
 const _collapsedHeight = 56.0;
@@ -18,6 +19,7 @@ class ListDetailPage extends StatelessWidget {
   final Color? backgroundColor;
   final double? initialTotalValue;
   final int? seed;
+  final ItemList? list;
 
   const ListDetailPage({
     super.key,
@@ -27,6 +29,7 @@ class ListDetailPage extends StatelessWidget {
     this.backgroundColor,
     this.initialTotalValue,
     this.seed,
+    this.list,
   });
 
   @override
@@ -35,7 +38,8 @@ class ListDetailPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: CirculariColorsTokens.freshCore,
-        onPressed: () => context.push('/items/add?listId=$listId'),
+        onPressed: () =>
+            context.push('/items/add?listId=$listId', extra: list),
         tooltip: 'Novo Item',
         child: const Icon(Icons.add, color: CirculariColorsTokens.greyscale100),
       ),
@@ -193,7 +197,7 @@ class ListDetailPage extends StatelessWidget {
                   description: 'Adicione o primeiro item para começar.',
                   ctaLabel: 'Adicionar item',
                   onCtaPressed: () =>
-                      context.push('/items/add?listId=$listId'),
+                      context.push('/items/add?listId=$listId', extra: list),
                 ),
               ]
             : [

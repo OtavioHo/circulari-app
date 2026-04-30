@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:circulari/features/items/presentation/pages/add_item_form_args.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+
 class AddItemPicturePage extends StatefulWidget {
   final String listId;
+  final ItemList? list;
 
-  const AddItemPicturePage({super.key, required this.listId});
+  const AddItemPicturePage({super.key, required this.listId, this.list});
 
   @override
   State<AddItemPicturePage> createState() => _AddItemPicturePageState();
@@ -75,7 +79,11 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
           Navigator.of(ctx).pop();
           context.push(
             '/items/add/form',
-            extra: {'listId': widget.listId, 'imagePath': imagePath},
+            extra: AddItemFormArgs(
+              listId: widget.listId,
+              imagePath: imagePath,
+              list: widget.list,
+            ),
           );
         },
         onRetake: () => Navigator.of(ctx).pop(),

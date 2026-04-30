@@ -1,6 +1,7 @@
 import 'package:circulari/features/add/presentation/pages/add_page.dart';
 import 'package:flutter/material.dart';
 import 'package:circulari/features/home/presentation/pages/home_page.dart';
+import 'package:circulari/features/items/presentation/pages/add_item_form_args.dart';
 import 'package:circulari/features/items/presentation/pages/add_item_form_page.dart';
 import 'package:circulari/features/items/presentation/pages/add_item_picture_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -186,6 +187,7 @@ final appRouter = GoRouter(
             backgroundColor: backgroundColor,
             initialTotalValue: list?.totalValue,
             seed: list?.picture.slug.hashCode,
+            list: list,
           ),
         );
       },
@@ -206,13 +208,14 @@ final appRouter = GoRouter(
       },
       builder: (context, state) {
         final listId = state.uri.queryParameters['listId']!;
-        return AddItemPicturePage(listId: listId);
+        final list = state.extra as ItemList?;
+        return AddItemPicturePage(listId: listId, list: list);
       },
     ),
     GoRoute(
       path: '/items/add/form',
       builder: (context, state) {
-        final extra = state.extra as Map<String, String>;
+        final args = state.extra as AddItemFormArgs;
         return MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => sl<AiAnalysisCubit>()),
@@ -220,8 +223,9 @@ final appRouter = GoRouter(
             BlocProvider(create: (_) => sl<ItemsBloc>()),
           ],
           child: AddItemFormPage(
-            imagePath: extra['imagePath']!,
-            listId: extra['listId']!,
+            imagePath: args.imagePath,
+            listId: args.listId,
+            list: args.list,
           ),
         );
       },

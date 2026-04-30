@@ -3,21 +3,25 @@ import 'dart:io';
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
 import 'package:circulari/features/items/presentation/bloc/items_state.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 
 class AddItemFormPage extends StatefulWidget {
   final String imagePath;
   final String listId;
+  final ItemList? list;
 
   const AddItemFormPage({
     super.key,
     required this.imagePath,
     required this.listId,
+    this.list,
   });
 
   @override
@@ -89,8 +93,12 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   }
 
   void _onItemsState(BuildContext context, ItemsState state) {
-    if (state is ItemsSuccess) {
-      Navigator.of(context).pop();
+    if (state is ItemsCreateSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Item criado com sucesso!')),
+      );
+      context.go('/lists/${widget.listId}/items', extra: widget.list);
+      context.push('/items/${state.created.id}', extra: state.created);
     } else if (state is ItemsQuotaExceeded) {
       PaywallBottomSheet.show(context, resourceName: 'itens');
     } else if (state is ItemsActionFailure) {
@@ -134,9 +142,14 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         title: 'Criar item',
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
+          child: BlocBuilder<ItemsBloc, ItemsState>(
+            buildWhen: (prev, curr) =>
+                prev is ItemsLoading || curr is ItemsLoading,
+            builder: (context, itemsState) => AbsorbPointer(
+              absorbing: itemsState is ItemsLoading,
+              child: Form(
+                key: _formKey,
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
@@ -269,6 +282,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 ),
                 SizedBox(height: theme.spacing.medium),
               ],
+                ),
+              ),
             ),
           ),
         ),

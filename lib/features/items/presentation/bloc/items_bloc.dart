@@ -49,6 +49,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
     Emitter<ItemsState> emit,
   ) async {
     final previous = _currentItems();
+    emit(const ItemsLoading());
     try {
       final created = await _createItem(
         listId: event.listId,
@@ -60,7 +61,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         userDefinedValue: event.userDefinedValue,
         imagePath: event.imagePath,
       );
-      emit(ItemsSuccess([...previous, created]));
+      emit(ItemsCreateSuccess([...previous, created], created));
     } on PlanLimitException {
       emit(ItemsQuotaExceeded(previous));
     } on TierRequiredException {

@@ -12,9 +12,16 @@ final class ItemsLoading extends ItemsState {
   const ItemsLoading();
 }
 
-final class ItemsSuccess extends ItemsState {
+base class ItemsSuccess extends ItemsState {
   final List<Item> items;
   const ItemsSuccess(this.items);
+}
+
+/// Emitted when an item was just created. Subtype of [ItemsSuccess] so existing
+/// listeners that observe successful state transitions still match.
+final class ItemsCreateSuccess extends ItemsSuccess {
+  final Item created;
+  const ItemsCreateSuccess(super.items, this.created);
 }
 
 final class ItemsFailure extends ItemsState {
