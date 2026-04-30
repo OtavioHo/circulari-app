@@ -50,7 +50,7 @@ class CirculariAuthScaffold extends StatelessWidget {
                   Column(
                     children: [
                       const Expanded(
-                        child: Center(child: FlutterLogo(size: 80)),
+                        child: Center(child: CirculariLogo.vertical(size: 80)),
                       ),
                       Container(
                         decoration: BoxDecoration(
