@@ -219,6 +219,7 @@ class ListsPage extends StatelessWidget {
                     ),
                   ),
                   _buildRecentItems(context),
+                  const SizedBox(height: 100),
                 ],
               );
             },
