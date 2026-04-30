@@ -22,7 +22,7 @@ class ListsRepositoryImpl implements ListsRepository {
   Future<List<ListPicture>> getPictures() => _source.getPictures();
 
   @override
-  Future<void> createList({
+  Future<String> createList({
     required String name,
     String? location,
     required String colorId,

@@ -1,3 +1,4 @@
+import '../../domain/entities/item_list.dart';
 import '../../domain/entities/list_color.dart';
 import '../../domain/entities/list_icon.dart';
 import '../../domain/entities/list_picture.dart';
@@ -55,7 +56,8 @@ final class CreateListReady extends CreateListState {
 }
 
 final class CreateListSuccess extends CreateListState {
-  const CreateListSuccess();
+  final ItemList list;
+  const CreateListSuccess(this.list);
 }
 
 final class CreateListOptionsFailure extends CreateListState {

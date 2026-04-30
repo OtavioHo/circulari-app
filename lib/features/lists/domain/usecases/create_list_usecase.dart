@@ -4,7 +4,7 @@ class CreateListUsecase {
   final ListsRepository _repository;
   const CreateListUsecase(this._repository);
 
-  Future<void> call({
+  Future<String> call({
     required String name,
     String? location,
     required String colorId,

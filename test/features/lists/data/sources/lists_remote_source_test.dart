@@ -85,6 +85,7 @@ void main() {
         (_) async => Response(
           requestOptions: RequestOptions(path: '/lists'),
           statusCode: 201,
+          data: {'id': 'list-1'},
         ),
       );
 

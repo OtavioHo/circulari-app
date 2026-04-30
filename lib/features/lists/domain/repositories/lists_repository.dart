@@ -8,7 +8,7 @@ abstract interface class ListsRepository {
   Future<List<ListColor>> getColors();
   Future<List<ListIcon>> getIcons();
   Future<List<ListPicture>> getPictures();
-  Future<void> createList({
+  Future<String> createList({
     required String name,
     String? location,
     required String colorId,

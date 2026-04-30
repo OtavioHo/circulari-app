@@ -22,7 +22,7 @@ void main() {
           colorId: any(named: 'colorId'),
           iconId: any(named: 'iconId'),
           pictureId: any(named: 'pictureId'),
-        )).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 'list-1');
 
     await usecase(
       name: 'Books',

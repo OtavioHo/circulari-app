@@ -72,7 +72,7 @@ class ListsRemoteSource {
     }
   }
 
-  Future<void> createList({
+  Future<String> createList({
     required String name,
     String? location,
     required String colorId,
@@ -80,13 +80,18 @@ class ListsRemoteSource {
     required String pictureId,
   }) async {
     try {
-      await _dio.post('/lists', data: {
+      final response = await _dio.post('/lists', data: {
         'name': name,
         'location': ?location,
         'color_id': colorId,
         'icon_id': iconId,
         'picture_id': pictureId,
       });
+      final data = response.data;
+      if (data is! Map<String, dynamic> || data['id'] is! String) {
+        throw const ServerException('Unexpected response format.');
+      }
+      return data['id'] as String;
     } on DioException catch (e) {
       throw mapDioError(e);
     }

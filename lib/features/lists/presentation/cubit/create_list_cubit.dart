@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/error/app_exception.dart';
+import '../../domain/entities/item_list.dart';
 import '../../domain/entities/list_color.dart';
 import '../../domain/entities/list_icon.dart';
 import '../../domain/entities/list_picture.dart';
@@ -84,14 +85,24 @@ class CreateListCubit extends Cubit<CreateListState> {
 
     emit(ready.copyWith(submitting: true, clearError: true));
     try {
-      await _createList(
+      final id = await _createList(
         name: name,
         location: location?.trim().isEmpty == true ? null : location?.trim(),
         colorId: ready.selectedColor.hexCode,
         iconId: ready.selectedIcon.slug,
         pictureId: ready.selectedPicture.slug,
       );
-      emit(const CreateListSuccess());
+      emit(CreateListSuccess(ItemList(
+        id: id,
+        name: name,
+        location: location?.trim().isEmpty == true ? null : location?.trim(),
+        color: ready.selectedColor,
+        icon: ready.selectedIcon,
+        picture: ready.selectedPicture,
+        itemCount: 0,
+        totalValue: 0,
+        createdAt: DateTime.now(),
+      )));
     } on PlanLimitException {
       emit(const CreateListQuotaExceeded());
     } on TierRequiredException {

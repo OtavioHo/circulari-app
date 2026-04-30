@@ -1,6 +1,7 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../cubit/create_list_cubit.dart';
 import '../cubit/create_list_state.dart';
@@ -16,7 +17,10 @@ class CreateListPage extends StatelessWidget {
     return BlocListener<CreateListCubit, CreateListState>(
       listener: (context, state) {
         if (state is CreateListSuccess) {
-          Navigator.of(context).pop();
+          context.pushReplacement(
+            '/lists/${state.list.id}/items',
+            extra: state.list,
+          );
         } else if (state is CreateListQuotaExceeded) {
           PaywallBottomSheet.show(context, resourceName: 'listas');
         }
