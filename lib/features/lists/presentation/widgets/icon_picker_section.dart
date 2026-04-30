@@ -62,7 +62,7 @@ class IconPickerSection extends StatelessWidget {
                   child: Icon(
                     iconForSlug(icon.slug),
                     color: isSelected
-                        ? CirculariColorsTokens.freshCore
+                        ? CirculariColorsTokens.greyscale900
                         : CirculariColorsTokens.greyscale500,
                     size: 24,
                   ),
