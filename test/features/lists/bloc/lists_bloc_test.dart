@@ -2,17 +2,17 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/lists/domain/entities/item_list.dart';
-import 'package:app/features/lists/domain/entities/list_color.dart';
-import 'package:app/features/lists/domain/entities/list_icon.dart';
-import 'package:app/features/lists/domain/entities/list_picture.dart';
-import 'package:app/features/lists/domain/usecases/delete_list_usecase.dart';
-import 'package:app/features/lists/domain/usecases/get_lists_usecase.dart';
-import 'package:app/features/lists/domain/usecases/rename_list_usecase.dart';
-import 'package:app/features/lists/presentation/bloc/lists_bloc.dart';
-import 'package:app/features/lists/presentation/bloc/lists_event.dart';
-import 'package:app/features/lists/presentation/bloc/lists_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
 
 class MockGetListsUsecase extends Mock implements GetListsUsecase {}
 

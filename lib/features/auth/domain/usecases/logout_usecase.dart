@@ -1,4 +1,4 @@
-import '../repositories/auth_repository.dart';
+import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
 
 class LogoutUsecase {
   final AuthRepository _repository;

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../error/app_exception.dart';
+import 'package:circulari/core/error/app_exception.dart';
 
 /// Maps a [DioException] to an [AppException].
 ///

@@ -1,4 +1,4 @@
-import '../repositories/lists_repository.dart';
+import 'package:circulari/features/lists/domain/repositories/lists_repository.dart';
 
 class CreateListUsecase {
   final ListsRepository _repository;

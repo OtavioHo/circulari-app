@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../extensions/build_context_extension.dart';
-import '../../theme/circulari_colors.dart';
+import 'package:circulari_ui/src/extensions/build_context_extension.dart';
+import 'package:circulari_ui/src/theme/circulari_colors.dart';
 
 class PaywallBottomSheet extends StatelessWidget {
   final String? resourceName;

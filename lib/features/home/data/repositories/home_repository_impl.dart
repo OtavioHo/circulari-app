@@ -1,6 +1,6 @@
-import '../../domain/entities/dashboard_summary.dart';
-import '../../domain/repositories/home_repository.dart';
-import '../sources/home_remote_source.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/repositories/home_repository.dart';
+import 'package:circulari/features/home/data/sources/home_remote_source.dart';
 
 class HomeRepositoryImpl implements HomeRepository {
   final HomeRemoteSource _source;

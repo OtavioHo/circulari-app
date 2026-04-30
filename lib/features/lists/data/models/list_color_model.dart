@@ -1,4 +1,4 @@
-import '../../domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
 
 class ListColorModel extends ListColor {
   const ListColorModel({

@@ -1,4 +1,4 @@
-import '../../domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 
 class ListPictureModel extends ListPicture {
   const ListPictureModel({required super.slug, required super.order});

@@ -1,5 +1,5 @@
-import '../entities/dashboard_summary.dart';
-import '../repositories/home_repository.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/repositories/home_repository.dart';
 
 class GetDashboardUsecase {
   final HomeRepository _repository;

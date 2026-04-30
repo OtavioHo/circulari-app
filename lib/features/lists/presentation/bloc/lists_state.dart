@@ -1,4 +1,4 @@
-import '../../domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 
 sealed class ListsState {
   const ListsState();

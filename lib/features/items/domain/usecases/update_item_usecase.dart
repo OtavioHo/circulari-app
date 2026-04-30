@@ -1,5 +1,5 @@
-import '../entities/item.dart';
-import '../repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
 
 class UpdateItemUsecase {
   final ItemsRepository _repository;

@@ -2,9 +2,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/items/domain/usecases/get_categories_usecase.dart';
-import 'package:app/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/usecases/get_categories_usecase.dart';
+import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 
 import '../../../../helpers/fixtures.dart';
 

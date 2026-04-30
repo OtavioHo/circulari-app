@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../../../core/network/dio_error_mapper.dart';
-import '../models/user_model.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/dio_error_mapper.dart';
+import 'package:circulari/features/auth/data/models/user_model.dart';
 
 class AuthRemoteSource {
   final Dio _dio;

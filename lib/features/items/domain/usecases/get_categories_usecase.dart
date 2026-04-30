@@ -1,5 +1,5 @@
-import '../entities/category.dart';
-import '../repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
 
 class GetCategoriesUsecase {
   final ItemsRepository _repository;

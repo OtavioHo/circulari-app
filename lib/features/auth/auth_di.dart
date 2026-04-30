@@ -1,18 +1,18 @@
 import 'package:get_it/get_it.dart';
 
-import '../../core/auth/auth_state_notifier.dart';
-import 'data/repositories/auth_repository_impl.dart';
-import 'data/sources/auth_remote_source.dart';
-import 'domain/repositories/auth_repository.dart';
-import 'domain/usecases/forgot_password_usecase.dart';
-import 'domain/usecases/get_me_usecase.dart';
-import 'domain/usecases/login_usecase.dart';
-import 'domain/usecases/logout_usecase.dart';
-import 'domain/usecases/register_usecase.dart';
-import 'domain/usecases/reset_password_usecase.dart';
-import 'domain/usecases/verify_reset_otp_usecase.dart';
-import 'presentation/bloc/auth_bloc.dart';
-import 'presentation/bloc/recovery_bloc.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
+import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
+import 'package:circulari/features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/get_me_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/login_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/reset_password_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/verify_reset_otp_usecase.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_bloc.dart';
 
 extension AuthDI on GetIt {
   void registerAuthFeature() {

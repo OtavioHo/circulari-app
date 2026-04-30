@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../bloc/recovery_bloc.dart';
-import '../bloc/recovery_event.dart';
-import '../bloc/recovery_state.dart';
-import 'recovery_route_args.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_bloc.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_event.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_state.dart';
+import 'package:circulari/features/auth/presentation/pages/recovery_route_args.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final ResetPasswordArgs args;

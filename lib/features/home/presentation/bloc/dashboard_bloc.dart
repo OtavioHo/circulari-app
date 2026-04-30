@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/usecases/get_dashboard_usecase.dart';
-import 'dashboard_event.dart';
-import 'dashboard_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/home/domain/usecases/get_dashboard_usecase.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_event.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetDashboardUsecase _getDashboard;

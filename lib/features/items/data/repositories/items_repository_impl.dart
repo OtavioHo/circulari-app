@@ -1,9 +1,9 @@
-import '../../../../core/models/paginated_result.dart';
-import '../../domain/entities/ai_analysis_result.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/entities/item.dart';
-import '../../domain/repositories/items_repository.dart';
-import '../sources/items_remote_source.dart';
+import 'package:circulari/core/models/paginated_result.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
+import 'package:circulari/features/items/data/sources/items_remote_source.dart';
 
 class ItemsRepositoryImpl implements ItemsRepository {
   final ItemsRemoteSource _source;

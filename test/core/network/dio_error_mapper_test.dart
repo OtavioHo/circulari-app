@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/core/network/dio_error_mapper.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/dio_error_mapper.dart';
 
 import '../../helpers/dio_helpers.dart';
 

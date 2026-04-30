@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../cubit/create_list_cubit.dart';
-import '../cubit/create_list_state.dart';
-import '../widgets/color_picker_section.dart';
-import '../widgets/icon_picker_section.dart';
-import '../widgets/picture_picker_section.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_cubit.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_state.dart';
+import 'package:circulari/features/lists/presentation/widgets/color_picker_section.dart';
+import 'package:circulari/features/lists/presentation/widgets/icon_picker_section.dart';
+import 'package:circulari/features/lists/presentation/widgets/picture_picker_section.dart';
 
 class CreateListPage extends StatelessWidget {
   const CreateListPage({super.key});

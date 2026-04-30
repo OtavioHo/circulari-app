@@ -1,7 +1,7 @@
-import '../../../../core/models/paginated_result.dart';
-import '../entities/ai_analysis_result.dart';
-import '../entities/category.dart';
-import '../entities/item.dart';
+import 'package:circulari/core/models/paginated_result.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
 
 abstract interface class ItemsRepository {
   Future<List<Category>> getCategories();

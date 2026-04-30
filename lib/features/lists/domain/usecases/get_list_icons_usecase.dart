@@ -1,5 +1,5 @@
-import '../entities/list_icon.dart';
-import '../repositories/lists_repository.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/repositories/lists_repository.dart';
 
 class GetListIconsUsecase {
   final ListsRepository _repository;

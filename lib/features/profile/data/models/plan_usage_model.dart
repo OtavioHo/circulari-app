@@ -1,4 +1,4 @@
-import '../../domain/entities/plan_usage.dart';
+import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
 
 class PlanUsageModel extends PlanUsage {
   const PlanUsageModel({required super.used, required super.max});

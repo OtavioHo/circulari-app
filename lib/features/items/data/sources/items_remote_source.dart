@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../../../core/models/paginated_result.dart';
-import '../../../../core/network/dio_error_mapper.dart';
-import '../../domain/entities/ai_analysis_result.dart';
-import '../../domain/entities/category.dart';
-import '../models/item_model.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/models/paginated_result.dart';
+import 'package:circulari/core/network/dio_error_mapper.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/data/models/item_model.dart';
 
 class ItemsRemoteSource {
   final Dio _dio;

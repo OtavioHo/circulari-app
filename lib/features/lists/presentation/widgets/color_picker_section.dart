@@ -1,7 +1,7 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
 
 class ColorPickerSection extends StatelessWidget {
   final List<ListColor> colors;

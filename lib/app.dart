@@ -2,9 +2,9 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'core/auth/auth_state_notifier.dart';
-import 'core/di/injection.dart';
-import 'core/router/app_router.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/di/injection.dart';
+import 'package:circulari/core/router/app_router.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

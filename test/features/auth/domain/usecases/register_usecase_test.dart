@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/features/auth/domain/repositories/auth_repository.dart';
-import 'package:app/features/auth/domain/usecases/register_usecase.dart';
+import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
+import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
 
 import '../../../../helpers/fixtures.dart';
 

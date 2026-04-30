@@ -1,4 +1,4 @@
-import '../../domain/entities/user.dart';
+import 'package:circulari/features/auth/domain/entities/user.dart';
 
 class UserModel extends User {
   const UserModel({

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/features/home/domain/entities/dashboard_summary.dart';
-import 'package:app/features/home/domain/repositories/home_repository.dart';
-import 'package:app/features/home/domain/usecases/get_dashboard_usecase.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/repositories/home_repository.dart';
+import 'package:circulari/features/home/domain/usecases/get_dashboard_usecase.dart';
 
 class MockHomeRepository extends Mock implements HomeRepository {}
 

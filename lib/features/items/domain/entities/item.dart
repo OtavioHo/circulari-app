@@ -1,6 +1,6 @@
-import 'category.dart';
-import 'item_image.dart';
-import 'list_info.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item_image.dart';
+import 'package:circulari/features/items/domain/entities/list_info.dart';
 
 class Item {
   final String id;

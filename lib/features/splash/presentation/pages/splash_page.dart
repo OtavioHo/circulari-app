@@ -1,10 +1,10 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/auth/auth_state_notifier.dart';
-import '../../../../core/di/injection.dart';
-import '../../../../core/storage/token_storage.dart';
-import '../../../auth/domain/usecases/get_me_usecase.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/di/injection.dart';
+import 'package:circulari/core/storage/token_storage.dart';
+import 'package:circulari/features/auth/domain/usecases/get_me_usecase.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

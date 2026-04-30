@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/entities/item_list.dart';
-import '../../domain/usecases/delete_list_usecase.dart';
-import '../../domain/usecases/get_lists_usecase.dart';
-import '../../domain/usecases/rename_list_usecase.dart';
-import 'lists_event.dart';
-import 'lists_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
 
 class ListsBloc extends Bloc<ListsEvent, ListsState> {
   final GetListsUsecase _getLists;

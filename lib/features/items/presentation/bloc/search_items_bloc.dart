@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/usecases/search_items_usecase.dart';
-import 'search_items_event.dart';
-import 'search_items_state.dart';
+import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_state.dart';
 
 class SearchItemsBloc extends Bloc<SearchItemsEvent, SearchItemsState> {
   final SearchItemsUsecase _searchItems;

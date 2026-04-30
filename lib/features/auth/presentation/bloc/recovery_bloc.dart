@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/usecases/forgot_password_usecase.dart';
-import '../../domain/usecases/reset_password_usecase.dart';
-import '../../domain/usecases/verify_reset_otp_usecase.dart';
-import 'recovery_event.dart';
-import 'recovery_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/reset_password_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/verify_reset_otp_usecase.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_event.dart';
+import 'package:circulari/features/auth/presentation/bloc/recovery_state.dart';
 
 class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
   final ForgotPasswordUsecase _forgotPassword;

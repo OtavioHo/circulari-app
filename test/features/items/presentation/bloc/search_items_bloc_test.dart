@@ -2,13 +2,13 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/core/models/paginated_result.dart';
-import 'package:app/features/items/domain/entities/item.dart';
-import 'package:app/features/items/domain/usecases/search_items_usecase.dart';
-import 'package:app/features/items/presentation/bloc/search_items_bloc.dart';
-import 'package:app/features/items/presentation/bloc/search_items_event.dart';
-import 'package:app/features/items/presentation/bloc/search_items_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/models/paginated_result.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_state.dart';
 
 import '../../../../helpers/fixtures.dart';
 

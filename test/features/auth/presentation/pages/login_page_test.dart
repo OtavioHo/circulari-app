@@ -6,10 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:app/features/auth/presentation/bloc/auth_event.dart';
-import 'package:app/features/auth/presentation/bloc/auth_state.dart';
-import 'package:app/features/auth/presentation/pages/login_page.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_event.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_state.dart';
+import 'package:circulari/features/auth/presentation/pages/login_page.dart';
 
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState>
     implements AuthBloc {}

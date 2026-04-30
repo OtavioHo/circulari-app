@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 
 class ListCard extends StatelessWidget {
   final ItemList list;

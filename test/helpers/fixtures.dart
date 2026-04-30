@@ -1,12 +1,12 @@
-import 'package:app/features/auth/data/models/user_model.dart';
-import 'package:app/features/auth/domain/entities/user.dart';
-import 'package:app/features/items/domain/entities/ai_analysis_result.dart';
-import 'package:app/features/items/domain/entities/category.dart';
-import 'package:app/features/items/domain/entities/item.dart';
-import 'package:app/features/lists/domain/entities/item_list.dart';
-import 'package:app/features/lists/domain/entities/list_color.dart';
-import 'package:app/features/lists/domain/entities/list_icon.dart';
-import 'package:app/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/auth/data/models/user_model.dart';
+import 'package:circulari/features/auth/domain/entities/user.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 
 const tUser = User(
   id: 'user-1',

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/storage/token_storage.dart';
-import 'package:app/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:app/features/auth/data/sources/auth_remote_source.dart';
+import 'package:circulari/core/storage/token_storage.dart';
+import 'package:circulari/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
 
 import '../../../../helpers/fixtures.dart';
 

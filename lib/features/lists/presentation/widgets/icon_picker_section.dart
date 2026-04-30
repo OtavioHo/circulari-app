@@ -1,8 +1,8 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/list_icon.dart';
-import '../utils/list_icon_map.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/presentation/utils/list_icon_map.dart';
 
 class IconPickerSection extends StatelessWidget {
   final List<ListIcon> icons;

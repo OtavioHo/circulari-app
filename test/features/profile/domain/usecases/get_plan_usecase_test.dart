@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/features/profile/domain/entities/plan_usage.dart';
-import 'package:app/features/profile/domain/entities/user_plan.dart';
-import 'package:app/features/profile/domain/repositories/profile_repository.dart';
-import 'package:app/features/profile/domain/usecases/get_plan_usecase.dart';
+import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/repositories/profile_repository.dart';
+import 'package:circulari/features/profile/domain/usecases/get_plan_usecase.dart';
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
 

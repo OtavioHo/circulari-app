@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/features/items/domain/repositories/items_repository.dart';
-import 'package:app/features/items/domain/usecases/get_categories_usecase.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/usecases/get_categories_usecase.dart';
 
 import '../../../../helpers/fixtures.dart';
 

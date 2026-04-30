@@ -1,7 +1,7 @@
-import '../../domain/entities/item_list.dart';
-import 'list_color_model.dart';
-import 'list_icon_model.dart';
-import 'list_picture_model.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/data/models/list_color_model.dart';
+import 'package:circulari/features/lists/data/models/list_icon_model.dart';
+import 'package:circulari/features/lists/data/models/list_picture_model.dart';
 
 class ListModel extends ItemList {
   const ListModel({

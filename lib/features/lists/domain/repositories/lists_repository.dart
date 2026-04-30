@@ -1,7 +1,7 @@
-import '../entities/item_list.dart';
-import '../entities/list_color.dart';
-import '../entities/list_icon.dart';
-import '../entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 
 abstract interface class ListsRepository {
   Future<List<ItemList>> getLists();

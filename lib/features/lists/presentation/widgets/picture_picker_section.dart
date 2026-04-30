@@ -1,8 +1,8 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/list_picture.dart';
-import '../utils/list_picture_map.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/presentation/utils/list_picture_map.dart';
 
 class PicturePickerSection extends StatelessWidget {
   final List<ListPicture> pictures;

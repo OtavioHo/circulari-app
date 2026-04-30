@@ -1,6 +1,6 @@
-import '../../domain/entities/user_plan.dart';
-import '../../domain/repositories/profile_repository.dart';
-import '../sources/profile_remote_source.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/repositories/profile_repository.dart';
+import 'package:circulari/features/profile/data/sources/profile_remote_source.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteSource _source;

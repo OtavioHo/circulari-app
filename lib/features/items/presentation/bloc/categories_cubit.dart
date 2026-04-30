@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/usecases/get_categories_usecase.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/usecases/get_categories_usecase.dart';
 
 sealed class CategoriesState {
   const CategoriesState();

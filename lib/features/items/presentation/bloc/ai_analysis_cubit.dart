@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/entities/ai_analysis_result.dart';
-import '../../domain/usecases/analyze_item_image_usecase.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/domain/usecases/analyze_item_image_usecase.dart';
 
 sealed class AiAnalysisState {
   const AiAnalysisState();

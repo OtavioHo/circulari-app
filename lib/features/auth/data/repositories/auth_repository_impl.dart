@@ -1,7 +1,7 @@
-import '../../../../core/storage/token_storage.dart';
-import '../../domain/entities/user.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../sources/auth_remote_source.dart';
+import 'package:circulari/core/storage/token_storage.dart';
+import 'package:circulari/features/auth/domain/entities/user.dart';
+import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
+import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteSource _source;

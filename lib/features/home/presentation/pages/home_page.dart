@@ -1,4 +1,4 @@
-import 'package:app/features/lists/presentation/utils/list_picture_map.dart';
+import 'package:circulari/features/lists/presentation/utils/list_picture_map.dart';
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,16 +6,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
 
-import '../../../items/presentation/bloc/search_items_bloc.dart';
-import '../../../items/presentation/bloc/search_items_event.dart';
-import '../../../items/presentation/bloc/search_items_state.dart';
-import '../../../lists/presentation/bloc/lists_bloc.dart';
-import '../../../lists/presentation/bloc/lists_event.dart';
-import '../../../lists/presentation/bloc/lists_state.dart';
-import '../bloc/dashboard_bloc.dart';
-import '../bloc/dashboard_state.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_state.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_bloc.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_state.dart';
 
 String _formatBRL(double value) =>
     NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(value);

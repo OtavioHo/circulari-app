@@ -2,14 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
-import '../auth/auth_state_notifier.dart';
-import '../network/api_client.dart';
-import '../storage/token_storage.dart';
-import '../../features/auth/auth_di.dart';
-import '../../features/home/home_di.dart';
-import '../../features/items/items_di.dart';
-import '../../features/lists/lists_di.dart';
-import '../../features/profile/profile_di.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/network/api_client.dart';
+import 'package:circulari/core/storage/token_storage.dart';
+import 'package:circulari/features/auth/auth_di.dart';
+import 'package:circulari/features/home/home_di.dart';
+import 'package:circulari/features/items/items_di.dart';
+import 'package:circulari/features/lists/lists_di.dart';
+import 'package:circulari/features/profile/profile_di.dart';
 
 final sl = GetIt.instance;
 

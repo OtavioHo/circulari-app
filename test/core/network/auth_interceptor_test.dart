@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/core/network/auth_interceptor.dart';
-import 'package:app/core/storage/token_storage.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/auth_interceptor.dart';
+import 'package:circulari/core/storage/token_storage.dart';
 
 import '../../helpers/dio_helpers.dart';
 

@@ -1,9 +1,9 @@
-import '../../domain/entities/item_list.dart';
-import '../../domain/entities/list_color.dart';
-import '../../domain/entities/list_icon.dart';
-import '../../domain/entities/list_picture.dart';
-import '../../domain/repositories/lists_repository.dart';
-import '../sources/lists_remote_source.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/repositories/lists_repository.dart';
+import 'package:circulari/features/lists/data/sources/lists_remote_source.dart';
 
 class ListsRepositoryImpl implements ListsRepository {
   final ListsRemoteSource _source;

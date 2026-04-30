@@ -1,4 +1,4 @@
-import '../../domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
 
 class DashboardSummaryModel extends DashboardSummary {
   const DashboardSummaryModel({

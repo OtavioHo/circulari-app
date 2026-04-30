@@ -1,6 +1,6 @@
-import 'list_color.dart';
-import 'list_icon.dart';
-import 'list_picture.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 
 class ItemList {
   final String id;

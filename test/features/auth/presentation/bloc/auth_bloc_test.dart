@@ -2,14 +2,14 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/auth/auth_state_notifier.dart';
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/auth/domain/usecases/login_usecase.dart';
-import 'package:app/features/auth/domain/usecases/logout_usecase.dart';
-import 'package:app/features/auth/domain/usecases/register_usecase.dart';
-import 'package:app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:app/features/auth/presentation/bloc/auth_event.dart';
-import 'package:app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/auth/domain/usecases/login_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_event.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_state.dart';
 
 import '../../../../helpers/fixtures.dart';
 

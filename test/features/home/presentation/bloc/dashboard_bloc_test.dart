@@ -2,12 +2,12 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/home/domain/entities/dashboard_summary.dart';
-import 'package:app/features/home/domain/usecases/get_dashboard_usecase.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_bloc.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_event.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/usecases/get_dashboard_usecase.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_bloc.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_event.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_state.dart';
 
 class MockGetDashboardUsecase extends Mock implements GetDashboardUsecase {}
 

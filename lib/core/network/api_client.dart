@@ -4,15 +4,19 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 
-import '../storage/token_storage.dart';
-import 'auth_interceptor.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/storage/token_storage.dart';
+import 'package:circulari/core/network/auth_interceptor.dart';
 
 const _baseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:3000/api/v1',
+  defaultValue: 'https://circulari.aragoni.dev/api/v1',
 );
 
-Dio createApiClient(TokenStorage tokenStorage) {
+Dio createApiClient(
+  TokenStorage tokenStorage,
+  AuthStateNotifier authStateNotifier,
+) {
   _assertSecureBaseUrl(_baseUrl);
 
   final refreshDio = Dio(BaseOptions(baseUrl: _baseUrl));
@@ -28,7 +32,9 @@ Dio createApiClient(TokenStorage tokenStorage) {
   );
   _applyTransportSecurity(dio);
 
-  dio.interceptors.add(AuthInterceptor(tokenStorage, refreshDio));
+  dio.interceptors.add(
+    AuthInterceptor(tokenStorage, refreshDio, authStateNotifier),
+  );
 
   return dio;
 }

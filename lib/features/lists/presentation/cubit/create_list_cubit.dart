@@ -1,15 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/entities/item_list.dart';
-import '../../domain/entities/list_color.dart';
-import '../../domain/entities/list_icon.dart';
-import '../../domain/entities/list_picture.dart';
-import '../../domain/usecases/create_list_usecase.dart';
-import '../../domain/usecases/get_list_colors_usecase.dart';
-import '../../domain/usecases/get_list_icons_usecase.dart';
-import '../../domain/usecases/get_list_pictures_usecase.dart';
-import 'create_list_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/usecases/create_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_colors_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_icons_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_pictures_usecase.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_state.dart';
 
 class CreateListCubit extends Cubit<CreateListState> {
   final GetListColorsUsecase _getColors;

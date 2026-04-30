@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/network/dio_error_mapper.dart';
-import '../models/user_plan_model.dart';
+import 'package:circulari/core/network/dio_error_mapper.dart';
+import 'package:circulari/features/profile/data/models/user_plan_model.dart';
 
 class ProfileRemoteSource {
   final Dio _dio;

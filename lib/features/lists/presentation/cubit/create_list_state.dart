@@ -1,7 +1,7 @@
-import '../../domain/entities/item_list.dart';
-import '../../domain/entities/list_color.dart';
-import '../../domain/entities/list_icon.dart';
-import '../../domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 
 sealed class CreateListState {
   const CreateListState();

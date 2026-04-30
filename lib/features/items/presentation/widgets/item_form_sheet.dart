@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/di/injection.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/entities/item.dart';
-import '../bloc/ai_analysis_cubit.dart';
-import '../bloc/categories_cubit.dart';
+import 'package:circulari/core/di/injection.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
+import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 
 /// Bottom sheet used for both creating and editing an item.
 /// Returns an [ItemFormResult] when the user taps Save, or null if cancelled.

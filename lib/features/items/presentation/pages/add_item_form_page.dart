@@ -4,11 +4,11 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/ai_analysis_cubit.dart';
-import '../bloc/categories_cubit.dart';
-import '../bloc/items_bloc.dart';
-import '../bloc/items_event.dart';
-import '../bloc/items_state.dart';
+import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
+import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/items_state.dart';
 
 class AddItemFormPage extends StatefulWidget {
   final String imagePath;

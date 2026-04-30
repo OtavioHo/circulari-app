@@ -1,5 +1,5 @@
-import '../entities/user_plan.dart';
-import '../repositories/profile_repository.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/repositories/profile_repository.dart';
 
 class GetPlanUsecase {
   final ProfileRepository _repository;

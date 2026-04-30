@@ -1,4 +1,4 @@
-import '../../domain/entities/dashboard_summary.dart';
+import 'package:circulari/features/home/domain/entities/dashboard_summary.dart';
 
 sealed class DashboardState {
   const DashboardState();

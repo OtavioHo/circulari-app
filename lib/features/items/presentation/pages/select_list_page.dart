@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../lists/presentation/bloc/lists_bloc.dart';
-import '../../../lists/presentation/bloc/lists_state.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
 
 class SelectListPage extends StatelessWidget {
   const SelectListPage({super.key});

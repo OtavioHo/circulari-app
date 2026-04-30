@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../items/domain/entities/item.dart';
-import '../../../items/presentation/bloc/items_bloc.dart';
-import '../../../items/presentation/bloc/items_event.dart';
-import '../../../items/presentation/bloc/items_state.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/items_state.dart';
 
 const _expandedHeight = 260.0;
 const _collapsedHeight = 56.0;

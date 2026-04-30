@@ -2,12 +2,12 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../../../features/auth/presentation/bloc/auth_event.dart';
-import '../bloc/plan_bloc.dart';
-import '../bloc/plan_event.dart';
-import '../bloc/plan_state.dart';
-import '../widgets/plan_card.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_event.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_bloc.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_event.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_state.dart';
+import 'package:circulari/features/profile/presentation/widgets/plan_card.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});

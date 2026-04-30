@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../../../core/network/dio_error_mapper.dart';
-import '../models/list_color_model.dart';
-import '../models/list_icon_model.dart';
-import '../models/list_model.dart';
-import '../models/list_picture_model.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/dio_error_mapper.dart';
+import 'package:circulari/features/lists/data/models/list_color_model.dart';
+import 'package:circulari/features/lists/data/models/list_icon_model.dart';
+import 'package:circulari/features/lists/data/models/list_model.dart';
+import 'package:circulari/features/lists/data/models/list_picture_model.dart';
 
 class ListsRemoteSource {
   final Dio _dio;

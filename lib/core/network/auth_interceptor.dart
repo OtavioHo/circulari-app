@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import '../auth/auth_state_notifier.dart';
-import '../error/app_exception.dart';
-import '../storage/token_storage.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/storage/token_storage.dart';
 
 /// Injects the JWT on every request and transparently refreshes it on 401.
 /// Uses a separate [refreshDio] instance to avoid infinite interceptor loops.

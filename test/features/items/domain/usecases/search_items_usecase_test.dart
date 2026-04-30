@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/models/paginated_result.dart';
-import 'package:app/features/items/domain/entities/item.dart';
-import 'package:app/features/items/domain/repositories/items_repository.dart';
-import 'package:app/features/items/domain/usecases/search_items_usecase.dart';
+import 'package:circulari/core/models/paginated_result.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
 
 import '../../../../helpers/fixtures.dart';
 

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/item.dart';
-import '../bloc/item_detail_bloc.dart';
-import '../bloc/item_detail_event.dart';
-import '../bloc/item_detail_state.dart';
-import '../widgets/item_form_sheet.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/item_detail_event.dart';
+import 'package:circulari/features/items/presentation/bloc/item_detail_state.dart';
+import 'package:circulari/features/items/presentation/widgets/item_form_sheet.dart';
 
 class ItemDetailPage extends StatelessWidget {
   const ItemDetailPage({super.key});

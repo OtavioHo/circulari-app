@@ -1,4 +1,4 @@
-import 'plan_usage.dart';
+import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
 
 class UserPlan {
   final String plan;

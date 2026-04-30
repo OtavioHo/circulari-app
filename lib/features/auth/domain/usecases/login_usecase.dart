@@ -1,5 +1,5 @@
-import '../entities/user.dart';
-import '../repositories/auth_repository.dart';
+import 'package:circulari/features/auth/domain/entities/user.dart';
+import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
 
 class LoginUsecase {
   final AuthRepository _repository;

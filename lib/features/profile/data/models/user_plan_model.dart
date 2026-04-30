@@ -1,5 +1,5 @@
-import '../../domain/entities/user_plan.dart';
-import 'plan_usage_model.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/data/models/plan_usage_model.dart';
 
 class UserPlanModel extends UserPlan {
   const UserPlanModel({

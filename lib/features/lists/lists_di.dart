@@ -1,17 +1,17 @@
 import 'package:get_it/get_it.dart';
 
-import 'data/repositories/lists_repository_impl.dart';
-import 'data/sources/lists_remote_source.dart';
-import 'domain/repositories/lists_repository.dart';
-import 'domain/usecases/create_list_usecase.dart';
-import 'domain/usecases/delete_list_usecase.dart';
-import 'domain/usecases/get_list_colors_usecase.dart';
-import 'domain/usecases/get_list_icons_usecase.dart';
-import 'domain/usecases/get_list_pictures_usecase.dart';
-import 'domain/usecases/get_lists_usecase.dart';
-import 'domain/usecases/rename_list_usecase.dart';
-import 'presentation/bloc/lists_bloc.dart';
-import 'presentation/cubit/create_list_cubit.dart';
+import 'package:circulari/features/lists/data/repositories/lists_repository_impl.dart';
+import 'package:circulari/features/lists/data/sources/lists_remote_source.dart';
+import 'package:circulari/features/lists/domain/repositories/lists_repository.dart';
+import 'package:circulari/features/lists/domain/usecases/create_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_colors_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_icons_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_pictures_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_cubit.dart';
 
 extension ListsDI on GetIt {
   void registerListsFeature() {

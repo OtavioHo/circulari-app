@@ -1,4 +1,4 @@
-import '../../domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
 
 class ListIconModel extends ListIcon {
   const ListIconModel({

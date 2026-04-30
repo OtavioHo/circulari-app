@@ -2,14 +2,14 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/lists/domain/entities/list_color.dart';
-import 'package:app/features/lists/domain/usecases/create_list_usecase.dart';
-import 'package:app/features/lists/domain/usecases/get_list_colors_usecase.dart';
-import 'package:app/features/lists/domain/usecases/get_list_icons_usecase.dart';
-import 'package:app/features/lists/domain/usecases/get_list_pictures_usecase.dart';
-import 'package:app/features/lists/presentation/cubit/create_list_cubit.dart';
-import 'package:app/features/lists/presentation/cubit/create_list_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/usecases/create_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_colors_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_icons_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/get_list_pictures_usecase.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_cubit.dart';
+import 'package:circulari/features/lists/presentation/cubit/create_list_state.dart';
 
 import '../../../../helpers/fixtures.dart';
 

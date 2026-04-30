@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/entities/item.dart';
-import '../../domain/usecases/create_item_usecase.dart';
-import '../../domain/usecases/delete_item_usecase.dart';
-import '../../domain/usecases/get_items_usecase.dart';
-import '../../domain/usecases/update_item_usecase.dart';
-import 'items_event.dart';
-import 'items_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/usecases/create_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/update_item_usecase.dart';
+import 'package:circulari/features/items/presentation/bloc/items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/items_state.dart';
 
 class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
   final GetItemsUsecase _getItems;

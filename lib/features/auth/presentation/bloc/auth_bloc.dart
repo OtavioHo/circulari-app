@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/auth/auth_state_notifier.dart';
-import '../../../../core/error/app_exception.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/logout_usecase.dart';
-import '../../domain/usecases/register_usecase.dart';
-import 'auth_event.dart';
-import 'auth_state.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/auth/domain/usecases/login_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_event.dart';
+import 'package:circulari/features/auth/presentation/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUsecase _login;

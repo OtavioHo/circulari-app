@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/auth/data/sources/auth_remote_source.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
 
 import '../../../../helpers/dio_helpers.dart';
 import '../../../../helpers/fixtures.dart';

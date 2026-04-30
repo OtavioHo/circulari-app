@@ -1,4 +1,4 @@
-import '../../domain/entities/item_image.dart';
+import 'package:circulari/features/items/domain/entities/item_image.dart';
 
 class ItemImageModel extends ItemImage {
   const ItemImageModel({

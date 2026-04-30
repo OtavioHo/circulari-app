@@ -1,7 +1,7 @@
-import '../../domain/entities/category.dart';
-import '../../domain/entities/item.dart';
-import '../../domain/entities/list_info.dart';
-import 'item_image_model.dart';
+import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/entities/list_info.dart';
+import 'package:circulari/features/items/data/models/item_image_model.dart';
 
 class ItemModel extends Item {
   const ItemModel({

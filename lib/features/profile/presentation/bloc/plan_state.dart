@@ -1,4 +1,4 @@
-import '../../domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
 
 sealed class PlanState {
   const PlanState();

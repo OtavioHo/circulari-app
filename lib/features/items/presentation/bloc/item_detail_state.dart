@@ -1,4 +1,4 @@
-import '../../domain/entities/item.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
 
 sealed class ItemDetailState {
   const ItemDetailState();

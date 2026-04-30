@@ -7,21 +7,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-import 'package:app/core/auth/auth_state_notifier.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_bloc.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_event.dart';
-import 'package:app/features/home/presentation/bloc/dashboard_state.dart';
-import 'package:app/features/items/presentation/bloc/search_items_bloc.dart';
-import 'package:app/features/items/presentation/bloc/search_items_event.dart';
-import 'package:app/features/items/presentation/bloc/search_items_state.dart';
-import 'package:app/features/lists/domain/entities/item_list.dart';
-import 'package:app/features/lists/domain/entities/list_color.dart';
-import 'package:app/features/lists/domain/entities/list_icon.dart';
-import 'package:app/features/lists/domain/entities/list_picture.dart';
-import 'package:app/features/lists/presentation/bloc/lists_bloc.dart';
-import 'package:app/features/lists/presentation/bloc/lists_event.dart';
-import 'package:app/features/lists/presentation/bloc/lists_state.dart';
-import 'package:app/features/lists/presentation/pages/lists_page.dart';
+import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_bloc.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_event.dart';
+import 'package:circulari/features/home/presentation/bloc/dashboard_state.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_event.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_state.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
+import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
+import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
+import 'package:circulari/features/lists/presentation/pages/lists_page.dart';
 
 class MockListsBloc extends MockBloc<ListsEvent, ListsState>
     implements ListsBloc {}

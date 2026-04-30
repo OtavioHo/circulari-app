@@ -1,19 +1,19 @@
 import 'package:get_it/get_it.dart';
 
-import 'data/repositories/items_repository_impl.dart';
-import 'data/sources/items_remote_source.dart';
-import 'domain/repositories/items_repository.dart';
-import 'domain/usecases/analyze_item_image_usecase.dart';
-import 'domain/usecases/create_item_usecase.dart';
-import 'domain/usecases/delete_item_usecase.dart';
-import 'domain/usecases/get_categories_usecase.dart';
-import 'domain/usecases/get_items_usecase.dart';
-import 'domain/usecases/search_items_usecase.dart';
-import 'domain/usecases/update_item_usecase.dart';
-import 'presentation/bloc/ai_analysis_cubit.dart';
-import 'presentation/bloc/categories_cubit.dart';
-import 'presentation/bloc/items_bloc.dart';
-import 'presentation/bloc/search_items_bloc.dart';
+import 'package:circulari/features/items/data/repositories/items_repository_impl.dart';
+import 'package:circulari/features/items/data/sources/items_remote_source.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/usecases/analyze_item_image_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/create_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/get_categories_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/update_item_usecase.dart';
+import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
+import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
 
 extension ItemsDI on GetIt {
   void registerItemsFeature() {

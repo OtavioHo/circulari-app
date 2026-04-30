@@ -1,8 +1,8 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/plan_usage.dart';
-import '../../domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
 
 class PlanCard extends StatelessWidget {
   final UserPlan plan;

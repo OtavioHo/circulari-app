@@ -1,4 +1,4 @@
-import '../repositories/items_repository.dart';
+import 'package:circulari/features/items/domain/repositories/items_repository.dart';
 
 class DeleteItemUsecase {
   final ItemsRepository _repository;

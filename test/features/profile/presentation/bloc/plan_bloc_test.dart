@@ -2,13 +2,13 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:app/core/error/app_exception.dart';
-import 'package:app/features/profile/domain/entities/plan_usage.dart';
-import 'package:app/features/profile/domain/entities/user_plan.dart';
-import 'package:app/features/profile/domain/usecases/get_plan_usecase.dart';
-import 'package:app/features/profile/presentation/bloc/plan_bloc.dart';
-import 'package:app/features/profile/presentation/bloc/plan_event.dart';
-import 'package:app/features/profile/presentation/bloc/plan_state.dart';
+import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
+import 'package:circulari/features/profile/domain/entities/user_plan.dart';
+import 'package:circulari/features/profile/domain/usecases/get_plan_usecase.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_bloc.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_event.dart';
+import 'package:circulari/features/profile/presentation/bloc/plan_state.dart';
 
 class MockGetPlanUsecase extends Mock implements GetPlanUsecase {}
 
