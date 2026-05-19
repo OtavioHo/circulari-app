@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
@@ -42,6 +43,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthSuccess());
     } on AppException catch (e) {
       emit(AuthFailure(e.message));
+    } catch (e, st) {
+      debugPrint('AuthBloc login unexpected error: $e\n$st');
+      emit(const AuthFailure('Erro inesperado. Tente novamente.'));
     }
   }
 
@@ -62,6 +66,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthSuccess());
     } on AppException catch (e) {
       emit(AuthFailure(e.message));
+    } catch (e, st) {
+      debugPrint('AuthBloc register unexpected error: $e\n$st');
+      emit(const AuthFailure('Erro inesperado. Tente novamente.'));
     }
   }
 
@@ -78,6 +85,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthSuccess());
     } on AppException catch (e) {
       emit(AuthFailure(e.message));
+    } catch (e, st) {
+      debugPrint('AuthBloc logout unexpected error: $e\n$st');
+      emit(const AuthFailure('Erro inesperado. Tente novamente.'));
     }
   }
 }
