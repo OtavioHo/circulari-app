@@ -9,6 +9,21 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tabs are entered with context.go, so a non-home tab is the only entry on
+    // the stack — the system back button would otherwise close the app. Send it
+    // to home first; on home, allow the default pop (exit).
+    final isHome = GoRouterState.of(context).matchedLocation.startsWith('/home');
+    return PopScope(
+      canPop: isHome,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        context.go('/home');
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [

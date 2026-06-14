@@ -22,6 +22,7 @@ class AddItemPicturePage extends StatefulWidget {
 class _AddItemPicturePageState extends State<AddItemPicturePage> {
   CameraController? _controller;
   bool _isCapturing = false;
+  String? _initError;
 
   @override
   void initState() {
@@ -30,15 +31,28 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
   }
 
   Future<void> _initializeCamera() async {
-    final cameras = await availableCameras();
-    if (!mounted) return;
-    final cam = CameraController(cameras.first, ResolutionPreset.high);
-    await cam.initialize();
-    if (!mounted) {
-      await cam.dispose();
-      return;
+    try {
+      final cameras = await availableCameras();
+      if (!mounted) return;
+      if (cameras.isEmpty) {
+        setState(() => _initError = 'Nenhuma câmera disponível neste dispositivo.');
+        return;
+      }
+      final cam = CameraController(
+        cameras.first,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+      await cam.initialize();
+      if (!mounted) {
+        await cam.dispose();
+        return;
+      }
+      setState(() => _controller = cam);
+    } on CameraException catch (e) {
+      if (!mounted) return;
+      setState(() => _initError = e.description ?? 'Não foi possível abrir a câmera.');
     }
-    setState(() => _controller = cam);
   }
 
   @override
@@ -97,7 +111,18 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: cam == null || !cam.value.isInitialized
+      body: _initError != null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  _initError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            )
+          : cam == null || !cam.value.isInitialized
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : Stack(
               fit: StackFit.expand,

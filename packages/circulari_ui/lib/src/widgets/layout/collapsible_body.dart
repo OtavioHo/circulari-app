@@ -31,6 +31,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
   final List<Widget> children;
   final EdgeInsetsGeometry? padding;
   final Widget? appBarTitle;
+  final List<Widget>? appBarActions;
 
   const CirculariCollapsibleBody({
     super.key,
@@ -42,6 +43,7 @@ class CirculariCollapsibleBody extends StatefulWidget {
     this.backgroundBuilder,
     this.padding,
     this.appBarTitle,
+    this.appBarActions,
   });
 
   @override
@@ -59,8 +61,10 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
 
   double get _shrinkOffset {
     if (!_scrollController.hasClients) return 0.0;
-    return (_scrollController.offset - _appBarHeight)
-        .clamp(0.0, widget.expandedHeight - widget.collapsedHeight);
+    return (_scrollController.offset - _appBarHeight).clamp(
+      0.0,
+      widget.expandedHeight - widget.collapsedHeight,
+    );
   }
 
   void _onDisplayCardsSizeChanged(Size size) {
@@ -79,6 +83,7 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
     final gradientEnd =
         widget.expandedHeight / MediaQuery.sizeOf(context).height;
     final topPadding = MediaQuery.paddingOf(context).top;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Stack(
       children: [
@@ -115,6 +120,10 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
             ),
           ),
         SafeArea(
+          // Let the white scroll view reach the bottom edge so the home
+          // indicator strip is painted the same color as the body. Content is
+          // kept clear of the indicator via the bottom padding below.
+          bottom: false,
           child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
@@ -129,18 +138,7 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                     expandedHeight: 56,
                     collapsedHeight: 56,
                     title: widget.appBarTitle,
-                    actions: [
-                      IconButton(
-                        icon: CircleAvatar(
-                          backgroundColor: CirculariColorsTokens.freshCore,
-                          child: const Icon(
-                            Icons.person,
-                            color: CirculariColorsTokens.greyscale900,
-                          ),
-                        ),
-                        onPressed: () {},
-                      ),
-                    ],
+                    actions: widget.appBarActions,
                   ),
                   SliverPersistentHeader(
                     delegate: _CollapsingHeaderDelegate(
@@ -165,6 +163,9 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                             SizedBox(height: _displayCardsHeight / 2),
                           const SizedBox(height: 24),
                           ...widget.children,
+                          // Keep the last items above the home indicator now
+                          // that the white body extends past the safe area.
+                          SizedBox(height: bottomInset),
                         ]),
                       ),
                     ),

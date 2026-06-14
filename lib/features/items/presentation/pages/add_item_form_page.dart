@@ -97,7 +97,12 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item criado com sucesso!')),
       );
-      context.go('/lists/${widget.listId}/items', extra: widget.list);
+      // Rebuild a proper back stack instead of replacing it: root at the
+      // shell, then the list, then the new item. Using context.go here would
+      // discard the shell and make the list page the stack root, leaving it
+      // with no back button (and the OS back button would close the app).
+      context.go('/home');
+      context.push('/lists/${widget.listId}/items', extra: widget.list);
       context.push('/items/${state.created.id}', extra: state.created);
     } else if (state is ItemsQuotaExceeded) {
       PaywallBottomSheet.show(context, resourceName: 'itens');

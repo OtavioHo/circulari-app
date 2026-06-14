@@ -9,6 +9,7 @@ class CirculariInAppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final FloatingActionButton? floatingActionButton;
   final VoidCallback? onBackPressed;
+  final bool showBackButton;
 
   const CirculariInAppScaffold({
     super.key,
@@ -17,6 +18,7 @@ class CirculariInAppScaffold extends StatelessWidget {
     this.actions,
     this.floatingActionButton,
     this.onBackPressed,
+    this.showBackButton = true,
   });
 
   @override
@@ -40,13 +42,16 @@ class CirculariInAppScaffold extends StatelessWidget {
             color: CirculariColorsTokens.greyscale700,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: CirculariColorsTokens.greyscale700,
-          ),
-          onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
+        leading: showBackButton
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: CirculariColorsTokens.greyscale700,
+                ),
+                onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+              )
+            : null,
         actions: actions,
       ),
       body: body,

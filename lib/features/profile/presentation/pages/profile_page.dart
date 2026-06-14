@@ -20,6 +20,7 @@ class ProfilePage extends StatelessWidget {
 
     return CirculariInAppScaffold(
       title: 'Perfil',
+      showBackButton: false,
       body: ListView(
         padding: EdgeInsets.symmetric(vertical: spacing.medium),
         children: [

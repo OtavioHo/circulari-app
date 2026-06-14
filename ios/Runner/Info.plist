@@ -63,6 +63,8 @@
 		<string>Used to take photos of items you want to add to your lists.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Used to pick photos of items you want to add to your lists.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Not used. Required by the camera plugin.</string>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
