@@ -6,11 +6,14 @@ import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
 import 'package:circulari/features/profile/domain/entities/user_plan.dart';
 import 'package:circulari/features/profile/domain/usecases/get_plan_usecase.dart';
+import 'package:circulari/features/profile/domain/usecases/reconcile_plan_usecase.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_bloc.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_event.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_state.dart';
 
 class MockGetPlanUsecase extends Mock implements GetPlanUsecase {}
+
+class MockReconcilePlanUsecase extends Mock implements ReconcilePlanUsecase {}
 
 const _tPlan = UserPlan(
   plan: 'free',
@@ -21,10 +24,14 @@ const _tPlan = UserPlan(
 
 void main() {
   late MockGetPlanUsecase getPlan;
+  late MockReconcilePlanUsecase reconcilePlan;
 
-  setUp(() => getPlan = MockGetPlanUsecase());
+  setUp(() {
+    getPlan = MockGetPlanUsecase();
+    reconcilePlan = MockReconcilePlanUsecase();
+  });
 
-  PlanBloc buildBloc() => PlanBloc(getPlan);
+  PlanBloc buildBloc() => PlanBloc(getPlan, reconcilePlan);
 
   test('initial state is PlanInitial', () {
     expect(buildBloc().state, isA<PlanInitial>());

@@ -1,3 +1,4 @@
+import 'package:circulari/core/models/plan_tier.dart';
 import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
 
 class UserPlan {
@@ -13,5 +14,8 @@ class UserPlan {
     required this.aiCalls,
   });
 
-  bool get isPremium => plan.toLowerCase() == 'premium';
+  PlanTier get tier => planTierFromString(plan);
+
+  /// True when the user can still move up a tier (free or essencial).
+  bool get canUpgrade => tier != PlanTier.pro;
 }

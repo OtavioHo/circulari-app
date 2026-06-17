@@ -9,4 +9,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<UserPlan> getPlan() => _source.getPlan();
+
+  @override
+  Future<UserPlan> reconcilePlan() => _source.reconcilePlan();
 }

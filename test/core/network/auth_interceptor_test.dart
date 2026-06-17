@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/core/network/auth_interceptor.dart';
 import 'package:circulari/core/storage/token_storage.dart';
@@ -25,7 +26,8 @@ void main() {
       ..httpClientAdapter = mainAdapter;
     refreshDio = Dio(BaseOptions(baseUrl: 'https://api.test'))
       ..httpClientAdapter = refreshAdapter;
-    dio.interceptors.add(AuthInterceptor(tokenStorage, refreshDio));
+    dio.interceptors
+        .add(AuthInterceptor(tokenStorage, refreshDio, AuthStateNotifier(true)));
 
     // Default storage stubs.
     when(() => tokenStorage.getAccessToken())

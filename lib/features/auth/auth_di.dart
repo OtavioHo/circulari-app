@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
+import 'package:circulari/core/purchases/purchases_service.dart';
 import 'package:circulari/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
 import 'package:circulari/features/auth/domain/repositories/auth_repository.dart';
@@ -30,6 +31,7 @@ extension AuthDI on GetIt {
         register: call(),
         logout: call(),
         authStateNotifier: call<AuthStateNotifier>(),
+        purchases: call<PurchasesService>(),
       ),
     );
     registerLazySingleton(() => ForgotPasswordUsecase(call()));

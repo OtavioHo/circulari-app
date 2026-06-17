@@ -4,12 +4,14 @@ import 'package:get_it/get_it.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/core/network/api_client.dart';
+import 'package:circulari/core/purchases/purchases_service.dart';
 import 'package:circulari/core/storage/token_storage.dart';
 import 'package:circulari/features/auth/auth_di.dart';
 import 'package:circulari/features/home/home_di.dart';
 import 'package:circulari/features/items/items_di.dart';
 import 'package:circulari/features/lists/lists_di.dart';
 import 'package:circulari/features/profile/profile_di.dart';
+import 'package:circulari/features/subscription/subscription_di.dart';
 
 final sl = GetIt.instance;
 
@@ -22,6 +24,8 @@ void setupInjection() {
   // Starts unauthenticated; main.dart updates it after reading token storage.
   sl.registerSingleton(AuthStateNotifier(false));
   sl.registerLazySingleton<Dio>(() => createApiClient(sl(), sl()));
+  // configure() is awaited in main.dart before the app runs.
+  sl.registerSingleton(PurchasesService());
 
   // ── Features ──────────────────────────────────────────────────────────────
   sl.registerAuthFeature();
@@ -29,4 +33,5 @@ void setupInjection() {
   sl.registerListsFeature();
   sl.registerItemsFeature();
   sl.registerProfileFeature();
+  sl.registerSubscriptionFeature();
 }

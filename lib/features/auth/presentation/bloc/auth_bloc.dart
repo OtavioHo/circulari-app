@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/purchases/purchases_service.dart';
 import 'package:circulari/features/auth/domain/usecases/login_usecase.dart';
 import 'package:circulari/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
@@ -14,16 +15,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUsecase _register;
   final LogoutUsecase _logout;
   final AuthStateNotifier _authStateNotifier;
+  final PurchasesService _purchases;
 
   AuthBloc({
     required LoginUsecase login,
     required RegisterUsecase register,
     required LogoutUsecase logout,
     required AuthStateNotifier authStateNotifier,
+    required PurchasesService purchases,
   })  : _login = login,
         _register = register,
         _logout = logout,
         _authStateNotifier = authStateNotifier,
+        _purchases = purchases,
         super(const AuthInitial()) {
     on<AuthLoginRequested>(_onLogin);
     on<AuthRegisterRequested>(_onRegister);
@@ -37,6 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
     try {
       final user = await _login(email: event.email, password: event.password);
+      await _purchases.login(user.id);
       _authStateNotifier.setUserName(user.name);
       _authStateNotifier.setUserEmail(user.email);
       _authStateNotifier.setAuthenticated(true);
@@ -60,6 +65,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
+      await _purchases.login(user.id);
       _authStateNotifier.setUserName(user.name);
       _authStateNotifier.setUserEmail(user.email);
       _authStateNotifier.setAuthenticated(true);
@@ -79,6 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
     try {
       await _logout();
+      await _purchases.logout();
       _authStateNotifier.setUserName(null);
       _authStateNotifier.setUserEmail(null);
       _authStateNotifier.setAuthenticated(false);

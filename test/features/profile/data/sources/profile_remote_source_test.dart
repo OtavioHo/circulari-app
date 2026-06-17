@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/models/plan_tier.dart';
 import 'package:circulari/features/profile/data/sources/profile_remote_source.dart';
 
 import '../../../../helpers/dio_helpers.dart';
@@ -33,7 +34,7 @@ void main() {
     final plan = await source.getPlan();
 
     expect(plan.plan, 'premium');
-    expect(plan.isPremium, isTrue);
+    expect(plan.tier, PlanTier.pro); // legacy "premium" maps to pro
     expect(plan.lists.isUnlimited, isTrue);
     expect(plan.items.fraction, 0.5);
   });

@@ -22,7 +22,11 @@ class CreateListPage extends StatelessWidget {
             extra: state.list,
           );
         } else if (state is CreateListQuotaExceeded) {
-          PaywallBottomSheet.show(context, resourceName: 'listas');
+          PaywallBottomSheet.show(
+            context,
+            resourceName: 'listas',
+            onUpgrade: () => context.push('/paywall'),
+          );
         }
       },
       child: const _CreateListScaffold(),

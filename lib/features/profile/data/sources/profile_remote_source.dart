@@ -16,4 +16,13 @@ class ProfileRemoteSource {
       throw mapDioError(e);
     }
   }
+
+  Future<UserPlanModel> reconcilePlan() async {
+    try {
+      final response = await _dio.post('/plan/reconcile');
+      return UserPlanModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
 }

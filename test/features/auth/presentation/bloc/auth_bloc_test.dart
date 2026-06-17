@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/purchases/purchases_service.dart';
 import 'package:circulari/features/auth/domain/usecases/login_usecase.dart';
 import 'package:circulari/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:circulari/features/auth/domain/usecases/register_usecase.dart';
@@ -19,17 +20,23 @@ class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
 class MockLogoutUsecase extends Mock implements LogoutUsecase {}
 
+class MockPurchasesService extends Mock implements PurchasesService {}
+
 void main() {
   late MockLoginUsecase login;
   late MockRegisterUsecase register;
   late MockLogoutUsecase logout;
   late AuthStateNotifier notifier;
+  late MockPurchasesService purchases;
 
   setUp(() {
     login = MockLoginUsecase();
     register = MockRegisterUsecase();
     logout = MockLogoutUsecase();
     notifier = AuthStateNotifier(false);
+    purchases = MockPurchasesService();
+    when(() => purchases.login(any())).thenAnswer((_) async {});
+    when(() => purchases.logout()).thenAnswer((_) async {});
   });
 
   AuthBloc buildBloc() => AuthBloc(
@@ -37,6 +44,7 @@ void main() {
         register: register,
         logout: logout,
         authStateNotifier: notifier,
+        purchases: purchases,
       );
 
   test('initial state is AuthInitial', () {

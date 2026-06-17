@@ -42,6 +42,9 @@ import 'package:circulari/features/lists/presentation/pages/lists_page.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_bloc.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_event.dart';
 import 'package:circulari/features/profile/presentation/pages/profile_page.dart';
+import 'package:circulari/features/subscription/presentation/bloc/paywall_bloc.dart';
+import 'package:circulari/features/subscription/presentation/bloc/paywall_event.dart';
+import 'package:circulari/features/subscription/presentation/pages/paywall_page.dart';
 import 'package:circulari/features/splash/presentation/pages/splash_page.dart';
 import 'package:circulari/core/router/scaffold_with_navbar.dart';
 
@@ -167,6 +170,13 @@ final appRouter = GoRouter(
       builder: (context, state) => BlocProvider(
         create: (_) => sl<CreateListCubit>()..loadOptions(),
         child: const CreateListPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/paywall',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<PaywallBloc>()..add(const PaywallLoadRequested()),
+        child: const PaywallPage(),
       ),
     ),
     GoRoute(

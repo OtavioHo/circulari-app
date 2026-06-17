@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/core/di/injection.dart';
+import 'package:circulari/core/purchases/purchases_service.dart';
 import 'package:circulari/core/storage/token_storage.dart';
 import 'package:circulari/features/auth/domain/usecases/get_me_usecase.dart';
 
@@ -32,6 +33,9 @@ class _SplashPageState extends State<SplashPage> {
         var email = await storage.getUserEmail();
         if (name == null || email == null) {
           final user = await sl<GetMeUsecase>()();
+          // Safety net: re-bind RevenueCat identity in case the SDK's persisted
+          // app_user_id was lost (reinstall) while the auth token survived.
+          await sl<PurchasesService>().login(user.id);
           await Future.wait([
             storage.saveUserName(user.name),
             storage.saveUserEmail(user.email),

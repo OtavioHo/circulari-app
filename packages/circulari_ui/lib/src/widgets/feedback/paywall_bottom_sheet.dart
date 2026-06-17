@@ -6,17 +6,22 @@ import 'package:circulari_ui/src/theme/circulari_colors.dart';
 class PaywallBottomSheet extends StatelessWidget {
   final String? resourceName;
 
-  const PaywallBottomSheet._({this.resourceName});
+  /// Called when the user taps "Ver planos". The host app navigates to its
+  /// paywall route; this package stays decoupled from routing.
+  final VoidCallback? onUpgrade;
+
+  const PaywallBottomSheet._({this.resourceName, this.onUpgrade});
 
   static Future<void> show(
     BuildContext context, {
     String? resourceName,
+    VoidCallback? onUpgrade,
   }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => PaywallBottomSheet._(resourceName: resourceName),
+      builder: (_) => PaywallBottomSheet._(resourceName: resourceName, onUpgrade: onUpgrade),
     );
   }
 
@@ -71,7 +76,7 @@ class PaywallBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Você chegou ao limite de $resource do seu plano gratuito. Faça upgrade para o Premium e use sem limites.',
+            'Você chegou ao limite de $resource do seu plano. Faça upgrade para um plano superior e tenha mais espaço.',
             style: theme.typography.body.medium.regular.copyWith(
               color: CirculariColorsTokens.greyscale500,
             ),
@@ -91,10 +96,10 @@ class PaywallBottomSheet extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.of(context).pop();
-                // TODO: navigate to upgrade/paywall screen when implemented
+                onUpgrade?.call();
               },
               child: Text(
-                'Fazer upgrade para Premium',
+                'Ver planos',
                 style: theme.typography.body.medium.semibold.copyWith(
                   color: CirculariColorsTokens.greyscale900,
                 ),

@@ -1,6 +1,7 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:circulari/core/auth/auth_state_notifier.dart';
 import 'package:circulari/features/auth/presentation/bloc/auth_bloc.dart';
@@ -60,7 +61,17 @@ class ProfilePage extends StatelessWidget {
                   ],
                 ),
               ),
-              PlanSuccess(:final plan) => PlanCard(plan: plan),
+              PlanSuccess(:final plan) => PlanCard(
+                plan: plan,
+                onUpgrade: () async {
+                  final planBloc = context.read<PlanBloc>();
+                  final purchased = await context.push<bool>('/paywall');
+                  // Paywall already reconciled the backend; refresh usage here.
+                  if (purchased == true) {
+                    planBloc.add(const PlanLoadRequested());
+                  }
+                },
+              ),
             },
           ),
           SizedBox(height: spacing.large),

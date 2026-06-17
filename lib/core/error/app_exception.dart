@@ -27,3 +27,14 @@ final class PlanLimitException extends AppException {
 final class TierRequiredException extends AppException {
   const TierRequiredException() : super('This feature requires a premium plan.');
 }
+
+/// The user dismissed the native purchase sheet — not a real error, so callers
+/// should silently return to the paywall.
+final class PurchaseCancelledException extends AppException {
+  const PurchaseCancelledException() : super('Compra cancelada.');
+}
+
+/// A purchase or restore failed (store error, network, etc.).
+final class PurchaseException extends AppException {
+  const PurchaseException(super.message);
+}

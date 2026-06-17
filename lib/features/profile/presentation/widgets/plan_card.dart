@@ -1,18 +1,30 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 
+import 'package:circulari/core/models/plan_tier.dart';
 import 'package:circulari/features/profile/domain/entities/plan_usage.dart';
 import 'package:circulari/features/profile/domain/entities/user_plan.dart';
 
 class PlanCard extends StatelessWidget {
   final UserPlan plan;
 
-  const PlanCard({super.key, required this.plan});
+  /// Invoked when the user taps the upgrade affordance (free/essencial only).
+  final VoidCallback? onUpgrade;
+
+  const PlanCard({super.key, required this.plan, this.onUpgrade});
 
   @override
   Widget build(BuildContext context) {
     final typography = context.circulariTheme.typography;
     final spacing = context.circulariTheme.spacing;
+    final isPro = plan.tier == PlanTier.pro;
+    final accent = isPro ? CirculariColorsTokens.solarPulse500 : CirculariColorsTokens.freshCore600;
+    final badgeBg = isPro ? CirculariColorsTokens.solarPulse100 : CirculariColorsTokens.freshCore100;
+    final badgeIcon = switch (plan.tier) {
+      PlanTier.free => Icons.lock_outline_rounded,
+      PlanTier.essencial => Icons.star_rounded,
+      PlanTier.pro => Icons.workspace_premium_rounded,
+    };
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: spacing.medium),
@@ -36,39 +48,30 @@ class PlanCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: plan.isPremium
-                      ? CirculariColorsTokens.solarPulse100
-                      : CirculariColorsTokens.freshCore100,
+                  color: badgeBg,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      plan.isPremium ? Icons.star_rounded : Icons.lock_outline_rounded,
-                      size: 16,
-                      color: plan.isPremium
-                          ? CirculariColorsTokens.solarPulse500
-                          : CirculariColorsTokens.freshCore600,
-                    ),
+                    Icon(badgeIcon, size: 16, color: accent),
                     const SizedBox(width: 4),
                     Text(
-                      plan.isPremium ? 'Premium' : 'Free',
-                      style: typography.body.small.bold.copyWith(
-                        color: plan.isPremium
-                            ? CirculariColorsTokens.solarPulse500
-                            : CirculariColorsTokens.freshCore600,
-                      ),
+                      plan.tier.displayName,
+                      style: typography.body.small.bold.copyWith(color: accent),
                     ),
                   ],
                 ),
               ),
               const Spacer(),
-              if (!plan.isPremium)
-                Text(
-                  'Upgrade →',
-                  style: typography.body.small.semibold.copyWith(
-                    color: CirculariColorsTokens.solarPulse400,
+              if (plan.canUpgrade)
+                InkWell(
+                  onTap: onUpgrade,
+                  child: Text(
+                    'Upgrade →',
+                    style: typography.body.small.semibold.copyWith(
+                      color: CirculariColorsTokens.solarPulse400,
+                    ),
                   ),
                 ),
             ],
