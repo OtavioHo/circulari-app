@@ -1,5 +1,6 @@
 import 'package:circulari_ui/src/extensions/build_context_extension.dart';
 import 'package:circulari_ui/src/theme/circulari_colors.dart';
+import 'package:circulari_ui/src/widgets/buttons/back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,13 +44,18 @@ class CirculariInAppScaffold extends StatelessWidget {
           ),
         ),
         automaticallyImplyLeading: false,
+        leadingWidth: 68,
         leading: showBackButton
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: CirculariColorsTokens.greyscale700,
+            ? Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: CirculariBackButton(
+                    color: CirculariColorsTokens.greyscale700,
+                    onPressed:
+                        onBackPressed ?? () => Navigator.of(context).pop(),
+                  ),
                 ),
-                onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
               )
             : null,
         actions: actions,

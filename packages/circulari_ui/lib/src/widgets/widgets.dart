@@ -1,4 +1,5 @@
 export 'package:circulari_ui/src/widgets/buttons/button.dart';
+export 'package:circulari_ui/src/widgets/buttons/back_button.dart';
 export 'package:circulari_ui/src/widgets/inputs/text_form_field.dart';
 export 'package:circulari_ui/src/widgets/inputs/search_field.dart';
 export 'package:circulari_ui/src/widgets/inputs/auth_text_form_field.dart';

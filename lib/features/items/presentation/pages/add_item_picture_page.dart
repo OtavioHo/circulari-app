@@ -87,6 +87,10 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: CirculariColorsTokens.greyscale800,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => _PhotoConfirmationSheet(
         imagePath: imagePath,
         onUse: () {
@@ -127,8 +131,8 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
           : Stack(
               fit: StackFit.expand,
               children: [
-                CameraPreview(cam),
-                const _CameraFrame(),
+                _CameraView(controller: cam),
+                const _CameraFrame(topMargin: 190, bottomMargin: 210),
                 Positioned(
                   top: 16,
                   right: 16,
@@ -230,57 +234,146 @@ class _AddItemPicturePageState extends State<AddItemPicturePage> {
   }
 }
 
+class _CameraView extends StatelessWidget {
+  final CameraController controller;
+
+  const _CameraView({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    // previewSize is reported in landscape orientation; swap for portrait so
+    // the preview keeps its native aspect ratio while filling the screen.
+    final previewSize = controller.value.previewSize;
+    if (previewSize == null) return CameraPreview(controller);
+
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: previewSize.height,
+          height: previewSize.width,
+          child: CameraPreview(controller),
+        ),
+      ),
+    );
+  }
+}
+
 class _CameraFrame extends StatelessWidget {
-  const _CameraFrame();
+  final double topMargin;
+  final double bottomMargin;
+
+  const _CameraFrame({required this.topMargin, required this.bottomMargin});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _FramePainter(),
+      painter: _FramePainter(topMargin: topMargin, bottomMargin: bottomMargin),
       child: const SizedBox.expand(),
     );
   }
 }
 
 class _FramePainter extends CustomPainter {
+  final double topMargin;
+  final double bottomMargin;
+
+  _FramePainter({required this.topMargin, required this.bottomMargin});
+
   @override
   void paint(Canvas canvas, Size size) {
-    const radius = Radius.circular(16);
+    const cornerRadius = 24.0;
     const horizontalPadding = 40.0;
-    const aspectRatio = 4 / 3;
+    const cornerLength = 44.0;
+    const strokeWidth = 4.0;
 
     final cutoutWidth = size.width - horizontalPadding * 2;
-    final cutoutHeight = cutoutWidth / aspectRatio;
-    final cutoutTop = (size.height - cutoutHeight) / 2;
-    final cutoutRect = RRect.fromLTRBR(
+    final cutoutHeight = size.height - topMargin - bottomMargin;
+    final rect = Rect.fromLTWH(
       horizontalPadding,
-      cutoutTop,
-      size.width - horizontalPadding,
-      cutoutTop + cutoutHeight,
-      radius,
+      topMargin,
+      cutoutWidth,
+      cutoutHeight,
+    );
+    final cutoutRect = RRect.fromRectAndRadius(
+      rect,
+      const Radius.circular(cornerRadius),
     );
 
+    // Dim the area outside the cutout.
     final overlayPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
       ..addRRect(cutoutRect)
       ..fillType = PathFillType.evenOdd;
-
     canvas.drawPath(
       overlayPath,
       Paint()..color = Colors.black.withValues(alpha: 0.55),
     );
 
-    canvas.drawRRect(
-      cutoutRect,
+    // Rounded corner brackets.
+    final cornerPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    final left = rect.left;
+    final top = rect.top;
+    final right = rect.right;
+    final bottom = rect.bottom;
+
+    final cornersPath = Path()
+      // Top-left
+      ..moveTo(left, top + cornerLength)
+      ..lineTo(left, top + cornerRadius)
+      ..arcToPoint(
+        Offset(left + cornerRadius, top),
+        radius: const Radius.circular(cornerRadius),
+      )
+      ..lineTo(left + cornerLength, top)
+      // Top-right
+      ..moveTo(right - cornerLength, top)
+      ..lineTo(right - cornerRadius, top)
+      ..arcToPoint(
+        Offset(right, top + cornerRadius),
+        radius: const Radius.circular(cornerRadius),
+      )
+      ..lineTo(right, top + cornerLength)
+      // Bottom-right
+      ..moveTo(right, bottom - cornerLength)
+      ..lineTo(right, bottom - cornerRadius)
+      ..arcToPoint(
+        Offset(right - cornerRadius, bottom),
+        radius: const Radius.circular(cornerRadius),
+        clockwise: true,
+      )
+      ..lineTo(right - cornerLength, bottom)
+      // Bottom-left
+      ..moveTo(left + cornerLength, bottom)
+      ..lineTo(left + cornerRadius, bottom)
+      ..arcToPoint(
+        Offset(left, bottom - cornerRadius),
+        radius: const Radius.circular(cornerRadius),
+        clockwise: true,
+      )
+      ..lineTo(left, bottom - cornerLength);
+    canvas.drawPath(cornersPath, cornerPaint);
+
+    // Horizontal scan line.
+    final scanY = rect.center.dy;
+    canvas.drawLine(
+      Offset(left, scanY),
+      Offset(right, scanY),
       Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
+        ..color = CirculariColorsTokens.solarPulse500
         ..strokeWidth = 2,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _FramePainter oldDelegate) =>
+      oldDelegate.topMargin != topMargin ||
+      oldDelegate.bottomMargin != bottomMargin;
 }
 
 class _PhotoConfirmationSheet extends StatelessWidget {
@@ -296,6 +389,8 @@ class _PhotoConfirmationSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
@@ -306,16 +401,21 @@ class _PhotoConfirmationSheet extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.file(File(imagePath), height: 300, fit: BoxFit.cover),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
-            'Use this photo?',
-            style: Theme.of(context).textTheme.titleMedium,
+            'Seguir com esta foto?',
+            style: typography.body.large.semibold.copyWith(
+              color: CirculariColorsTokens.greyscale50,
+            ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 24),
+          CirculariButton(label: 'Usar esta foto', onPressed: onUse),
           const SizedBox(height: 16),
-          FilledButton(onPressed: onUse, child: const Text('Use photo')),
-          const SizedBox(height: 8),
-          OutlinedButton(onPressed: onRetake, child: const Text('Retake')),
+          CirculariOutlinedButton(
+            label: 'Tirar outra foto',
+            onPressed: onRetake,
+          ),
         ],
       ),
     );

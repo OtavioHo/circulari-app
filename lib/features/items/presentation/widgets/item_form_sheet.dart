@@ -1,14 +1,45 @@
 import 'dart:io';
 
+import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import 'package:circulari/core/di/injection.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+
+final _brlFormat = NumberFormat('#,##0.00', 'pt_BR');
+
+/// Parses a BRL-masked string (e.g. "1.234,56") into a double.
+double? _parseBrl(String text) {
+  final normalized = text.replaceAll('.', '').replaceAll(',', '.').trim();
+  if (normalized.isEmpty) return null;
+  return double.tryParse(normalized);
+}
+
+/// Masks digit input as Brazilian currency (thousands with ".", decimals
+/// with ","), treating the typed digits as cents.
+class _BrlInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return const TextEditingValue(text: '');
+    final value = int.parse(digits) / 100;
+    final formatted = _brlFormat.format(value);
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
 
 /// Bottom sheet used for both creating and editing an item.
 /// Returns an [ItemFormResult] when the user taps Save, or null if cancelled.
@@ -38,6 +69,10 @@ Future<ItemFormResult?> showItemFormSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    backgroundColor: CirculariColorsTokens.greyscale800,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => sl<AiAnalysisCubit>()),
@@ -75,7 +110,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _qtyCtrl = TextEditingController(text: (e?.quantity ?? 1).toString());
     _valueCtrl = TextEditingController(
       text: e?.userDefinedValue != null
-          ? e!.userDefinedValue!.toStringAsFixed(2)
+          ? _brlFormat.format(e!.userDefinedValue)
           : '',
     );
     _selectedCategoryId = e?.category?.id;
@@ -106,21 +141,37 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   void _showImageSourceDialog() {
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: CirculariColorsTokens.greyscale800,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: CirculariColorsTokens.greyscale50,
+              ),
+              title: Text(
+                'Tirar foto',
+                style: TextStyle(color: CirculariColorsTokens.greyscale50),
+              ),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _pickImage(ImageSource.camera);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: CirculariColorsTokens.greyscale50,
+              ),
+              title: Text(
+                'Escolher da galeria',
+                style: TextStyle(color: CirculariColorsTokens.greyscale50),
+              ),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _pickImage(ImageSource.gallery);
@@ -136,7 +187,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
-    final value = double.tryParse(_valueCtrl.text.trim());
+    final value = _parseBrl(_valueCtrl.text);
     final desc = _descCtrl.text.trim();
 
     Navigator.of(context).pop(
@@ -157,14 +208,16 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
       if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.name;
       if (_descCtrl.text.isEmpty) _descCtrl.text = result.description;
       if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
-        _valueCtrl.text = result.priceMin.toStringAsFixed(2);
+        _valueCtrl.text = _brlFormat.format(result.priceMin);
       }
       if (result.categoryId != null) {
         setState(() => _selectedCategoryId = result.categoryId);
       }
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not analyse image: ${state.message}')),
+        SnackBar(
+          content: Text('Não foi possível analisar a imagem: ${state.message}'),
+        ),
       );
     }
   }
@@ -174,97 +227,129 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     final isEditing = widget.existing != null;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
+    final typography = context.circulariTheme.typography;
+
     return BlocListener<AiAnalysisCubit, AiAnalysisState>(
       listener: _onAnalysisState,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, bottom + 16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                isEditing ? 'Edit item' : 'New item',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
-                builder: (context, state) => _ImagePickerArea(
-                  imagePath: _imagePath,
-                  existingUrl: widget.existing?.images.firstOrNull?.url,
-                  isAnalyzing: state is AiAnalysisLoading,
-                  onTap: _showImageSourceDialog,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Name *',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.sentences,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.sentences,
-                maxLines: 2,
-              ),
-              const SizedBox(height: 12),
-              _CategoryDropdown(
-                selectedCategoryId: _selectedCategoryId,
-                onChanged: (id) => setState(() => _selectedCategoryId = id),
-              ),
-              const SizedBox(height: 12),
-              Row(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              child: Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _qtyCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Quantity',
-                        border: OutlineInputBorder(),
+                    child: Text(
+                      isEditing ? 'Editar item' : 'Novo item',
+                      style: typography.body.xLarge.semibold.copyWith(
+                        color: CirculariColorsTokens.greyscale50,
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        final n = int.tryParse(v ?? '');
-                        if (n == null || n < 1) return 'Min 1';
-                        return null;
-                      },
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _valueCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Value (R\$)',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close,
+                      color: CirculariColorsTokens.greyscale50,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
-                builder: (context, state) => FilledButton(
-                  onPressed: state is AiAnalysisLoading ? null : _submit,
-                  child: Text(isEditing ? 'Save changes' : 'Add item'),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24, 12, 24, bottom + 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+                          builder: (context, state) => _ImagePickerArea(
+                            imagePath: _imagePath,
+                            existingUrl:
+                                widget.existing?.images.firstOrNull?.url,
+                            isAnalyzing: state is AiAnalysisLoading,
+                            onTap: _showImageSourceDialog,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        CirculariTextFormField(
+                          controller: _nameCtrl,
+                          label: 'Nome *',
+                          onDark: true,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'O nome é obrigatório'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        CirculariTextFormField(
+                          controller: _descCtrl,
+                          label: 'Descrição',
+                          onDark: true,
+                          lines: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        _CategoryDropdown(
+                          selectedCategoryId: _selectedCategoryId,
+                          onChanged: (id) =>
+                              setState(() => _selectedCategoryId = id),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: CirculariTextFormField(
+                                controller: _qtyCtrl,
+                                label: 'Quantidade',
+                                onDark: true,
+                                keyboardType: TextInputType.number,
+                                validator: (v) {
+                                  final n = int.tryParse(v ?? '');
+                                  if (n == null || n < 1) return 'Mín. 1';
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CirculariTextFormField(
+                                controller: _valueCtrl,
+                                label: 'Valor',
+                                prefixText: 'R\$ ',
+                                onDark: true,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [_BrlInputFormatter()],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+                          builder: (context, state) => CirculariButton(
+                            onPressed: state is AiAnalysisLoading
+                                ? null
+                                : _submit,
+                            label: isEditing
+                                ? 'Salvar alterações'
+                                : 'Adicionar item',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -285,13 +370,13 @@ class _CategoryDropdown extends StatelessWidget {
     return BlocBuilder<CategoriesCubit, CategoriesState>(
       builder: (context, state) => switch (state) {
         CategoriesLoading() => const SizedBox(
-            height: 56,
-            child: Center(child: LinearProgressIndicator()),
-          ),
+          height: 56,
+          child: Center(child: LinearProgressIndicator()),
+        ),
         CategoriesSuccess(:final categories) => _buildDropdown(
-            context,
-            categories,
-          ),
+          context,
+          categories,
+        ),
         CategoriesFailure() => const SizedBox.shrink(),
         CategoriesInitial() => const SizedBox.shrink(),
       },
@@ -304,15 +389,12 @@ class _CategoryDropdown extends StatelessWidget {
         ? selectedCategoryId
         : null;
 
-    return DropdownButtonFormField<String>(
-      key: ValueKey(validId),
-      initialValue: validId,
-      decoration: const InputDecoration(
-        labelText: 'Category',
-        border: OutlineInputBorder(),
-      ),
+    return CirculariDropdownFormField<String?>(
+      label: 'Categoria',
+      onDark: true,
+      value: validId,
       items: [
-        const DropdownMenuItem(value: null, child: Text('No category')),
+        const DropdownMenuItem(value: null, child: Text('Sem categoria')),
         ...categories.map(
           (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
         ),
@@ -382,7 +464,7 @@ class _ImagePickerArea extends StatelessWidget {
                         CircularProgressIndicator(color: Colors.white),
                         SizedBox(height: 8),
                         Text(
-                          'Analysing…',
+                          'Analisando…',
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
@@ -400,27 +482,23 @@ class _ImagePickerArea extends StatelessWidget {
     return Container(
       height: 160,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: CirculariColorsTokens.greyscale900,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 1,
-        ),
+        border: Border.all(color: CirculariColorsTokens.greyscale50, width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.add_a_photo_outlined,
             size: 36,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: CirculariColorsTokens.greyscale100,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add photo',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            'Adicionar foto',
+            style: context.circulariTheme.typography.body.medium.regular
+                .copyWith(color: CirculariColorsTokens.greyscale100),
           ),
         ],
       ),

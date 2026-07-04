@@ -32,6 +32,9 @@ class CirculariCollapsibleBody extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final Widget? appBarTitle;
   final List<Widget>? appBarActions;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+  final Color backButtonColor;
 
   const CirculariCollapsibleBody({
     super.key,
@@ -44,6 +47,9 @@ class CirculariCollapsibleBody extends StatefulWidget {
     this.padding,
     this.appBarTitle,
     this.appBarActions,
+    this.showBackButton = false,
+    this.onBackPressed,
+    this.backButtonColor = CirculariColorsTokens.greyscale50,
   });
 
   @override
@@ -137,6 +143,21 @@ class _CirculariCollapsibleBodyState extends State<CirculariCollapsibleBody> {
                     flexibleSpace: const SizedBox(),
                     expandedHeight: 56,
                     collapsedHeight: 56,
+                    automaticallyImplyLeading: false,
+                    leadingWidth: 68,
+                    leading: widget.showBackButton
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 16),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: CirculariBackButton(
+                                color: widget.backButtonColor,
+                                onPressed: widget.onBackPressed ??
+                                    () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          )
+                        : null,
                     title: widget.appBarTitle,
                     actions: widget.appBarActions,
                   ),

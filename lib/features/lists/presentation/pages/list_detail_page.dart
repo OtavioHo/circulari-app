@@ -56,6 +56,7 @@ class ListDetailPage extends StatelessWidget {
           return CirculariCollapsibleBody(
             expandedHeight: _expandedHeight,
             collapsedHeight: _collapsedHeight,
+            showBackButton: true,
             backgroundBuilder: picturePath != null && backgroundColor != null
                 ? _buildBackground
                 : null,

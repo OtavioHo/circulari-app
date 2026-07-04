@@ -25,4 +25,15 @@ class ProfileRemoteSource {
       throw mapDioError(e);
     }
   }
+
+  /// Updates the current user's profile and returns the fresh display name.
+  Future<String> updateProfile({required String name}) async {
+    try {
+      final response = await _dio.patch('/auth/me', data: {'name': name});
+      final data = response.data as Map<String, dynamic>;
+      return data['name'] as String;
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
 }

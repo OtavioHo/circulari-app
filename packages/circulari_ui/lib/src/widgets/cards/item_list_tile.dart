@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:circulari_ui/src/extensions/build_context_extension.dart';
 import 'package:circulari_ui/src/theme/circulari_colors.dart';
+import 'package:circulari_ui/src/utils/category_icons.dart';
+
+/// Formats a value as Brazilian currency: "R$ 1.234,56" (thousands with ".",
+/// decimals with ",").
+String _formatBrl(double value) {
+  final str = value.abs().toStringAsFixed(2);
+  final parts = str.split('.');
+  final intPart = parts[0];
+  final decimals = parts[1];
+  final buffer = StringBuffer();
+  for (var i = 0; i < intPart.length; i++) {
+    if (i > 0 && (intPart.length - i) % 3 == 0) buffer.write('.');
+    buffer.write(intPart[i]);
+  }
+  final sign = value < 0 ? '-' : '';
+  return 'R\$ $sign$buffer,$decimals';
+}
 
 class CirculariItemListTile extends StatelessWidget {
   final String name;
@@ -40,7 +57,7 @@ class CirculariItemListTile extends StatelessWidget {
                 radius: 24,
                 backgroundColor: listColor,
                 child: Icon(
-                  Icons.ac_unit_outlined,
+                  categoryIcon(categoryName),
                   color: CirculariColorsTokens.greyscale900,
                 ),
               ),
@@ -78,7 +95,7 @@ class CirculariItemListTile extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'R\$ ${price.toStringAsFixed(2)}',
+                    _formatBrl(price),
                     style: typography.body.medium.semibold.copyWith(
                       color: CirculariColorsTokens.greyscale800,
                     ),

@@ -27,16 +27,44 @@ class ProfilePage extends StatelessWidget {
         children: [
           const _ProfileHeader(),
           SizedBox(height: spacing.large),
+          _ProfileOptionTile(
+            icon: Icons.person_outline,
+            label: 'Editar dados do perfil',
+            onTap: () => context.push('/profile/edit'),
+          ),
+          SizedBox(height: spacing.medium),
+          _ProfileOptionTile(
+            icon: Icons.credit_card_outlined,
+            label: 'Gerenciar plano',
+            onTap: () => context.push('/paywall'),
+          ),
+          SizedBox(height: spacing.large),
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: spacing.medium,
               vertical: spacing.small,
             ),
-            child: Text(
-              'Seu plano',
-              style: typography.body.xLarge.bold.copyWith(
-                color: CirculariColorsTokens.greyscale800,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Seu plano',
+                  style: typography.body.xLarge.bold.copyWith(
+                    color: CirculariColorsTokens.greyscale800,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => context.push('/paywall'),
+                  child: Text(
+                    'Gerenciar plano',
+                    style: typography.body.large.regular.copyWith(
+                      color: CirculariColorsTokens.greyscale500,
+                      decoration: TextDecoration.underline,
+                      decorationColor: CirculariColorsTokens.greyscale500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           BlocBuilder<PlanBloc, PlanState>(
@@ -76,7 +104,7 @@ class ProfilePage extends StatelessWidget {
           ),
           SizedBox(height: spacing.large),
           const _LogoutButton(),
-          SizedBox(height: spacing.medium),
+          const SizedBox(height: 120),
         ],
       ),
     );
@@ -108,47 +136,107 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _Avatar(name: name),
-          SizedBox(width: spacing.medium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name.isEmpty ? '—' : name,
-                  style: typography.body.xLarge.bold.copyWith(
-                    color: CirculariColorsTokens.greyscale900,
+          SizedBox(height: spacing.medium),
+          Text(
+            name.isEmpty ? '—' : name,
+            textAlign: TextAlign.center,
+            style: typography.body.xLarge.bold.copyWith(
+              color: CirculariColorsTokens.greyscale900,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.mail_outline_rounded,
+                size: 16,
+                color: CirculariColorsTokens.greyscale500,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  email.isEmpty ? '—' : email,
+                  style: typography.body.medium.regular.copyWith(
+                    color: CirculariColorsTokens.greyscale500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.mail_outline_rounded,
-                      size: 16,
-                      color: CirculariColorsTokens.greyscale500,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ProfileOptionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+    final spacing = context.circulariTheme.spacing;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: spacing.medium),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.all(spacing.medium),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: CirculariColorsTokens.greyscale200,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: CirculariColorsTokens.greyscale600,
+                  ),
+                ),
+                SizedBox(width: spacing.medium),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: typography.body.large.regular.copyWith(
+                      color: CirculariColorsTokens.greyscale600,
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        email.isEmpty ? '—' : email,
-                        style: typography.body.small.regular.copyWith(
-                          color: CirculariColorsTokens.greyscale600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  color: CirculariColorsTokens.greyscale500,
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -174,17 +262,17 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final typography = context.circulariTheme.typography;
     return Container(
-      width: 64,
-      height: 64,
+      width: 80,
+      height: 80,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: CirculariColorsTokens.freshCore100,
+        color: CirculariColorsTokens.freshCore700,
       ),
       alignment: Alignment.center,
       child: Text(
         _initials,
         style: typography.heading4.copyWith(
-          color: CirculariColorsTokens.freshCore600,
+          color: CirculariColorsTokens.greyscale50,
         ),
       ),
     );
@@ -194,17 +282,30 @@ class _Avatar extends StatelessWidget {
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
 
+  static const _red = Color(0xFFD32F2F);
+
   @override
   Widget build(BuildContext context) {
     final typography = context.circulariTheme.typography;
-    return TextButton.icon(
-      onPressed: () =>
-          context.read<AuthBloc>().add(const AuthLogoutRequested()),
-      icon: const Icon(Icons.logout_rounded, color: Color(0xFFD32F2F)),
-      label: Text(
-        'Sair',
-        style: typography.body.medium.bold.copyWith(
-          color: const Color(0xFFD32F2F),
+    final spacing = context.circulariTheme.spacing;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: spacing.medium),
+      child: OutlinedButton.icon(
+        onPressed: () =>
+            context.read<AuthBloc>().add(const AuthLogoutRequested()),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          side: const BorderSide(color: _red),
+        ),
+        icon: const Icon(Icons.logout_rounded, color: _red),
+        label: Text(
+          'Sair',
+          style: typography.body.medium.semibold.copyWith(color: _red),
         ),
       ),
     );

@@ -5,6 +5,8 @@ import 'package:circulari/features/profile/data/sources/profile_remote_source.da
 import 'package:circulari/features/profile/domain/repositories/profile_repository.dart';
 import 'package:circulari/features/profile/domain/usecases/get_plan_usecase.dart';
 import 'package:circulari/features/profile/domain/usecases/reconcile_plan_usecase.dart';
+import 'package:circulari/features/profile/domain/usecases/update_profile_usecase.dart';
+import 'package:circulari/features/profile/presentation/bloc/edit_profile_cubit.dart';
 import 'package:circulari/features/profile/presentation/bloc/plan_bloc.dart';
 
 extension ProfileDI on GetIt {
@@ -13,6 +15,8 @@ extension ProfileDI on GetIt {
     registerLazySingleton<ProfileRepository>(() => ProfileRepositoryImpl(call()));
     registerLazySingleton(() => GetPlanUsecase(call()));
     registerLazySingleton(() => ReconcilePlanUsecase(call()));
+    registerLazySingleton(() => UpdateProfileUsecase(call()));
     registerFactory(() => PlanBloc(call(), call()));
+    registerFactory(() => EditProfileCubit(call()));
   }
 }

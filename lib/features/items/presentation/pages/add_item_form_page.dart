@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
@@ -11,6 +13,34 @@ import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
 import 'package:circulari/features/items/presentation/bloc/items_state.dart';
 import 'package:circulari/features/lists/domain/entities/item_list.dart';
+
+final _brlFormat = NumberFormat('#,##0.00', 'pt_BR');
+
+/// Parses a BRL-masked string (e.g. "1.234,56") into a double.
+double? _parseBrl(String text) {
+  final normalized = text.replaceAll('.', '').replaceAll(',', '.').trim();
+  if (normalized.isEmpty) return null;
+  return double.tryParse(normalized);
+}
+
+/// Masks digit input as Brazilian currency (thousands with ".", decimals
+/// with ","), treating the typed digits as cents.
+class _BrlInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return const TextEditingValue(text: '');
+    final value = int.parse(digits) / 100;
+    final formatted = _brlFormat.format(value);
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
 
 class AddItemFormPage extends StatefulWidget {
   final String imagePath;
@@ -73,10 +103,10 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
           _descAiGenerated = true;
         }
         if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
-          _valueCtrl.text = result.priceMin.toStringAsFixed(2);
+          _valueCtrl.text = _brlFormat.format(result.priceMin);
           _valueAiGenerated = true;
           _aiPriceDescription =
-              'Preço estimado pela IA: R\$${result.priceMin.toStringAsFixed(2)}';
+              'Preço estimado pela IA: R\$ ${_brlFormat.format(result.priceMin)}';
         }
         if (result.categoryId != null) {
           _selectedCategoryId = result.categoryId;
@@ -91,7 +121,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
       );
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not analyse image: ${state.message}')),
+        SnackBar(content: Text('Não foi possível analisar a imagem: ${state.message}')),
       );
     }
   }
@@ -125,7 +155,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
-    final value = double.tryParse(_valueCtrl.text.trim());
+    final value = _parseBrl(_valueCtrl.text);
     final desc = _descCtrl.text.trim();
 
     context.read<ItemsBloc>().add(
@@ -212,9 +242,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 CirculariTextFormField(
                   controller: _nameCtrl,
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Name is required'
+                      ? 'O nome é obrigatório'
                       : null,
-                  label: 'Name *',
+                  label: 'Nome *',
                   aiGenerated: _nameAiGenerated,
                   onChanged: (_) =>
                       setState(() => _nameAiGenerated = false),
@@ -232,11 +262,11 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 CirculariTextFormField(
                   controller: _valueCtrl,
                   label: 'Preço',
+                  prefixText: 'R\$ ',
                   description: _aiPriceDescription,
                   aiGenerated: _valueAiGenerated,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [_BrlInputFormatter()],
                   onChanged: (_) =>
                       setState(() => _valueAiGenerated = false),
                 ),

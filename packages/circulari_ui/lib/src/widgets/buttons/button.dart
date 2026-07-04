@@ -42,3 +42,47 @@ class CirculariButton extends StatelessWidget {
     );
   }
 }
+
+class CirculariOutlinedButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const CirculariOutlinedButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        minimumSize: const Size.fromHeight(56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: CirculariColorsTokens.greyscale900,
+        side: const BorderSide(color: CirculariColorsTokens.greyscale50),
+      ),
+      onPressed: onPressed,
+      child: isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: CirculariColorsTokens.greyscale50,
+              ),
+            )
+          : Text(
+              label,
+              style: typography.body.medium.semibold.copyWith(
+                color: CirculariColorsTokens.greyscale50,
+              ),
+            ),
+    );
+  }
+}

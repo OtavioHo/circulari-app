@@ -63,17 +63,6 @@ class PlanCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Spacer(),
-              if (plan.canUpgrade)
-                InkWell(
-                  onTap: onUpgrade,
-                  child: Text(
-                    'Upgrade →',
-                    style: typography.body.small.semibold.copyWith(
-                      color: CirculariColorsTokens.solarPulse400,
-                    ),
-                  ),
-                ),
             ],
           ),
           SizedBox(height: spacing.small),

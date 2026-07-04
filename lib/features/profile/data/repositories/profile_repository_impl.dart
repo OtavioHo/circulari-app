@@ -12,4 +12,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<UserPlan> reconcilePlan() => _source.reconcilePlan();
+
+  @override
+  Future<String> updateProfile({required String name}) =>
+      _source.updateProfile(name: name);
 }

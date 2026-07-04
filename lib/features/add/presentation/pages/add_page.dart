@@ -54,7 +54,9 @@ class _AddPageState extends State<AddPage> {
 
             if (_selected != null)
               CirculariButton(label: 'Criar', onPressed: _onCreate),
-            const SizedBox(height: 90),
+            // Clear the floating navbar (SafeArea bottom + 16 padding + 64
+            // height) plus a small gap, adapting to each device's inset.
+            SizedBox(height: MediaQuery.paddingOf(context).bottom + 96),
           ],
         ),
       ),

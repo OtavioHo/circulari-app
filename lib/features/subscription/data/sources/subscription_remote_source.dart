@@ -29,9 +29,12 @@ class SubscriptionRemoteSource {
         final tier = planTierFromIdentifier(pkg.storeProduct.identifier) ??
             planTierFromIdentifier(pkg.identifier);
         if (tier == null || !tier.isPaid) continue;
+        final period = _periodFrom(pkg.packageType);
+        if (period == null) continue;
         _packages[pkg.identifier] = pkg;
         options.add(SubscriptionOption(
           tier: tier,
+          period: period,
           packageId: pkg.identifier,
           title: pkg.storeProduct.title,
           priceString: pkg.storeProduct.priceString,
@@ -65,6 +68,14 @@ class SubscriptionRemoteSource {
       throw _map(e);
     }
   }
+
+  /// Maps a RevenueCat [PackageType] to our paywall cadence; returns null for
+  /// package types the paywall doesn't offer (weekly, lifetime, custom, …).
+  BillingPeriod? _periodFrom(PackageType type) => switch (type) {
+        PackageType.monthly => BillingPeriod.monthly,
+        PackageType.annual => BillingPeriod.annual,
+        _ => null,
+      };
 
   PlanTier _tierFromCustomerInfo(CustomerInfo info) {
     var best = PlanTier.free;

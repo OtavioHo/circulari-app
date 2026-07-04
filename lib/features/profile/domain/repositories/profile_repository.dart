@@ -6,4 +6,7 @@ abstract interface class ProfileRepository {
   /// Forces the backend to pull subscription state from RevenueCat now and
   /// returns the refreshed plan. Used right after a purchase/restore.
   Future<UserPlan> reconcilePlan();
+
+  /// Updates the current user's profile and returns the fresh display name.
+  Future<String> updateProfile({required String name});
 }

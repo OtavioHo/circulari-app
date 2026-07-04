@@ -66,11 +66,15 @@ class HomePage extends StatelessWidget {
                           ListenableBuilder(
                             listenable: context.read<AuthStateNotifier>(),
                             builder: (context, _) {
-                              final name =
+                              final fullName =
                                   context.read<AuthStateNotifier>().userName ??
                                   '';
+                              final firstName = fullName.trim().split(' ').first;
                               return Text(
-                                'Olá, $name!',
+                                'Olá, $firstName!',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                                 style: typography.heading2.copyWith(
                                   color: Colors.white,
                                 ),

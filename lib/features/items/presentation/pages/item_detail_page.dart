@@ -2,6 +2,7 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart';
@@ -58,12 +59,28 @@ class _ItemDetailScaffold extends StatelessWidget {
         backgroundColor: CirculariColorsTokens.freshCore,
         foregroundColor: CirculariColorsTokens.greyscale900,
         onPressed: isLoading ? null : () => _onEditTapped(context),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('Editar'),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Editar',
+              textAlign: TextAlign.center,
+              style: context.circulariTheme.typography.body.large.semibold
+                  .copyWith(
+                    color: CirculariColorsTokens.greyscale900,
+                    height: 1.4,
+                    letterSpacing: 0.5,
+                  ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.edit_outlined),
+          ],
+        ),
       ),
       body: CirculariCollapsibleBody(
         expandedHeight: _expandedHeight,
         collapsedHeight: _collapsedHeight,
+        showBackButton: true,
         backgroundBuilder: hasImage
             ? (context, shrinkOffset) =>
                 _buildImageBackground(mainImageUrl, shrinkOffset)
@@ -134,26 +151,6 @@ class _ItemDetailScaffold extends StatelessWidget {
                 progress,
               ),
             ),
-            const SizedBox(height: 12),
-            if (item.category != null && progress < 0.6)
-              Opacity(
-                opacity: (1.0 - progress).clamp(0.0, 1.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(40),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.white.withAlpha(80)),
-                  ),
-                  child: Text(
-                    item.category!.name,
-                    style: circulariTypography.body.small.regular.copyWith(
-                      color: CirculariColorsTokens.greyscale100,
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -162,12 +159,53 @@ class _ItemDetailScaffold extends StatelessWidget {
 
   List<Widget> _buildBody(BuildContext context) {
     final typography = context.circulariTheme.typography;
+    final mainImageUrl = item.images.firstOrNull?.url;
     return [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                if (item.category != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: CirculariColorsTokens.greyscale700,
+                      ),
+                    ),
+                    child: Text(
+                      item.category!.name,
+                      style: typography.body.medium.regular.copyWith(
+                        color: CirculariColorsTokens.greyscale700,
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                IconButton(
+                  onPressed: isLoading ? null : () => _confirmDelete(context),
+                  icon: const Icon(Icons.delete_outline),
+                  color: CirculariColorsTokens.greyscale700,
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(
+                        color: CirculariColorsTokens.greyscale700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             if (item.description != null && item.description!.isNotEmpty) ...[
               Text(
                 item.description!,
@@ -176,12 +214,42 @@ class _ItemDetailScaffold extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-            ],
-            Text(
-              'Detalhes',
-              style: typography.body.xLarge.bold.copyWith(
-                color: CirculariColorsTokens.greyscale800,
+              const Divider(
+                height: 1,
+                thickness: 1,
+                color: CirculariColorsTokens.greyscale200,
               ),
+              const SizedBox(height: 24),
+            ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Detalhes',
+                  style: typography.body.xLarge.bold.copyWith(
+                    color: CirculariColorsTokens.greyscale800,
+                  ),
+                ),
+                if (mainImageUrl != null)
+                  TextButton(
+                    onPressed: () => _openImage(context, mainImageUrl),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'ver produto',
+                      style: typography.body.large.regular.copyWith(
+                        color: const Color(0xFF878787),
+                        height: 1.2,
+                        letterSpacing: 0,
+                        decoration: TextDecoration.underline,
+                        decorationColor: const Color(0xFF878787),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
             _DetailRow(
@@ -194,7 +262,10 @@ class _ItemDetailScaffold extends StatelessWidget {
               _DetailRow(
                 icon: Icons.attach_money_outlined,
                 label: 'Valor',
-                value: 'R\$ ${item.userDefinedValue!.toStringAsFixed(2)}',
+                value: NumberFormat.currency(
+                  locale: 'pt_BR',
+                  symbol: 'R\$ ',
+                ).format(item.userDefinedValue),
               ),
             ],
             if (item.listInfo != null) ...[
@@ -211,22 +282,6 @@ class _ItemDetailScaffold extends StatelessWidget {
               icon: Icons.calendar_today_outlined,
               label: 'Adicionado',
               value: _formatDate(item.createdAt),
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: TextButton.icon(
-                onPressed: isLoading ? null : () => _confirmDelete(context),
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                label: Text(
-                  'Excluir item',
-                  style: typography.body.medium.bold.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -249,26 +304,61 @@ class _ItemDetailScaffold extends StatelessWidget {
         );
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+  void _openImage(BuildContext context, String url) {
+    showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Excluir item'),
-        content: Text('Excluir "${item.name}"? Essa ação não pode ser desfeita.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
+      barrierColor: Colors.black.withAlpha(230),
+      builder: (ctx) => Dialog.fullscreen(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            InteractiveViewer(
+              minScale: 1,
+              maxScale: 4,
+              child: Image.network(
+                url,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Excluir'),
-          ),
-        ],
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Material(
+                    color: Colors.black.withAlpha(120),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(
+                        Icons.close,
+                        color: CirculariColorsTokens.greyscale50,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: CirculariColorsTokens.greyscale800,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => _DeleteConfirmationSheet(
+        onBack: () => Navigator.of(ctx).pop(false),
+        onConfirm: () => Navigator.of(ctx).pop(true),
       ),
     );
 
@@ -290,6 +380,55 @@ class _ItemDetailScaffold extends StatelessWidget {
     } catch (_) {
       return null;
     }
+  }
+}
+
+class _DeleteConfirmationSheet extends StatelessWidget {
+  final VoidCallback onBack;
+  final VoidCallback onConfirm;
+
+  const _DeleteConfirmationSheet({
+    required this.onBack,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Tem certeza que deseja excluir o item?',
+            textAlign: TextAlign.center,
+            style: typography.body.xLarge.semibold.copyWith(
+              color: CirculariColorsTokens.greyscale50,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Caso exclua o item, ele será excluído definitivamente.',
+            textAlign: TextAlign.center,
+            style: typography.body.large.regular.copyWith(
+              color: CirculariColorsTokens.greyscale500,
+              height: 1.5,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 24),
+          CirculariButton(label: 'Voltar', onPressed: onBack),
+          const SizedBox(height: 16),
+          CirculariOutlinedButton(
+            label: 'Sim, excluir item',
+            onPressed: onConfirm,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -315,8 +454,8 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           '$label: ',
-          style: typography.body.medium.regular.copyWith(
-            color: CirculariColorsTokens.greyscale600,
+          style: typography.body.large.regular.copyWith(
+            color: CirculariColorsTokens.greyscale800,
           ),
         ),
         if (accent != null) ...[
@@ -330,7 +469,7 @@ class _DetailRow extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: typography.body.medium.regular.copyWith(
+            style: typography.body.large.regular.copyWith(
               color: CirculariColorsTokens.greyscale800,
             ),
           ),
