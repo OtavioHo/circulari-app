@@ -17,12 +17,16 @@ class MockPackage extends Mock implements Package {}
 
 class MockStoreProduct extends Mock implements StoreProduct {}
 
-/// Builds a mock RevenueCat package with a *custom* identifier — the case the
-/// paywall must now support so both paid tiers fit in one offering.
+/// Builds a mock RevenueCat package. Defaults to a *custom*-typed package (the
+/// case one offering needs so both paid tiers fit) which resolves its cadence
+/// from [subscriptionPeriod]; pass [packageType] to model a reserved
+/// `$rc_monthly`/`$rc_annual` slot, whose cadence comes from the type even when
+/// the store omits the period.
 Package _package({
   required String packageId,
   required String productId,
-  required String subscriptionPeriod,
+  String? subscriptionPeriod,
+  PackageType packageType = PackageType.custom,
 }) {
   final product = MockStoreProduct();
   when(() => product.identifier).thenReturn(productId);
@@ -33,9 +37,7 @@ Package _package({
   final pkg = MockPackage();
   when(() => pkg.identifier).thenReturn(packageId);
   when(() => pkg.storeProduct).thenReturn(product);
-  // Custom identifiers report PackageType.custom — the value that used to make
-  // the old _periodFrom(packageType) drop the package entirely.
-  when(() => pkg.packageType).thenReturn(PackageType.custom);
+  when(() => pkg.packageType).thenReturn(packageType);
   return pkg;
 }
 
@@ -98,6 +100,70 @@ void main() {
     // Sorted so lower tiers come first.
     expect(options.first.tier, PlanTier.essencial);
     expect(options.last.tier, PlanTier.pro);
+  });
+
+  test('resolves reserved-slot packages by type when period is absent',
+      () async {
+    // $rc_monthly/$rc_annual slots carry a reliable PackageType even when the
+    // store omits subscriptionPeriod (e.g. iOS sandbox) — they must not vanish.
+    stubOffering([
+      _package(
+        packageId: '\$rc_monthly',
+        productId: 'circulari_pro:pro-monthly',
+        subscriptionPeriod: null,
+        packageType: PackageType.monthly,
+      ),
+      _package(
+        packageId: '\$rc_annual',
+        productId: 'circulari_pro:pro-annual',
+        subscriptionPeriod: null,
+        packageType: PackageType.annual,
+      ),
+    ]);
+
+    final options = await source.getOptions();
+
+    expect(options, hasLength(2));
+    expect(options.map((o) => o.period).toSet(),
+        {BillingPeriod.monthly, BillingPeriod.annual});
+  });
+
+  test('orders deterministically by tier then cadence', () async {
+    // Intentionally out of order to prove the sort, not input order, decides.
+    stubOffering([
+      _package(
+        packageId: 'pro_annual',
+        productId: 'circulari_pro:pro-annual',
+        subscriptionPeriod: 'P1Y',
+      ),
+      _package(
+        packageId: 'essencial_annual',
+        productId: 'circulari_essencial:essencial-annual',
+        subscriptionPeriod: 'P1Y',
+      ),
+      _package(
+        packageId: 'pro_monthly',
+        productId: 'circulari_pro:pro-monthly',
+        subscriptionPeriod: 'P1M',
+      ),
+      _package(
+        packageId: 'essencial_monthly',
+        productId: 'circulari_essencial:essencial-monthly',
+        subscriptionPeriod: 'P1M',
+      ),
+    ]);
+
+    final options = await source.getOptions();
+
+    expect(
+      options.map((o) => (o.tier, o.period)).toList(),
+      [
+        (PlanTier.essencial, BillingPeriod.monthly),
+        (PlanTier.essencial, BillingPeriod.annual),
+        (PlanTier.pro, BillingPeriod.monthly),
+        (PlanTier.pro, BillingPeriod.annual),
+      ],
+    );
   });
 
   test('skips packages with a cadence the paywall does not offer', () async {

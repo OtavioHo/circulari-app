@@ -30,7 +30,7 @@ class SubscriptionRemoteSource {
         final tier = planTierFromIdentifier(pkg.storeProduct.identifier) ??
             planTierFromIdentifier(pkg.identifier);
         if (tier == null || !tier.isPaid) continue;
-        final period = _periodFrom(pkg.storeProduct);
+        final period = _periodFrom(pkg);
         if (period == null) {
           // A paid tier whose cadence we can't resolve would silently vanish
           // from the paywall — log it rather than dropping it without a trace.
@@ -49,7 +49,12 @@ class SubscriptionRemoteSource {
           priceString: pkg.storeProduct.priceString,
         ));
       }
-      options.sort((a, b) => a.tier.rank.compareTo(b.tier.rank));
+      // Sort by tier, then by cadence, so intra-tier order is deterministic
+      // (List.sort is not stable).
+      options.sort((a, b) {
+        final byTier = a.tier.rank.compareTo(b.tier.rank);
+        return byTier != 0 ? byTier : a.period.index.compareTo(b.period.index);
+      });
       return options;
     } on PlatformException catch (e) {
       throw _map(e);
@@ -78,18 +83,26 @@ class SubscriptionRemoteSource {
     }
   }
 
-  /// Maps a store product's subscription period to our paywall cadence.
+  /// Resolves a package's paywall cadence.
   ///
-  /// Reading the product's ISO-8601 [StoreProduct.subscriptionPeriod] (e.g.
-  /// `P1M`, `P1Y`) rather than the RevenueCat [PackageType] lets a single
-  /// offering carry custom-identified packages for every tier — the reserved
-  /// `$rc_monthly`/`$rc_annual` slots hold only one product each, so they can't
-  /// represent two paid tiers. Returns null (and the caller skips the package)
-  /// for any cadence the paywall doesn't offer (weekly, lifetime, …).
-  BillingPeriod? _periodFrom(StoreProduct product) {
-    final period = product.subscriptionPeriod;
-    if (period == null || period.isEmpty) return null;
-    switch (period) {
+  /// Prefers RevenueCat's [PackageType], which is reliable for the reserved
+  /// `$rc_monthly`/`$rc_annual` slots even when the store omits the product's
+  /// period (e.g. some iOS sandbox configs). Custom-identified packages report
+  /// [PackageType.custom] and fall through to the product's ISO-8601
+  /// [StoreProduct.subscriptionPeriod] — that fallback is what lets one
+  /// offering carry a custom package per paid tier. Returns null (and the
+  /// caller skips the package) for any cadence the paywall doesn't offer
+  /// (weekly, quarterly, lifetime, …).
+  BillingPeriod? _periodFrom(Package pkg) {
+    switch (pkg.packageType) {
+      case PackageType.monthly:
+        return BillingPeriod.monthly;
+      case PackageType.annual:
+        return BillingPeriod.annual;
+      default:
+        break;
+    }
+    switch (pkg.storeProduct.subscriptionPeriod) {
       case 'P1M':
         return BillingPeriod.monthly;
       case 'P1Y':
