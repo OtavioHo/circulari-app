@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 // Hide RevenueCat's own SubscriptionOption — we use our domain entity of the
 // same name for the paywall.
@@ -29,8 +30,16 @@ class SubscriptionRemoteSource {
         final tier = planTierFromIdentifier(pkg.storeProduct.identifier) ??
             planTierFromIdentifier(pkg.identifier);
         if (tier == null || !tier.isPaid) continue;
-        final period = _periodFrom(pkg.packageType);
-        if (period == null) continue;
+        final period = _periodFrom(pkg);
+        if (period == null) {
+          // A paid tier whose cadence we can't resolve would silently vanish
+          // from the paywall — log it rather than dropping it without a trace.
+          debugPrint('SubscriptionRemoteSource: skipping package '
+              '"${pkg.identifier}" (${pkg.storeProduct.identifier}) — '
+              'unsupported subscriptionPeriod '
+              '"${pkg.storeProduct.subscriptionPeriod}".');
+          continue;
+        }
         _packages[pkg.identifier] = pkg;
         options.add(SubscriptionOption(
           tier: tier,
@@ -40,7 +49,12 @@ class SubscriptionRemoteSource {
           priceString: pkg.storeProduct.priceString,
         ));
       }
-      options.sort((a, b) => a.tier.rank.compareTo(b.tier.rank));
+      // Sort by tier, then by cadence, so intra-tier order is deterministic
+      // (List.sort is not stable).
+      options.sort((a, b) {
+        final byTier = a.tier.rank.compareTo(b.tier.rank);
+        return byTier != 0 ? byTier : a.period.index.compareTo(b.period.index);
+      });
       return options;
     } on PlatformException catch (e) {
       throw _map(e);
@@ -69,13 +83,35 @@ class SubscriptionRemoteSource {
     }
   }
 
-  /// Maps a RevenueCat [PackageType] to our paywall cadence; returns null for
-  /// package types the paywall doesn't offer (weekly, lifetime, custom, …).
-  BillingPeriod? _periodFrom(PackageType type) => switch (type) {
-        PackageType.monthly => BillingPeriod.monthly,
-        PackageType.annual => BillingPeriod.annual,
-        _ => null,
-      };
+  /// Resolves a package's paywall cadence.
+  ///
+  /// Prefers RevenueCat's [PackageType], which is reliable for the reserved
+  /// `$rc_monthly`/`$rc_annual` slots even when the store omits the product's
+  /// period (e.g. some iOS sandbox configs). Custom-identified packages report
+  /// [PackageType.custom] and fall through to the product's ISO-8601
+  /// [StoreProduct.subscriptionPeriod] — that fallback is what lets one
+  /// offering carry a custom package per paid tier. Returns null (and the
+  /// caller skips the package) for any cadence the paywall doesn't offer
+  /// (weekly, quarterly, lifetime, …).
+  BillingPeriod? _periodFrom(Package pkg) {
+    switch (pkg.packageType) {
+      case PackageType.monthly:
+        return BillingPeriod.monthly;
+      case PackageType.annual:
+        return BillingPeriod.annual;
+      default:
+        break;
+    }
+    switch (pkg.storeProduct.subscriptionPeriod) {
+      case 'P1M':
+        return BillingPeriod.monthly;
+      case 'P1Y':
+      case 'P12M':
+        return BillingPeriod.annual;
+      default:
+        return null;
+    }
+  }
 
   PlanTier _tierFromCustomerInfo(CustomerInfo info) {
     var best = PlanTier.free;
