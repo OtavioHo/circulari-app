@@ -16,6 +16,20 @@ If you want to manage all packages with Melos:
 
 1. `dart run melos bootstrap`
 
+## Subscriptions (RevenueCat)
+
+RevenueCat public SDK keys are injected at build time. Copy the template and
+fill in the keys from RevenueCat → Project → API keys:
+
+```bash
+cp dart_defines.example.json dart_defines.json
+flutter run --dart-define-from-file=dart_defines.json
+```
+
+`dart_defines.json` is gitignored. See
+[docs/subscriptions-testing-android.md](docs/subscriptions-testing-android.md)
+for the full end-to-end testing guide on Android.
+
 ## Notes
 
 - The app consumes `circulari_ui` via a local path dependency in `pubspec.yaml`.

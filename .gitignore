@@ -46,3 +46,6 @@ app.*.map.json
 
 # Flutter Demon user preferences (not tracked)
 .fdemon/settings.local.toml
+
+# Build-time secrets — real RevenueCat keys. Copy dart_defines.example.json.
+dart_defines.json
