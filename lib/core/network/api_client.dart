@@ -19,7 +19,13 @@ Dio createApiClient(
 ) {
   _assertSecureBaseUrl(_baseUrl);
 
-  final refreshDio = Dio(BaseOptions(baseUrl: _baseUrl));
+  final refreshDio = Dio(
+    BaseOptions(
+      baseUrl: _baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
   _applyTransportSecurity(refreshDio);
 
   final dio = Dio(

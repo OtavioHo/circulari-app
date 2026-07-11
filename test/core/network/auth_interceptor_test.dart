@@ -17,17 +17,19 @@ void main() {
   late FakeHttpClientAdapter refreshAdapter;
   late Dio dio;
   late Dio refreshDio;
+  late AuthStateNotifier authNotifier;
 
   setUp(() {
     tokenStorage = MockTokenStorage();
     mainAdapter = FakeHttpClientAdapter();
     refreshAdapter = FakeHttpClientAdapter();
+    authNotifier = AuthStateNotifier(true);
     dio = Dio(BaseOptions(baseUrl: 'https://api.test'))
       ..httpClientAdapter = mainAdapter;
     refreshDio = Dio(BaseOptions(baseUrl: 'https://api.test'))
       ..httpClientAdapter = refreshAdapter;
     dio.interceptors
-        .add(AuthInterceptor(tokenStorage, refreshDio, AuthStateNotifier(true)));
+        .add(AuthInterceptor(tokenStorage, refreshDio, authNotifier));
 
     // Default storage stubs.
     when(() => tokenStorage.getAccessToken())
@@ -170,6 +172,33 @@ void main() {
           accessToken: 'new-access',
           refreshToken: 'new-refresh',
         )).called(1);
+  });
+
+  test('on refresh 5xx: keeps the session (transient failure, not a rejection)',
+      () async {
+    mainAdapter.respond(statusCode: 401);
+    refreshAdapter.respond(statusCode: 500, body: {'message': 'server down'});
+
+    await expectLater(
+      () => dio.get('/anything'),
+      throwsA(isA<DioException>()),
+    );
+    // The refresh token is still valid — do not clear it or log out.
+    verifyNever(() => tokenStorage.clearTokens());
+    expect(authNotifier.isAuthenticated, isTrue);
+  });
+
+  test('on refresh 403: clears tokens and logs out (genuine rejection)',
+      () async {
+    mainAdapter.respond(statusCode: 401);
+    refreshAdapter.respond(statusCode: 403, body: {'message': 'Access denied'});
+
+    await expectLater(
+      () => dio.get('/anything'),
+      throwsA(isA<DioException>()),
+    );
+    verify(() => tokenStorage.clearTokens()).called(1);
+    expect(authNotifier.isAuthenticated, isFalse);
   });
 
   test('non-401 errors pass through untouched', () async {

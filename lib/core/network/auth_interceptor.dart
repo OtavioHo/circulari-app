@@ -100,10 +100,16 @@ class AuthInterceptor extends Interceptor {
     } catch (e) {
       _refreshCompleter = null;
       completer.completeError(e);
-      await _tokenStorage.clearTokens();
-      _authStateNotifier.setAuthenticated(false);
-      _authStateNotifier.setUserName(null);
-      _authStateNotifier.setUserEmail(null);
+      // Only end the session when the refresh token was genuinely rejected
+      // (401/403). Transient failures — network blip, timeout, DNS, server 5xx —
+      // leave a still-valid refresh token intact, so we surface the error but
+      // keep the user logged in; the next request retries the refresh.
+      if (_isAuthRejection(e)) {
+        await _tokenStorage.clearTokens();
+        _authStateNotifier.setAuthenticated(false);
+        _authStateNotifier.setUserName(null);
+        _authStateNotifier.setUserEmail(null);
+      }
       return handler.reject(_unauthorizedError(err.requestOptions));
     }
   }
@@ -114,6 +120,18 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     return _refreshDio.fetch(options);
+  }
+
+  /// True when the refresh failed because the token itself is invalid — a 401/403
+  /// from `/auth/refresh`, or a locally-detected missing/malformed refresh token.
+  /// Transport-level failures (connection/timeout) and 5xx are NOT rejections.
+  bool _isAuthRejection(Object error) {
+    if (error is UnauthorizedException) return true;
+    if (error is DioException) {
+      final status = error.response?.statusCode;
+      return status == 401 || status == 403;
+    }
+    return false;
   }
 
   DioException _unauthorizedError(RequestOptions options) => DioException(
