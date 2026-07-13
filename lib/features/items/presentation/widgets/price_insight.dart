@@ -37,8 +37,9 @@ class _PriceInsightState extends State<PriceInsight> {
       };
 
   // The model's price_evidence URLs are fabricated and usually 404. Instead of
-  // opening them, open a Mercado Livre SEARCH for the comp's title — that
-  // reliably resolves and lands on real, comparable listings.
+  // opening them, open a SEARCH for the comp's title on the same marketplace the
+  // comp came from (read from the source url's host) — those reliably resolve and
+  // land on real, comparable listings. Unknown hosts fall back to Mercado Livre.
   static const _ptAccents = {
     'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
     'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
@@ -48,18 +49,31 @@ class _PriceInsightState extends State<PriceInsight> {
     'ç': 'c', 'ñ': 'n',
   };
 
-  Uri _searchUri(String title) {
+  String _slug(String title) {
     var s = title.toLowerCase();
     _ptAccents.forEach((k, v) => s = s.replaceAll(k, v));
-    final slug = s
+    return s
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'^-+|-+$'), '');
-    return Uri.parse('https://lista.mercadolivre.com.br/$slug');
   }
 
-  Future<void> _openSearch(String title) async {
+  Uri _searchUri(PriceComp comp) {
+    final host = Uri.tryParse(comp.url)?.host.toLowerCase() ?? '';
+    if (host.contains('olx')) {
+      return Uri.parse(
+        'https://www.olx.com.br/brasil?q=${Uri.encodeQueryComponent(comp.title)}',
+      );
+    }
+    if (host.contains('enjoei')) {
+      return Uri.parse('https://www.enjoei.com.br/busca/${_slug(comp.title)}');
+    }
+    // Mercado Livre and any other host (brand sites, unknown).
+    return Uri.parse('https://lista.mercadolivre.com.br/${_slug(comp.title)}');
+  }
+
+  Future<void> _openSearch(PriceComp comp) async {
     final ok = await launchUrl(
-      _searchUri(title),
+      _searchUri(comp),
       mode: LaunchMode.externalApplication,
     );
     if (!ok && mounted) {
@@ -129,7 +143,7 @@ class _PriceInsightState extends State<PriceInsight> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => _openSearch(c.title),
+                  onTap: () => _openSearch(c),
                   child: Row(
                     children: [
                       Expanded(
@@ -161,7 +175,7 @@ class _PriceInsightState extends State<PriceInsight> {
               ),
             const SizedBox(height: 6),
             Text(
-              'Toque para buscar itens similares no Mercado Livre.',
+              'Toque para buscar itens similares no marketplace.',
               style: typography.body.xSmall.regular.copyWith(
                 color: CirculariColorsTokens.greyscale500,
               ),
