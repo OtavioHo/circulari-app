@@ -36,14 +36,35 @@ class _PriceInsightState extends State<PriceInsight> {
         ),
       };
 
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.tryParse(url);
-    final ok =
-        uri != null &&
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+  // The model's price_evidence URLs are fabricated and usually 404. Instead of
+  // opening them, open a Mercado Livre SEARCH for the comp's title — that
+  // reliably resolves and lands on real, comparable listings.
+  static const _ptAccents = {
+    'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
+    'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+    'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+    'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+    'ç': 'c', 'ñ': 'n',
+  };
+
+  Uri _searchUri(String title) {
+    var s = title.toLowerCase();
+    _ptAccents.forEach((k, v) => s = s.replaceAll(k, v));
+    final slug = s
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return Uri.parse('https://lista.mercadolivre.com.br/$slug');
+  }
+
+  Future<void> _openSearch(String title) async {
+    final ok = await launchUrl(
+      _searchUri(title),
+      mode: LaunchMode.externalApplication,
+    );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o link.')),
+        const SnackBar(content: Text('Não foi possível abrir a busca.')),
       );
     }
   }
@@ -108,7 +129,7 @@ class _PriceInsightState extends State<PriceInsight> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => _openUrl(c.url),
+                  onTap: () => _openSearch(c.title),
                   child: Row(
                     children: [
                       Expanded(
@@ -130,7 +151,7 @@ class _PriceInsightState extends State<PriceInsight> {
                       ),
                       const SizedBox(width: 4),
                       const Icon(
-                        Icons.north_east,
+                        Icons.search,
                         size: 14,
                         color: CirculariColorsTokens.greyscale500,
                       ),
@@ -140,7 +161,7 @@ class _PriceInsightState extends State<PriceInsight> {
               ),
             const SizedBox(height: 6),
             Text(
-              'Referências aproximadas; os links podem levar a buscas.',
+              'Toque para buscar itens similares no Mercado Livre.',
               style: typography.body.xSmall.regular.copyWith(
                 color: CirculariColorsTokens.greyscale500,
               ),
