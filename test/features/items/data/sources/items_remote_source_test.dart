@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/features/items/data/sources/items_remote_source.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 
 import '../../../../helpers/dio_helpers.dart';
 
@@ -147,6 +150,70 @@ void main() {
         () => source.deleteItem('x'),
         throwsA(isA<NotFoundException>()),
       );
+    });
+  });
+
+  group('analyzeImage', () {
+    late File tempImage;
+
+    setUp(() async {
+      tempImage = File(
+        '${Directory.systemTemp.path}/analyze_test_${DateTime.now().microsecondsSinceEpoch}.jpg',
+      );
+      await tempImage.writeAsBytes([0xFF, 0xD8, 0xFF]);
+    });
+
+    tearDown(() async {
+      if (tempImage.existsSync()) await tempImage.delete();
+    });
+
+    Map<String, dynamic> okAnalysisJson() => {
+          'name': 'Camisa',
+          'category': 'Roupas',
+          'category_id': 'cat-9',
+          'description': 'Camisa usada.',
+          'price_min': 40,
+          'price_max': 90,
+        };
+
+    test('parses price_confidence and price_evidence', () async {
+      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: {
+            ...okAnalysisJson(),
+            'price_confidence': 'high',
+            'price_evidence': [
+              {'title': 'Camisa usada', 'price': 55, 'url': 'https://olx.com.br/x'},
+              {'title': 'Sem url', 'price': 60}, // dropped: missing url
+            ],
+          },
+        ),
+      );
+
+      final result = await source.analyzeImage(tempImage.path);
+
+      expect(result.priceConfidence, PriceConfidence.high);
+      expect(result.priceEvidence, hasLength(1));
+      expect(result.priceEvidence.first.title, 'Camisa usada');
+      expect(result.priceEvidence.first.price, 55.0);
+      expect(result.priceEvidence.first.url, 'https://olx.com.br/x');
+    });
+
+    test('defaults to low confidence and empty evidence when fields are absent', () async {
+      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: okAnalysisJson(),
+        ),
+      );
+
+      final result = await source.analyzeImage(tempImage.path);
+
+      expect(result.priceConfidence, PriceConfidence.low);
+      expect(result.priceEvidence, isEmpty);
     });
   });
 }

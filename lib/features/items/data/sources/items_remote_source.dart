@@ -185,6 +185,8 @@ class ItemsRemoteSource {
         description: map['description'] as String,
         priceMin: (map['price_min'] as num).toDouble(),
         priceMax: (map['price_max'] as num).toDouble(),
+        priceConfidence: _parseConfidence(map['price_confidence']),
+        priceEvidence: _parseEvidence(map['price_evidence']),
       );
     } on DioException catch (e) {
       throw mapDioError(e);
@@ -196,5 +198,32 @@ class ItemsRemoteSource {
       throw const ServerException('Unexpected response format.');
     }
     return data;
+  }
+
+  PriceConfidence _parseConfidence(dynamic value) {
+    return switch (value) {
+      'high' => PriceConfidence.high,
+      'medium' => PriceConfidence.medium,
+      _ => PriceConfidence.low,
+    };
+  }
+
+  List<PriceComp> _parseEvidence(dynamic value) {
+    if (value is! List) return const [];
+    final comps = <PriceComp>[];
+    for (final entry in value) {
+      if (entry is! Map) continue;
+      final title = entry['title'];
+      final url = entry['url'];
+      final price = entry['price'];
+      if (title is String &&
+          title.isNotEmpty &&
+          url is String &&
+          url.isNotEmpty &&
+          price is num) {
+        comps.add(PriceComp(title: title, price: price.toDouble(), url: url));
+      }
+    }
+    return comps;
   }
 }
