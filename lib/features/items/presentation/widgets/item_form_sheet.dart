@@ -8,10 +8,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:circulari/core/di/injection.dart';
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 
 final _brlFormat = NumberFormat('#,##0.00', 'pt_BR');
 
@@ -100,6 +102,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
 
   String? _imagePath;
   String? _selectedCategoryId;
+  AiAnalysisResult? _analysis;
 
   @override
   void initState() {
@@ -210,9 +213,12 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
       if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
         _valueCtrl.text = _brlFormat.format(result.priceMin);
       }
-      if (result.categoryId != null) {
-        setState(() => _selectedCategoryId = result.categoryId);
-      }
+      setState(() {
+        _analysis = result;
+        if (result.categoryId != null) {
+          _selectedCategoryId = result.categoryId;
+        }
+      });
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -332,6 +338,10 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
                             ),
                           ],
                         ),
+                        if (_analysis != null) ...[
+                          const SizedBox(height: 12),
+                          PriceInsight(analysis: _analysis!),
+                        ],
                         const SizedBox(height: 24),
                         BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                           builder: (context, state) => CirculariButton(
@@ -505,3 +515,4 @@ class _ImagePickerArea extends StatelessWidget {
     );
   }
 }
+

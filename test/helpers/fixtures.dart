@@ -55,6 +55,10 @@ const tAiResult = AiAnalysisResult(
   categoryId: 'cat-1',
   priceMin: 12.0,
   priceMax: 30.0,
+  priceConfidence: PriceConfidence.high,
+  priceEvidence: [
+    PriceComp(title: 'Used copy', price: 15.0, url: 'https://olx.com.br/x'),
+  ],
 );
 
 const tListColor = ListColor(hexCode: '#FF0000', name: 'Red', order: 0);

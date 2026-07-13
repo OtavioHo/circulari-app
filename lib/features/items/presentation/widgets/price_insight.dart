@@ -1,0 +1,221 @@
+import 'package:circulari_ui/circulari_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+
+/// Shows the AI price-confidence badge and, when present, the comparable
+/// listings the estimate was anchored to (expandable, tappable). The listing
+/// links are best-effort (model-authored) — hence the disclaimer.
+class PriceInsight extends StatefulWidget {
+  final AiAnalysisResult analysis;
+  const PriceInsight({super.key, required this.analysis});
+
+  @override
+  State<PriceInsight> createState() => _PriceInsightState();
+}
+
+class _PriceInsightState extends State<PriceInsight> {
+  bool _expanded = false;
+  final _priceFmt = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ');
+
+  ({String label, Color color}) get _confidence =>
+      switch (widget.analysis.priceConfidence) {
+        PriceConfidence.high => (
+          label: 'Alta confiança',
+          color: CirculariColorsTokens.freshCore500,
+        ),
+        PriceConfidence.medium => (
+          label: 'Média confiança',
+          color: CirculariColorsTokens.solarPulse400,
+        ),
+        PriceConfidence.low => (
+          label: 'Baixa confiança',
+          color: CirculariColorsTokens.greyscale400,
+        ),
+      };
+
+  // The model's price_evidence URLs are fabricated and usually 404. Instead of
+  // opening them, open a SEARCH for the comp's title on the same marketplace the
+  // comp came from (read from the source url's host) — those reliably resolve and
+  // land on real, comparable listings. Unknown hosts fall back to Mercado Livre.
+  static const _ptAccents = {
+    'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
+    'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+    'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+    'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+    'ç': 'c', 'ñ': 'n',
+  };
+
+  String _slug(String title) {
+    var s = title.toLowerCase();
+    _ptAccents.forEach((k, v) => s = s.replaceAll(k, v));
+    return s
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+  }
+
+  Uri _searchUri(PriceComp comp) {
+    final host = Uri.tryParse(comp.url)?.host.toLowerCase() ?? '';
+    if (host.contains('olx')) {
+      return Uri.parse(
+        'https://www.olx.com.br/brasil?q=${Uri.encodeQueryComponent(comp.title)}',
+      );
+    }
+    if (host.contains('enjoei')) {
+      return Uri.parse('https://www.enjoei.com.br/busca/${_slug(comp.title)}');
+    }
+    // Mercado Livre and any other host (brand sites, unknown).
+    return Uri.parse('https://lista.mercadolivre.com.br/${_slug(comp.title)}');
+  }
+
+  Future<void> _openSearch(PriceComp comp) async {
+    final ok = await launchUrl(
+      _searchUri(comp),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir a busca.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+    final conf = _confidence;
+    final comps = widget.analysis.priceEvidence;
+    final hasComps = comps.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CirculariColorsTokens.greyscale200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _ConfidenceBadge(label: conf.label, color: conf.color),
+              const Spacer(),
+              if (hasComps)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _expanded = !_expanded),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Baseado em ${comps.length} '
+                        '${comps.length == 1 ? 'anúncio' : 'anúncios'}',
+                        style: typography.body.small.medium.copyWith(
+                          color: CirculariColorsTokens.greyscale600,
+                        ),
+                      ),
+                      Icon(
+                        _expanded ? Icons.expand_less : Icons.expand_more,
+                        size: 18,
+                        color: CirculariColorsTokens.greyscale500,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          if (!hasComps)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Estimativa sem anúncios de referência.',
+                style: typography.body.xSmall.regular.copyWith(
+                  color: CirculariColorsTokens.greyscale500,
+                ),
+              ),
+            ),
+          if (hasComps && _expanded) ...[
+            const SizedBox(height: 8),
+            for (final c in comps)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _openSearch(c),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          c.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: typography.body.small.regular.copyWith(
+                            color: CirculariColorsTokens.greyscale700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _priceFmt.format(c.price),
+                        style: typography.body.small.semibold.copyWith(
+                          color: CirculariColorsTokens.greyscale900,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.search,
+                        size: 14,
+                        color: CirculariColorsTokens.greyscale500,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 6),
+            Text(
+              'Toque para buscar itens similares no marketplace.',
+              style: typography.body.xSmall.regular.copyWith(
+                color: CirculariColorsTokens.greyscale500,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ConfidenceBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _ConfidenceBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: context.circulariTheme.typography.body.xSmall.semibold
+                .copyWith(color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
