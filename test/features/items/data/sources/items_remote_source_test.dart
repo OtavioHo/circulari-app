@@ -177,7 +177,8 @@ void main() {
         };
 
     test('parses price_confidence and price_evidence', () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: '/ai/analyze'),
           statusCode: 200,
@@ -202,7 +203,8 @@ void main() {
     });
 
     test('defaults to low confidence and empty evidence when fields are absent', () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: '/ai/analyze'),
           statusCode: 200,

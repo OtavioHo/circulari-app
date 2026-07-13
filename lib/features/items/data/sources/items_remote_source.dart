@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/core/models/paginated_result.dart';
@@ -176,9 +177,20 @@ class ItemsRemoteSource {
       final formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(imagePath),
       });
-      final response = await _dio.post('/ai/analyze', data: formData);
+      // Grounded analysis (vision + web search) legitimately takes 9-37s, and
+      // the backend's own worst case is ~65s (Gemini 45s + OpenAI fallback 20s).
+      // The global 10s receiveTimeout is far too short here, so override it for
+      // this one slow endpoint.
+      final response = await _dio.post(
+        '/ai/analyze',
+        data: formData,
+        options: Options(
+          receiveTimeout: const Duration(seconds: 90),
+          sendTimeout: const Duration(seconds: 30),
+        ),
+      );
       final map = _parseMap(response.data);
-      return AiAnalysisResult(
+      final result = AiAnalysisResult(
         name: map['name'] as String,
         category: map['category'] as String?,
         categoryId: map['category_id'] as String?,
@@ -188,8 +200,21 @@ class ItemsRemoteSource {
         priceConfidence: _parseConfidence(map['price_confidence']),
         priceEvidence: _parseEvidence(map['price_evidence']),
       );
+      debugPrint('[analyzeImage] OK confidence=${result.priceConfidence.name} '
+          'evidence=${result.priceEvidence.length}');
+      return result;
     } on DioException catch (e) {
+      debugPrint('[analyzeImage] DioException type=${e.type} '
+          'status=${e.response?.statusCode} message=${e.message}');
       throw mapDioError(e);
+    } on AppException {
+      rethrow; // already a domain error (e.g. bad-shape ServerException)
+    } catch (e) {
+      // Any other failure (e.g. an unexpected body shape causing a cast error)
+      // must become an AppException — otherwise the cubit, which only catches
+      // AppException, never emits Failure and the UI hangs on "loading".
+      debugPrint('[analyzeImage] unexpected error: $e');
+      throw ServerException('Failed to parse AI analysis.');
     }
   }
 

@@ -7,8 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
 import 'package:circulari/features/items/presentation/bloc/items_state.dart';
@@ -70,6 +72,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   bool _valueAiGenerated = false;
   bool _categoryAiGenerated = false;
   String? _aiPriceDescription;
+  AiAnalysisResult? _analysis;
 
   @override
   void initState() {
@@ -94,6 +97,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     if (state is AiAnalysisSuccess) {
       final result = state.result;
       setState(() {
+        _analysis = result;
         if (_nameCtrl.text.isEmpty) {
           _nameCtrl.text = result.name;
           _nameAiGenerated = true;
@@ -270,6 +274,10 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                   onChanged: (_) =>
                       setState(() => _valueAiGenerated = false),
                 ),
+                if (_analysis != null) ...[
+                  SizedBox(height: theme.spacing.small),
+                  PriceInsight(analysis: _analysis!),
+                ],
                 SizedBox(height: theme.spacing.large),
                 BlocBuilder<CategoriesCubit, CategoriesState>(
                   builder: (context, state) => switch (state) {
