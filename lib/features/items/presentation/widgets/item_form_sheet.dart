@@ -210,8 +210,8 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
       final result = state.result;
       if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.name;
       if (_descCtrl.text.isEmpty) _descCtrl.text = result.description;
-      if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
-        _valueCtrl.text = _brlFormat.format(result.priceMin);
+      if (_valueCtrl.text.isEmpty && result.suggestedPrice > 0) {
+        _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
       }
       setState(() {
         _analysis = result;

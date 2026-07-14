@@ -37,4 +37,10 @@ class AiAnalysisResult {
     this.priceConfidence = PriceConfidence.low,
     this.priceEvidence = const [],
   });
+
+  /// Central price to pre-fill: the midpoint of the (condition-aware) range,
+  /// rounded to whole reais — not the floor. The backend already reflects the
+  /// item's condition in price_min/price_max, so the midpoint is a sensible
+  /// default the user can still adjust.
+  double get suggestedPrice => ((priceMin + priceMax) / 2).roundToDouble();
 }
