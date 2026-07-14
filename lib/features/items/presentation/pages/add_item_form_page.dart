@@ -106,11 +106,12 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
           _descCtrl.text = result.description;
           _descAiGenerated = true;
         }
-        if (_valueCtrl.text.isEmpty && result.priceMin > 0) {
-          _valueCtrl.text = _brlFormat.format(result.priceMin);
+        if (_valueCtrl.text.isEmpty && result.suggestedPrice > 0) {
+          _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
           _valueAiGenerated = true;
           _aiPriceDescription =
-              'Preço estimado pela IA: R\$ ${_brlFormat.format(result.priceMin)}';
+              'Faixa de mercado: R\$ ${_brlFormat.format(result.priceMin)} – '
+              'R\$ ${_brlFormat.format(result.priceMax)}';
         }
         if (result.categoryId != null) {
           _selectedCategoryId = result.categoryId;
