@@ -16,7 +16,6 @@ import 'package:circulari/features/subscription/presentation/bloc/paywall_state.
 /// doesn't provide it. Price and the purchasable package come from the live
 /// offering ([PaywallBloc]); until the products are configured in RevenueCat the
 /// cards fall back to [_planCatalog]'s mock prices with their buttons disabled.
-/// The free tier is always a static, non-purchasable "keep free" action.
 class PlansPage extends StatefulWidget {
   const PlansPage({super.key});
 
@@ -147,10 +146,7 @@ class _PlansPageState extends State<PlansPage>
 
     VoidCallback? onPressed;
     var isLoading = false;
-    if (plan.tier == PlanTier.free) {
-      // Free isn't purchasable — the CTA just keeps the user on the free plan.
-      onPressed = busy ? null : () => context.pop();
-    } else if (option != null) {
+    if (option != null) {
       isLoading = busy && _purchasingId == option.packageId;
       onPressed = busy ? null : () => _purchase(option.packageId);
     }
