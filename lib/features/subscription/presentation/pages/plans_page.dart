@@ -625,20 +625,6 @@ class _PlanInfo {
 
 const _planCatalog = <_PlanInfo>[
   _PlanInfo(
-    tier: PlanTier.free,
-    name: 'Free',
-    subtitle: 'Com acesso a tudo limitado',
-    mockMonthlyPrice: r'R$0',
-    mockAnnualPrice: r'R$0',
-    features: [
-      'Até **50 itens**',
-      'Uso de IA para a criação de até **10 itens**',
-      'Permitido criar apenas uma lista',
-      'Procura de itens simplificada',
-    ],
-    ctaLabel: 'Contratar',
-  ),
-  _PlanInfo(
     tier: PlanTier.essencial,
     name: 'Essencial',
     subtitle: 'Para quem quer organizar mais',
