@@ -142,7 +142,10 @@ class _PlansPageState extends State<PlansPage>
 
   Widget _buildCard(PaywallState state, _PlanInfo plan, bool busy) {
     final option = _optionFor(state, plan.tier);
-    final price = option?.priceString ?? plan.mockPrice(_period);
+    // Prices come only from the live store offering — never hardcoded. While the
+    // offering loads the card shows a price skeleton; a loaded offering that
+    // doesn't sell this tier shows "Indisponível" with the CTA disabled.
+    final priceLoading = state is PaywallInitial || state is PaywallLoading;
 
     VoidCallback? onPressed;
     var isLoading = false;
@@ -150,12 +153,12 @@ class _PlansPageState extends State<PlansPage>
       isLoading = busy && _purchasingId == option.packageId;
       onPressed = busy ? null : () => _purchase(option.packageId);
     }
-    // Paid tier without a loaded option → button stays disabled (mock preview).
 
     return _PlanCard(
       plan: plan,
       period: _period,
-      price: price,
+      price: option?.priceString,
+      priceLoading: priceLoading,
       onPressed: onPressed,
       isLoading: isLoading,
     );
@@ -173,6 +176,14 @@ class _PlansPageState extends State<PlansPage>
           listenWhen: (previous, current) => current is PaywallReady,
           listener: _onPaywallState,
           builder: (context, state) {
+            if (state is PaywallFailure) {
+              return _PaywallError(
+                message: state.message,
+                onRetry: () => context
+                    .read<PaywallBloc>()
+                    .add(const PaywallLoadRequested()),
+              );
+            }
             final busy = state is PaywallReady && state.busy;
 
             return Column(
@@ -297,8 +308,13 @@ class _PlanCard extends StatelessWidget {
   final _PlanInfo plan;
   final BillingPeriod period;
 
-  /// Resolved display price (live price, or the mock fallback).
-  final String price;
+  /// Live store price for this tier+period, or null when the offering hasn't
+  /// loaded yet ([priceLoading] true → skeleton) or doesn't sell this tier
+  /// ([priceLoading] false → "Indisponível"). Never a hardcoded value.
+  final String? price;
+
+  /// True while the store offering is still loading → show a price skeleton.
+  final bool priceLoading;
 
   /// Null → the CTA is disabled (paid tier whose offering hasn't loaded yet).
   final VoidCallback? onPressed;
@@ -312,6 +328,7 @@ class _PlanCard extends StatelessWidget {
     required this.plan,
     required this.period,
     required this.price,
+    this.priceLoading = false,
     this.onPressed,
     this.isLoading = false,
     this.onHeight,
@@ -319,6 +336,54 @@ class _PlanCard extends StatelessWidget {
 
   static const _cardColor = Color(0xFF1E1E1E);
   static const _verticalPadding = 32.0;
+
+  /// Renders the price line from live store data only: the real price when
+  /// loaded, a skeleton while the offering loads, or "Indisponível" when the
+  /// offering loaded but doesn't sell this tier. No hardcoded prices.
+  Widget _buildPrice(BuildContext context, String suffix) {
+    final typography = context.circulariTheme.typography;
+    final suffixStyle = typography.body.large.bold.copyWith(
+      fontSize: 20,
+      height: 36 / 20,
+      letterSpacing: 0.7,
+      color: CirculariColorsTokens.greyscale50,
+    );
+
+    final value = price;
+    if (value != null) {
+      return Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: value,
+              style: typography.body.large.semibold.copyWith(
+                fontSize: 32,
+                height: 1.2,
+                letterSpacing: 0,
+                color: CirculariColorsTokens.greyscale50,
+              ),
+            ),
+            TextSpan(text: suffix, style: suffixStyle),
+          ],
+        ),
+      );
+    }
+
+    if (priceLoading) {
+      // Price skeleton while the store offering loads — never a placeholder number.
+      return Container(
+        width: 132,
+        height: 30,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      );
+    }
+
+    // Offering loaded but this tier isn't sold on this store.
+    return Text('Indisponível', style: suffixStyle);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,28 +421,13 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: price,
-                          style: typography.body.large.semibold.copyWith(
-                            fontSize: 32,
-                            height: 1.2,
-                            letterSpacing: 0,
-                            color: CirculariColorsTokens.greyscale50,
-                          ),
-                        ),
-                        TextSpan(
-                          text: suffix,
-                          style: typography.body.large.bold.copyWith(
-                            fontSize: 20,
-                            height: 36 / 20,
-                            letterSpacing: 0.7,
-                            color: CirculariColorsTokens.greyscale50,
-                          ),
-                        ),
-                      ],
+                  // Fixed-height slot so the card measures the same whether the
+                  // price is a real value, a loading skeleton, or "Indisponível".
+                  SizedBox(
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.bottomLeft,
+                      child: _buildPrice(context, suffix),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -490,7 +540,8 @@ class _CardMeasurements extends StatelessWidget {
               child: _PlanCard(
                 plan: plans[i],
                 period: period,
-                price: plans[i].mockPrice(period),
+                price: null,
+                priceLoading: true,
                 onHeight: (height) => onHeight(i, height),
               ),
             ),
@@ -575,7 +626,48 @@ class _PageIndicator extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Static plan catalog (app-owned copy + mock price fallback)
+// Error state (offering failed to load / store returned no plans)
+// ---------------------------------------------------------------------------
+
+class _PaywallError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _PaywallError({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: CirculariColorsTokens.greyscale400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: typography.body.medium.regular.copyWith(
+                color: CirculariColorsTokens.greyscale200,
+              ),
+            ),
+            const SizedBox(height: 24),
+            CirculariButton(label: 'Tentar novamente', onPressed: onRetry),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Static plan catalog (app-owned copy; prices come from the live store offering)
 // ---------------------------------------------------------------------------
 
 /// Splits [text] on `**` markers into alternating [base]/[bold] spans.
@@ -600,23 +692,13 @@ class _PlanInfo {
   final List<String> features;
   final String ctaLabel;
 
-  /// Prices shown until the live offering loads (or when it doesn't sell this
-  /// tier). The live [SubscriptionOption.priceString] overrides these.
-  final String mockMonthlyPrice;
-  final String mockAnnualPrice;
-
   const _PlanInfo({
     required this.tier,
     required this.name,
     required this.subtitle,
     required this.features,
     required this.ctaLabel,
-    required this.mockMonthlyPrice,
-    required this.mockAnnualPrice,
   });
-
-  String mockPrice(BillingPeriod period) =>
-      period == BillingPeriod.monthly ? mockMonthlyPrice : mockAnnualPrice;
 }
 
 const _planCatalog = <_PlanInfo>[
@@ -624,8 +706,6 @@ const _planCatalog = <_PlanInfo>[
     tier: PlanTier.essencial,
     name: 'Essencial',
     subtitle: 'Para quem quer organizar mais',
-    mockMonthlyPrice: r'R$14,90',
-    mockAnnualPrice: r'R$149,90',
     features: [
       'Até **500 itens**',
       'Uso de IA para a criação de até **100 itens**',
@@ -638,8 +718,6 @@ const _planCatalog = <_PlanInfo>[
     tier: PlanTier.pro,
     name: 'Pro',
     subtitle: 'Acesso total e ilimitado',
-    mockMonthlyPrice: r'R$29,90',
-    mockAnnualPrice: r'R$299,90',
     features: [
       '**Itens ilimitados**',
       '**IA ilimitada** para criação de itens',

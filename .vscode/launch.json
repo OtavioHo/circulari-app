@@ -4,23 +4,27 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-    
     {
       "name": "app",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      // RevenueCat public SDK keys are compile-time (String.fromEnvironment).
+      // Without this the SDK gets no key and subscriptions are disabled.
+      "toolArgs": ["--dart-define-from-file=${workspaceFolder}/dart_defines.json"]
     },
     {
       "name": "app (profile mode)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "profile"
+      "flutterMode": "profile",
+      "toolArgs": ["--dart-define-from-file=${workspaceFolder}/dart_defines.json"]
     },
     {
       "name": "app (release mode)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "release"
+      "flutterMode": "release",
+      "toolArgs": ["--dart-define-from-file=${workspaceFolder}/dart_defines.json"]
     },
     {
       "name": "widgetbook",

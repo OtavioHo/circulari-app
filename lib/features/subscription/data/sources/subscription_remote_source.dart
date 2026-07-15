@@ -22,21 +22,42 @@ class SubscriptionRemoteSource {
     try {
       final offerings = await _purchases.getOfferings();
       final offering = offerings?.current;
-      if (offering == null) return const [];
+      if (offering == null) {
+        // Nothing to sell → paywall goes to its error state. Almost always a
+        // RevenueCat/store config issue, so log enough to diagnose it.
+        debugPrint('[Paywall] No current offering from RevenueCat '
+            '(${offerings == null ? 'getOfferings returned null — SDK not '
+                'configured, or no store key for this platform' : 'offerings '
+                'present but "current" is null — set a Current offering in the '
+                'RevenueCat dashboard and attach this platform\'s packages'}).');
+        return const [];
+      }
+
+      debugPrint('[Paywall] Offering "${offering.identifier}" → '
+          '${offering.availablePackages.length} package(s): '
+          '${offering.availablePackages.map((p) => '${p.identifier}'
+              '|${p.storeProduct.identifier}|"${p.storeProduct.priceString}"').join(', ')}');
 
       _packages.clear();
       final options = <SubscriptionOption>[];
       for (final pkg in offering.availablePackages) {
         final tier = planTierFromIdentifier(pkg.storeProduct.identifier) ??
             planTierFromIdentifier(pkg.identifier);
-        if (tier == null || !tier.isPaid) continue;
+        if (tier == null || !tier.isPaid) {
+          // Prime suspect for the "wrong/missing price" bug: on Android the
+          // product/base-plan id may not contain "pro"/"essencial", so the tier
+          // fails to resolve and the package is dropped. Log it loudly.
+          debugPrint('[Paywall] Skipping package "${pkg.identifier}" '
+              '(${pkg.storeProduct.identifier}) — could not map to a paid tier. '
+              'The product or base-plan id must contain "pro" or "essencial".');
+          continue;
+        }
         final period = _periodFrom(pkg);
         if (period == null) {
           // A paid tier whose cadence we can't resolve would silently vanish
           // from the paywall — log it rather than dropping it without a trace.
-          debugPrint('SubscriptionRemoteSource: skipping package '
-              '"${pkg.identifier}" (${pkg.storeProduct.identifier}) — '
-              'unsupported subscriptionPeriod '
+          debugPrint('[Paywall] Skipping package "${pkg.identifier}" '
+              '(${pkg.storeProduct.identifier}) — unsupported subscriptionPeriod '
               '"${pkg.storeProduct.subscriptionPeriod}".');
           continue;
         }
@@ -55,8 +76,14 @@ class SubscriptionRemoteSource {
         final byTier = a.tier.rank.compareTo(b.tier.rank);
         return byTier != 0 ? byTier : a.period.index.compareTo(b.period.index);
       });
+      if (options.isEmpty) {
+        debugPrint('[Paywall] Offering "${offering.identifier}" produced 0 '
+            'purchasable options after mapping — paywall will show the error '
+            'state. See the skip logs above for why each package was dropped.');
+      }
       return options;
     } on PlatformException catch (e) {
+      debugPrint('[Paywall] getOfferings threw: code=${e.code} message=${e.message}');
       throw _map(e);
     }
   }

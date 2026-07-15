@@ -6,13 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 flutter pub get           # Install dependencies
-flutter run               # Run on connected device (use -d web, -d ios, -d android to target a platform)
+flutter run  --dart-define-from-file=dart_defines.json   # Run on a device (add -d web|ios|android to target a platform)
 flutter test              # Run all tests
 flutter test test/widget_test.dart  # Run a single test file
 flutter analyze           # Run Dart static analysis
 dart fix --apply          # Auto-fix lint issues
-flutter build apk         # Build Android APK (or ios, web, macos, windows, linux)
+flutter build appbundle --release --dart-define-from-file=dart_defines.json   # Android release build for Play
 ```
+
+> **Always pass `--dart-define-from-file=dart_defines.json` when running or
+> building.** RevenueCat public SDK keys are compile-time
+> (`String.fromEnvironment`); omitting the flag ships a build with no keys, which
+> silently disables subscriptions (empty offerings → no store prices).
 
 ## Architecture
 

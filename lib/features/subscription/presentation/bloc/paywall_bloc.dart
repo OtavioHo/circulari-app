@@ -36,11 +36,16 @@ class PaywallBloc extends Bloc<PaywallEvent, PaywallState> {
     try {
       final options = await _getOfferings();
       if (options.isEmpty) {
+        debugPrint('[Paywall] Load failed: no purchasable plans returned from '
+            'the store. Paywall shows the error state. See [Paywall] logs from '
+            'SubscriptionRemoteSource above for the root cause.');
         emit(const PaywallFailure('Nenhum plano disponível no momento.'));
         return;
       }
+      debugPrint('[Paywall] Loaded ${options.length} plan option(s).');
       emit(PaywallReady(options));
     } on AppException catch (e) {
+      debugPrint('[Paywall] Load failed with exception: ${e.message}');
       emit(PaywallFailure(e.message));
     }
   }

@@ -25,7 +25,10 @@ class PurchasesService {
       return;
     }
     try {
-      await Purchases.setLogLevel(LogLevel.warn);
+      // In debug builds, surface RevenueCat's own diagnostics (offering/product
+      // config errors, store fetch failures) — the fastest way to see why plans
+      // don't load. Production stays quiet at warn.
+      await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.warn);
       await Purchases.configure(PurchasesConfiguration(apiKey));
       _configured = true;
     } catch (e) {
