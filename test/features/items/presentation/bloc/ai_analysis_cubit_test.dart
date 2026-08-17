@@ -94,7 +94,7 @@ void main() {
         ).thenAnswer((i) async => answerOrThrow(i));
 
     blocTest<AiAnalysisCubit, AiAnalysisState>(
-      'emits [Refining(previous), Success(result, previous)] and forwards the hint',
+      'emits [Refining(previous), RefineSuccess] and forwards the hint',
       build: buildCubit,
       setUp: () {
         stubAnalyzeOk();
@@ -107,7 +107,7 @@ void main() {
       skip: 2, // Loading + initial Success
       expect: () => [
         isA<AiAnalysisRefining>().having((s) => s.previous, 'previous', tAiResult),
-        isA<AiAnalysisSuccess>()
+        isA<AiAnalysisRefineSuccess>()
             .having((s) => s.result, 'result', tRefined)
             .having((s) => s.previous, 'previous', tAiResult),
       ],
@@ -128,7 +128,37 @@ void main() {
     );
 
     blocTest<AiAnalysisCubit, AiAnalysisState>(
-      'keeps the previous result on failure via RefineFailure',
+      'ignores a second refine while one is in flight (double chip tap)',
+      build: buildCubit,
+      setUp: () {
+        stubAnalyzeOk();
+        stubRefine((_) => Future<AiAnalysisResult>.delayed(
+              const Duration(milliseconds: 50),
+              () => tRefined,
+            ));
+      },
+      act: (c) async {
+        await c.analyze('/tmp/x.jpg');
+        final first = c.refine('é um iPhone 15');
+        await c.refine('é um iPhone 13'); // ignored: already refining
+        await first;
+      },
+      skip: 2,
+      expect: () => [
+        isA<AiAnalysisRefining>(),
+        isA<AiAnalysisRefineSuccess>(),
+      ],
+      verify: (_) => verify(
+        () => analyze(
+          any(),
+          hint: any(named: 'hint', that: isNotNull),
+          parentAnalysisId: any(named: 'parentAnalysisId'),
+        ),
+      ).called(1),
+    );
+
+    blocTest<AiAnalysisCubit, AiAnalysisState>(
+      'keeps the previous result and surfaces e.message on failure',
       build: buildCubit,
       setUp: () {
         stubAnalyzeOk();
@@ -143,11 +173,7 @@ void main() {
         isA<AiAnalysisRefining>(),
         isA<AiAnalysisRefineFailure>()
             .having((s) => s.previous, 'previous', tAiResult)
-            .having(
-              (s) => s.message,
-              'message',
-              'Não foi possível reanalisar. Tente novamente.',
-            ),
+            .having((s) => s.message, 'message', 'boom'),
       ],
     );
 
@@ -188,14 +214,13 @@ void main() {
       expect: () => [
         isA<AiAnalysisRefining>(),
         isA<AiAnalysisQuotaExceeded>(),
-        isA<AiAnalysisSuccess>()
-            .having((s) => s.result, 'result', tAiResult)
-            .having((s) => s.previous, 'previous', isNull),
+        // Restored, not Success: the form must not re-fill from it.
+        isA<AiAnalysisRestored>().having((s) => s.result, 'result', tAiResult),
       ],
     );
 
     blocTest<AiAnalysisCubit, AiAnalysisState>(
-      'undo restores the pre-refine analysis',
+      'undo restores the pre-refine analysis as Restored',
       build: buildCubit,
       setUp: () {
         stubAnalyzeOk();
@@ -206,11 +231,9 @@ void main() {
         await c.refine('é um iPhone 15');
         c.undo();
       },
-      skip: 4, // Loading, Success, Refining, Success(refined)
+      skip: 4, // Loading, Success, Refining, RefineSuccess
       expect: () => [
-        isA<AiAnalysisSuccess>()
-            .having((s) => s.result, 'result', tAiResult)
-            .having((s) => s.previous, 'previous', isNull),
+        isA<AiAnalysisRestored>().having((s) => s.result, 'result', tAiResult),
       ],
     );
 

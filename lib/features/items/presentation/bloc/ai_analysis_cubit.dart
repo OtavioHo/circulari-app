@@ -16,14 +16,10 @@ final class AiAnalysisLoading extends AiAnalysisState {
   const AiAnalysisLoading();
 }
 
+/// Initial analysis result — the form fills its still-empty fields from it.
 final class AiAnalysisSuccess extends AiAnalysisState {
   final AiAnalysisResult result;
-
-  /// Set only right after a successful refine — enables the "valor atualizado"
-  /// delta banner and Desfazer. Null on initial analyses and after undo.
-  final AiAnalysisResult? previous;
-
-  const AiAnalysisSuccess(this.result, {this.previous});
+  const AiAnalysisSuccess(this.result);
 }
 
 final class AiAnalysisFailure extends AiAnalysisState {
@@ -43,12 +39,29 @@ final class AiAnalysisRefining extends AiAnalysisState {
   const AiAnalysisRefining(this.previous);
 }
 
+/// A correction landed — the form overwrites its AI-driven fields. Distinct
+/// from [AiAnalysisSuccess] so overwrite semantics are compiler-checked
+/// instead of hiding behind a nullable `previous`.
+final class AiAnalysisRefineSuccess extends AiAnalysisState {
+  final AiAnalysisResult result;
+  final AiAnalysisResult previous;
+  const AiAnalysisRefineSuccess(this.result, {required this.previous});
+}
+
 /// A refine failed — the previous result stays current so the UI loses
 /// nothing; the message goes to a snackbar.
 final class AiAnalysisRefineFailure extends AiAnalysisState {
   final AiAnalysisResult previous;
   final String message;
   const AiAnalysisRefineFailure(this.previous, this.message);
+}
+
+/// The displayed analysis rolled back (undo) or was restored after a blocked
+/// refine. The form must NOT re-fill anything from it — its fields were either
+/// just restored from the undo snapshot or never changed.
+final class AiAnalysisRestored extends AiAnalysisState {
+  final AiAnalysisResult result;
+  const AiAnalysisRestored(this.result);
 }
 
 class AiAnalysisCubit extends Cubit<AiAnalysisState> {
@@ -82,8 +95,10 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
 
   /// Re-runs the analysis with a user correction ("é um iPhone 15 de 256GB"),
   /// riding the current analysis's free retry when available. No-op without a
-  /// prior successful analysis.
+  /// prior successful analysis or while another refine is in flight (a double
+  /// chip tap must not fire two paid requests).
   Future<void> refine(String hint) async {
+    if (state is AiAnalysisRefining) return;
     final previous = _current;
     final imagePath = _imagePath;
     if (previous == null || imagePath == null) return;
@@ -97,25 +112,22 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
       );
       _previous = previous;
       _current = result;
-      emit(AiAnalysisSuccess(result, previous: previous));
+      emit(AiAnalysisRefineSuccess(result, previous: previous));
     } on PlanLimitException {
       // Paywall via the QuotaExceeded listener, then restore the previous
-      // result so the correction UI stays usable.
+      // result without touching the form.
       emit(const AiAnalysisQuotaExceeded());
-      emit(AiAnalysisSuccess(previous));
+      emit(AiAnalysisRestored(previous));
     } on TierRequiredException {
       emit(const AiAnalysisQuotaExceeded());
-      emit(AiAnalysisSuccess(previous));
+      emit(AiAnalysisRestored(previous));
     } on RateLimitException {
       emit(AiAnalysisRefineFailure(
         previous,
         'Muitas análises seguidas. Aguarde um instante.',
       ));
-    } on AppException {
-      emit(AiAnalysisRefineFailure(
-        previous,
-        'Não foi possível reanalisar. Tente novamente.',
-      ));
+    } on AppException catch (e) {
+      emit(AiAnalysisRefineFailure(previous, e.message));
     }
   }
 
@@ -126,6 +138,6 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
     if (previous == null) return;
     _previous = null;
     _current = previous;
-    emit(AiAnalysisSuccess(previous));
+    emit(AiAnalysisRestored(previous));
   }
 }

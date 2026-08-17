@@ -100,7 +100,14 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   bool _categoryAiGenerated = false;
   String? _aiPriceDescription;
   AiAnalysisResult? _analysis;
-  _FormSnapshot? _preRefineSnapshot;
+
+  // Snapshot lifecycle mirrors the cubit's undo target: _pendingSnapshot is
+  // captured when a refine starts and only promoted to _undoSnapshot when that
+  // refine SUCCEEDS — a failed second refine must not clobber the undo of the
+  // first one.
+  _FormSnapshot? _pendingSnapshot;
+  _FormSnapshot? _undoSnapshot;
+  double? _undoFromPrice;
   bool _conflictDismissed = false;
 
   @override
@@ -124,8 +131,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
 
   void _onAnalysisState(BuildContext context, AiAnalysisState state) {
     if (state is AiAnalysisRefining) {
-      // Snapshot the exact pre-correction form so Desfazer can restore it.
-      _preRefineSnapshot = _FormSnapshot(
+      // Snapshot the exact pre-correction form; promoted to the undo slot only
+      // if the refine succeeds.
+      _pendingSnapshot = _FormSnapshot(
         name: _nameCtrl.text,
         description: _descCtrl.text,
         value: _valueCtrl.text,
@@ -137,51 +145,19 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         aiPriceDescription: _aiPriceDescription,
       );
       setState(() => _conflictDismissed = false);
-    } else if (state is AiAnalysisSuccess && state.previous != null) {
-      // Correction result: overwrite ALL AI-driven fields — a hand-edited
-      // price under the old identity is exactly the stale data being fixed.
-      // Desfazer restores the snapshot verbatim.
-      final result = state.result;
-      setState(() {
-        _analysis = result;
-        _nameCtrl.text = result.name;
-        _nameAiGenerated = true;
-        _descCtrl.text = result.description;
-        _descAiGenerated = true;
-        if (result.suggestedPrice > 0) {
-          _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
-          _valueAiGenerated = true;
-          _aiPriceDescription =
-              'Faixa de mercado: R\$ ${_brlFormat.format(result.priceMin)} – '
-              'R\$ ${_brlFormat.format(result.priceMax)}';
-        }
-        _selectedCategoryId = result.categoryId;
-        _categoryAiGenerated = result.categoryId != null;
-      });
+    } else if (state is AiAnalysisRefineSuccess) {
+      _undoSnapshot = _pendingSnapshot;
+      _pendingSnapshot = null;
+      _undoFromPrice = state.previous.suggestedPrice;
+      setState(() => _applyAnalysis(state.result, overwrite: true));
     } else if (state is AiAnalysisSuccess) {
-      final result = state.result;
-      setState(() {
-        _analysis = result;
-        if (_nameCtrl.text.isEmpty) {
-          _nameCtrl.text = result.name;
-          _nameAiGenerated = true;
-        }
-        if (_descCtrl.text.isEmpty) {
-          _descCtrl.text = result.description;
-          _descAiGenerated = true;
-        }
-        if (_valueCtrl.text.isEmpty && result.suggestedPrice > 0) {
-          _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
-          _valueAiGenerated = true;
-          _aiPriceDescription =
-              'Faixa de mercado: R\$ ${_brlFormat.format(result.priceMin)} – '
-              'R\$ ${_brlFormat.format(result.priceMax)}';
-        }
-        if (result.categoryId != null) {
-          _selectedCategoryId = result.categoryId;
-          _categoryAiGenerated = true;
-        }
-      });
+      setState(() => _applyAnalysis(state.result, overwrite: false));
+    } else if (state is AiAnalysisRestored) {
+      // Undo (form already restored from the snapshot) or a blocked refine
+      // (form never changed) — only the displayed analysis rolls back; the
+      // form must not be re-filled.
+      _pendingSnapshot = null;
+      setState(() => _analysis = state.result);
     } else if (state is AiAnalysisQuotaExceeded) {
       PaywallBottomSheet.show(
         context,
@@ -189,6 +165,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         onUpgrade: () => context.push('/paywall'),
       );
     } else if (state is AiAnalysisRefineFailure) {
+      _pendingSnapshot = null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(state.message)),
       );
@@ -199,14 +176,54 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     }
   }
 
+  /// Applies an analysis to the form. [overwrite] replaces AI-driven fields
+  /// (a correction result); otherwise only still-empty fields are filled (the
+  /// initial analysis). Must run inside setState.
+  void _applyAnalysis(AiAnalysisResult result, {required bool overwrite}) {
+    _analysis = result;
+    if (overwrite || _nameCtrl.text.isEmpty) {
+      _nameCtrl.text = result.name;
+      _nameAiGenerated = true;
+    }
+    if (overwrite || _descCtrl.text.isEmpty) {
+      _descCtrl.text = result.description;
+      _descAiGenerated = true;
+    }
+    if (result.suggestedPrice > 0) {
+      if (overwrite || _valueCtrl.text.isEmpty) {
+        _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
+        _valueAiGenerated = true;
+        _aiPriceDescription =
+            'Faixa de mercado: R\$ ${_brlFormat.format(result.priceMin)} – '
+            'R\$ ${_brlFormat.format(result.priceMax)}';
+      }
+    } else if (overwrite) {
+      // The corrected identity couldn't be priced — clearing beats keeping the
+      // previous identity's price labeled as AI-generated for this one.
+      _valueCtrl.text = '';
+      _valueAiGenerated = false;
+      _aiPriceDescription = null;
+    }
+    // Null keeps the current (possibly manual) category — a correction result
+    // without a category is no reason to uncategorize the item.
+    if (result.categoryId != null) {
+      _selectedCategoryId = result.categoryId;
+      _categoryAiGenerated = true;
+    }
+  }
+
   void _refine(String hint) {
+    // The hint sheet awaits a modal route; the page may have been removed
+    // underneath it (session-expiry redirect) by the time this runs.
+    if (!mounted) return;
     context.read<AiAnalysisCubit>().refine(hint);
   }
 
   void _undo() {
-    final snapshot = _preRefineSnapshot;
+    final snapshot = _undoSnapshot;
     if (snapshot == null) return;
-    _preRefineSnapshot = null;
+    _undoSnapshot = null;
+    _undoFromPrice = null;
     setState(() {
       _nameCtrl.text = snapshot.name;
       _descCtrl.text = snapshot.description;
@@ -398,18 +415,26 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 ],
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                   builder: (context, aiState) {
+                    // Exhaustive over the sealed hierarchy: adding a state is a
+                    // compile error here, not a silently vanished bar.
                     final analysis = switch (aiState) {
                       AiAnalysisSuccess(:final result) => result,
+                      AiAnalysisRefineSuccess(:final result) => result,
+                      AiAnalysisRestored(:final result) => result,
                       AiAnalysisRefining(:final previous) => previous,
                       AiAnalysisRefineFailure(:final previous) => previous,
-                      _ => null,
+                      AiAnalysisInitial() => null,
+                      AiAnalysisLoading() => null,
+                      AiAnalysisFailure() => null,
+                      AiAnalysisQuotaExceeded() => null,
                     };
                     if (analysis == null) return const SizedBox.shrink();
-                    final refinedFrom = aiState is AiAnalysisSuccess
-                        ? aiState.previous
-                        : null;
-                    final showConflict =
-                        refinedFrom != null &&
+                    final isRefining = aiState is AiAnalysisRefining;
+                    // Undo of the last successful refine stays reachable even
+                    // after a later refine fails (RefineFailure keeps showing
+                    // the banner).
+                    final canUndo = _undoSnapshot != null && !isRefining;
+                    final showConflict = canUndo &&
                         analysis.conflictsWithImage &&
                         !_conflictDismissed;
                     return Column(
@@ -424,16 +449,16 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                                 setState(() => _conflictDismissed = true),
                             onUndo: _undo,
                           )
-                        else if (refinedFrom != null)
+                        else if (canUndo)
                           _DeltaBanner(
-                            from: refinedFrom.suggestedPrice,
+                            from: _undoFromPrice ?? analysis.suggestedPrice,
                             to: analysis.suggestedPrice,
                             onUndo: _undo,
                           ),
                         SizedBox(height: theme.spacing.medium),
                         AiCorrectionBar(
                           analysis: analysis,
-                          isRefining: aiState is AiAnalysisRefining,
+                          isRefining: isRefining,
                           onCorrect: _refine,
                         ),
                       ],
@@ -523,7 +548,9 @@ class _DeltaBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.circulariTheme;
-    final text = from != to
+    // to == 0 means the corrected identity couldn't be priced (the form's
+    // value field was cleared) — a "→ R$ 0,00" delta would be misleading.
+    final text = from != to && to > 0
         ? 'Valor atualizado: R\$ ${_brlFormat.format(from)} → '
               'R\$ ${_brlFormat.format(to)}'
         : 'Análise atualizada.';
