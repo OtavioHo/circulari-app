@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/widgets/ai_correction_bar.dart';
 import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
@@ -44,6 +45,32 @@ class _BrlInputFormatter extends TextInputFormatter {
   }
 }
 
+/// Verbatim copy of every AI-driven form value, taken right before a refine so
+/// Desfazer can restore the exact pre-correction state.
+class _FormSnapshot {
+  final String name;
+  final String description;
+  final String value;
+  final String? categoryId;
+  final bool nameAi;
+  final bool descAi;
+  final bool valueAi;
+  final bool categoryAi;
+  final String? aiPriceDescription;
+
+  const _FormSnapshot({
+    required this.name,
+    required this.description,
+    required this.value,
+    required this.categoryId,
+    required this.nameAi,
+    required this.descAi,
+    required this.valueAi,
+    required this.categoryAi,
+    required this.aiPriceDescription,
+  });
+}
+
 class AddItemFormPage extends StatefulWidget {
   final String imagePath;
   final String listId;
@@ -73,6 +100,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   bool _categoryAiGenerated = false;
   String? _aiPriceDescription;
   AiAnalysisResult? _analysis;
+  _FormSnapshot? _preRefineSnapshot;
+  bool _conflictDismissed = false;
 
   @override
   void initState() {
@@ -94,7 +123,42 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
   }
 
   void _onAnalysisState(BuildContext context, AiAnalysisState state) {
-    if (state is AiAnalysisSuccess) {
+    if (state is AiAnalysisRefining) {
+      // Snapshot the exact pre-correction form so Desfazer can restore it.
+      _preRefineSnapshot = _FormSnapshot(
+        name: _nameCtrl.text,
+        description: _descCtrl.text,
+        value: _valueCtrl.text,
+        categoryId: _selectedCategoryId,
+        nameAi: _nameAiGenerated,
+        descAi: _descAiGenerated,
+        valueAi: _valueAiGenerated,
+        categoryAi: _categoryAiGenerated,
+        aiPriceDescription: _aiPriceDescription,
+      );
+      setState(() => _conflictDismissed = false);
+    } else if (state is AiAnalysisSuccess && state.previous != null) {
+      // Correction result: overwrite ALL AI-driven fields — a hand-edited
+      // price under the old identity is exactly the stale data being fixed.
+      // Desfazer restores the snapshot verbatim.
+      final result = state.result;
+      setState(() {
+        _analysis = result;
+        _nameCtrl.text = result.name;
+        _nameAiGenerated = true;
+        _descCtrl.text = result.description;
+        _descAiGenerated = true;
+        if (result.suggestedPrice > 0) {
+          _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
+          _valueAiGenerated = true;
+          _aiPriceDescription =
+              'Faixa de mercado: R\$ ${_brlFormat.format(result.priceMin)} – '
+              'R\$ ${_brlFormat.format(result.priceMax)}';
+        }
+        _selectedCategoryId = result.categoryId;
+        _categoryAiGenerated = result.categoryId != null;
+      });
+    } else if (state is AiAnalysisSuccess) {
       final result = state.result;
       setState(() {
         _analysis = result;
@@ -124,11 +188,42 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         resourceName: 'análises de IA',
         onUpgrade: () => context.push('/paywall'),
       );
+    } else if (state is AiAnalysisRefineFailure) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(state.message)),
+      );
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível analisar a imagem: ${state.message}')),
       );
     }
+  }
+
+  void _refine(String hint) {
+    context.read<AiAnalysisCubit>().refine(hint);
+  }
+
+  void _undo() {
+    final snapshot = _preRefineSnapshot;
+    if (snapshot == null) return;
+    _preRefineSnapshot = null;
+    setState(() {
+      _nameCtrl.text = snapshot.name;
+      _descCtrl.text = snapshot.description;
+      _valueCtrl.text = snapshot.value;
+      _selectedCategoryId = snapshot.categoryId;
+      _nameAiGenerated = snapshot.nameAi;
+      _descAiGenerated = snapshot.descAi;
+      _valueAiGenerated = snapshot.valueAi;
+      _categoryAiGenerated = snapshot.categoryAi;
+      _aiPriceDescription = snapshot.aiPriceDescription;
+    });
+    context.read<AiAnalysisCubit>().undo();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Análise anterior restaurada. A reanálise já foi contabilizada.'),
+      ),
+    );
   }
 
   void _onItemsState(BuildContext context, ItemsState state) {
@@ -237,12 +332,34 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                   ),
                 ),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
-                  builder: (context, state) => state is AiAnalysisLoading
-                      ? const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: LinearProgressIndicator(),
-                        )
-                      : const SizedBox(height: 16),
+                  builder: (context, state) {
+                    if (state is AiAnalysisLoading) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: LinearProgressIndicator(),
+                      );
+                    }
+                    if (state is AiAnalysisRefining) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const LinearProgressIndicator(),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Reanalisando…',
+                              style: theme.typography.body.small.regular
+                                  .copyWith(
+                                    color: CirculariColorsTokens.greyscale500,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return const SizedBox(height: 16);
+                  },
                 ),
                 CirculariTextFormField(
                   controller: _nameCtrl,
@@ -279,6 +396,50 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                   SizedBox(height: theme.spacing.small),
                   PriceInsight(analysis: _analysis!),
                 ],
+                BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+                  builder: (context, aiState) {
+                    final analysis = switch (aiState) {
+                      AiAnalysisSuccess(:final result) => result,
+                      AiAnalysisRefining(:final previous) => previous,
+                      AiAnalysisRefineFailure(:final previous) => previous,
+                      _ => null,
+                    };
+                    if (analysis == null) return const SizedBox.shrink();
+                    final refinedFrom = aiState is AiAnalysisSuccess
+                        ? aiState.previous
+                        : null;
+                    final showConflict =
+                        refinedFrom != null &&
+                        analysis.conflictsWithImage &&
+                        !_conflictDismissed;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (showConflict)
+                          _ConflictBanner(
+                            note:
+                                analysis.conflictNote ??
+                                'A foto parece diferente da sua correção.',
+                            onKeep: () =>
+                                setState(() => _conflictDismissed = true),
+                            onUndo: _undo,
+                          )
+                        else if (refinedFrom != null)
+                          _DeltaBanner(
+                            from: refinedFrom.suggestedPrice,
+                            to: analysis.suggestedPrice,
+                            onUndo: _undo,
+                          ),
+                        SizedBox(height: theme.spacing.medium),
+                        AiCorrectionBar(
+                          analysis: analysis,
+                          isRefining: aiState is AiAnalysisRefining,
+                          onCorrect: _refine,
+                        ),
+                      ],
+                    );
+                  },
+                ),
                 SizedBox(height: theme.spacing.large),
                 BlocBuilder<CategoriesCubit, CategoriesState>(
                   builder: (context, state) => switch (state) {
@@ -322,12 +483,14 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                         builder: (context, itemsState) => CirculariButton(
                           onPressed:
                               aiState is AiAnalysisLoading ||
+                                  aiState is AiAnalysisRefining ||
                                   itemsState is ItemsLoading
                               ? null
                               : _submit,
                           label: 'Criar Item',
                           isLoading:
                               aiState is AiAnalysisLoading ||
+                              aiState is AiAnalysisRefining ||
                               itemsState is ItemsLoading,
                         ),
                       ),
@@ -339,6 +502,113 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Post-correction summary: old → new suggested price, with Desfazer. The
+/// executed analysis stays counted regardless (copy on the undo snackbar).
+class _DeltaBanner extends StatelessWidget {
+  final double from;
+  final double to;
+  final VoidCallback onUndo;
+
+  const _DeltaBanner({
+    required this.from,
+    required this.to,
+    required this.onUndo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.circulariTheme;
+    final text = from != to
+        ? 'Valor atualizado: R\$ ${_brlFormat.format(from)} → '
+              'R\$ ${_brlFormat.format(to)}'
+        : 'Análise atualizada.';
+    return Container(
+      margin: EdgeInsets.only(top: theme.spacing.small),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: CirculariColorsTokens.freshCore50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CirculariColorsTokens.freshCore200),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: theme.typography.body.medium.medium.copyWith(
+                color: CirculariColorsTokens.freshCore900,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: onUndo,
+            child: const Text('Desfazer'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Soft warning when the AI thinks the photo contradicts the correction. The
+/// user's word stands — Manter dismisses, Desfazer rolls everything back.
+class _ConflictBanner extends StatelessWidget {
+  final String note;
+  final VoidCallback onKeep;
+  final VoidCallback onUndo;
+
+  const _ConflictBanner({
+    required this.note,
+    required this.onKeep,
+    required this.onUndo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.circulariTheme;
+    return Container(
+      margin: EdgeInsets.only(top: theme.spacing.small),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      decoration: BoxDecoration(
+        color: CirculariColorsTokens.solarPulse50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CirculariColorsTokens.solarPulse200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 20,
+                color: CirculariColorsTokens.solarPulse700,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  note,
+                  style: theme.typography.body.medium.medium.copyWith(
+                    color: CirculariColorsTokens.solarPulse800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(onPressed: onKeep, child: const Text('Manter')),
+              TextButton(onPressed: onUndo, child: const Text('Desfazer')),
+            ],
+          ),
+        ],
       ),
     );
   }

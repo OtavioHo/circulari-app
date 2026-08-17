@@ -73,6 +73,10 @@ class ItemsRepositoryImpl implements ItemsRepository {
       _source.uploadItemImage(itemId, imagePath);
 
   @override
-  Future<AiAnalysisResult> analyzeImage(String imagePath) =>
-      _source.analyzeImage(imagePath);
+  Future<AiAnalysisResult> analyzeImage(
+    String imagePath, {
+    String? hint,
+    String? parentAnalysisId,
+  }) =>
+      _source.analyzeImage(imagePath, hint: hint, parentAnalysisId: parentAnalysisId);
 }

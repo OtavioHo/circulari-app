@@ -18,6 +18,9 @@ class PriceComp {
 }
 
 class AiAnalysisResult {
+  /// Server-side id of this analysis — the `parent_analysis_id` of a refine.
+  /// Null only for legacy/malformed responses.
+  final String? analysisId;
   final String name;
   final String? category;
   final String? categoryId;
@@ -27,7 +30,20 @@ class AiAnalysisResult {
   final PriceConfidence priceConfidence;
   final List<PriceComp> priceEvidence;
 
+  /// Other plausible identifications (the "Não é isso?" correction chips).
+  /// Empty when the model is confident.
+  final List<String> alternatives;
+
+  /// The user's correction contradicts the photo (soft warning, never blocks).
+  final bool conflictsWithImage;
+  final String? conflictNote;
+
+  /// Whether this analysis carries an unspent free retry — drives the
+  /// correction-cost copy.
+  final bool freeRetryAvailable;
+
   const AiAnalysisResult({
+    this.analysisId,
     required this.name,
     this.category,
     this.categoryId,
@@ -36,6 +52,10 @@ class AiAnalysisResult {
     required this.priceMax,
     this.priceConfidence = PriceConfidence.low,
     this.priceEvidence = const [],
+    this.alternatives = const [],
+    this.conflictsWithImage = false,
+    this.conflictNote,
+    this.freeRetryAvailable = false,
   });
 
   /// Central price to pre-fill: the midpoint of the (condition-aware) range,

@@ -172,10 +172,18 @@ class ItemsRemoteSource {
     }
   }
 
-  Future<AiAnalysisResult> analyzeImage(String imagePath) async {
+  Future<AiAnalysisResult> analyzeImage(
+    String imagePath, {
+    String? hint,
+    String? parentAnalysisId,
+  }) async {
     try {
       final formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(imagePath),
+        // Correction refine: the user's hint plus the analysis it corrects
+        // (unlocks that analysis's free retry when unspent).
+        'hint': ?hint,
+        'parent_analysis_id': ?parentAnalysisId,
       });
       // Grounded analysis (vision + web search) legitimately takes 9-37s, and
       // the backend's own worst case is ~65s (Gemini 45s + OpenAI fallback 20s).
@@ -191,6 +199,7 @@ class ItemsRemoteSource {
       );
       final map = _parseMap(response.data);
       final result = AiAnalysisResult(
+        analysisId: map['analysis_id'] as String?,
         name: map['name'] as String,
         category: map['category'] as String?,
         categoryId: map['category_id'] as String?,
@@ -199,6 +208,10 @@ class ItemsRemoteSource {
         priceMax: (map['price_max'] as num).toDouble(),
         priceConfidence: _parseConfidence(map['price_confidence']),
         priceEvidence: _parseEvidence(map['price_evidence']),
+        alternatives: _parseAlternatives(map['alternatives']),
+        conflictsWithImage: map['conflicts_with_image'] == true,
+        conflictNote: map['conflict_note'] as String?,
+        freeRetryAvailable: map['free_retry_available'] == true,
       );
       debugPrint('[analyzeImage] OK confidence=${result.priceConfidence.name} '
           'evidence=${result.priceEvidence.length}');
@@ -231,6 +244,15 @@ class ItemsRemoteSource {
       'medium' => PriceConfidence.medium,
       _ => PriceConfidence.low,
     };
+  }
+
+  List<String> _parseAlternatives(dynamic value) {
+    if (value is! List) return const [];
+    return [
+      for (final entry in value)
+        if (entry is Map && entry['name'] is String && (entry['name'] as String).isNotEmpty)
+          entry['name'] as String,
+    ];
   }
 
   List<PriceComp> _parseEvidence(dynamic value) {

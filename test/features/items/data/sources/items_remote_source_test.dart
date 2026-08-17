@@ -217,5 +217,109 @@ void main() {
       expect(result.priceConfidence, PriceConfidence.low);
       expect(result.priceEvidence, isEmpty);
     });
+
+    test('parses correction fields (analysis_id, alternatives, conflict, free retry)', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: {
+            ...okAnalysisJson(),
+            'analysis_id': 'analysis-1',
+            'alternatives': [
+              {'name': 'iPhone 15'},
+              {'name': ''}, // dropped: empty
+              {'nope': 'x'}, // dropped: missing name
+              {'name': 'iPhone 13'},
+            ],
+            'conflicts_with_image': true,
+            'conflict_note': 'A foto se parece mais com um iPhone 14.',
+            'free_retry_available': true,
+          },
+        ),
+      );
+
+      final result = await source.analyzeImage(tempImage.path);
+
+      expect(result.analysisId, 'analysis-1');
+      expect(result.alternatives, ['iPhone 15', 'iPhone 13']);
+      expect(result.conflictsWithImage, isTrue);
+      expect(result.conflictNote, 'A foto se parece mais com um iPhone 14.');
+      expect(result.freeRetryAvailable, isTrue);
+    });
+
+    test('defaults correction fields when absent (pre-M1 response shape)', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: okAnalysisJson(),
+        ),
+      );
+
+      final result = await source.analyzeImage(tempImage.path);
+
+      expect(result.analysisId, isNull);
+      expect(result.alternatives, isEmpty);
+      expect(result.conflictsWithImage, isFalse);
+      expect(result.conflictNote, isNull);
+      expect(result.freeRetryAvailable, isFalse);
+    });
+
+    test('sends hint and parent_analysis_id as multipart fields on a refine', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: okAnalysisJson(),
+        ),
+      );
+
+      await source.analyzeImage(
+        tempImage.path,
+        hint: 'é um iPhone 15',
+        parentAnalysisId: 'analysis-1',
+      );
+
+      final formData = verify(
+        () => dio.post(any(), data: captureAny(named: 'data'), options: any(named: 'options')),
+      ).captured.single as FormData;
+      final fields = {for (final f in formData.fields) f.key: f.value};
+      expect(fields['hint'], 'é um iPhone 15');
+      expect(fields['parent_analysis_id'], 'analysis-1');
+    });
+
+    test('omits hint and parent_analysis_id fields on a plain analysis', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: okAnalysisJson(),
+        ),
+      );
+
+      await source.analyzeImage(tempImage.path);
+
+      final formData = verify(
+        () => dio.post(any(), data: captureAny(named: 'data'), options: any(named: 'options')),
+      ).captured.single as FormData;
+      final keys = formData.fields.map((f) => f.key).toSet();
+      expect(keys.contains('hint'), isFalse);
+      expect(keys.contains('parent_analysis_id'), isFalse);
+    });
+
+    test('maps 429 to RateLimitException', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenThrow(dioException(statusCode: 429, body: {}));
+
+      await expectLater(
+        () => source.analyzeImage(tempImage.path),
+        throwsA(isA<RateLimitException>()),
+      );
+    });
   });
 }
