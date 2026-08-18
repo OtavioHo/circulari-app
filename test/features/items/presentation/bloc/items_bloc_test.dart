@@ -100,6 +100,7 @@ void main() {
         name: 'New',
       )),
       expect: () => [
+        isA<ItemsLoading>(),
         isA<ItemsSuccess>()
             .having((s) => s.items.length, 'length', 2)
             .having((s) => s.items.last, 'last', created),
@@ -125,6 +126,7 @@ void main() {
         name: 'New',
       )),
       expect: () => [
+        isA<ItemsLoading>(),
         isA<ItemsQuotaExceeded>().having((s) => s.items, 'items', [existing]),
       ],
     );
@@ -147,7 +149,7 @@ void main() {
         listId: 'list-1',
         name: 'New',
       )),
-      expect: () => [isA<ItemsQuotaExceeded>()],
+      expect: () => [isA<ItemsLoading>(), isA<ItemsQuotaExceeded>()],
     );
 
     blocTest<ItemsBloc, ItemsState>(
@@ -169,6 +171,7 @@ void main() {
         name: 'New',
       )),
       expect: () => [
+        isA<ItemsLoading>(),
         isA<ItemsActionFailure>()
             .having((s) => s.items, 'items', [existing])
             .having((s) => s.message, 'message', 'boom'),
@@ -193,6 +196,7 @@ void main() {
         name: 'New',
       )),
       expect: () => [
+        isA<ItemsLoading>(),
         isA<ItemsSuccess>().having((s) => s.items, 'items', [created]),
       ],
     );

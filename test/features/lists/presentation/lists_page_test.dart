@@ -186,6 +186,12 @@ void main() {
 
   testWidgets('lists Retry button dispatches ListsLoadRequested',
       (tester) async {
+    // Same tall surface as the search-retry test below: the failure layout
+    // pushes Retry past the default 600px viewport, and an off-screen tap is
+    // a no-op.
+    await tester.binding.setSurfaceSize(const Size(800, 2000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     when(() => listsBloc.state).thenReturn(const ListsFailure('Error'));
 
     await tester.pumpWidget(_makeTestable(
@@ -193,6 +199,7 @@ void main() {
       dashboardBloc: dashboardBloc,
       searchItemsBloc: searchItemsBloc,
     ));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Retry').first);
 
     final captured = verify(() => listsBloc.add(captureAny())).captured;
@@ -220,18 +227,7 @@ void main() {
     expect(captured.single, isA<SearchItemsLoadRequested>());
   });
 
-  testWidgets('renders user name from AuthStateNotifier in header',
-      (tester) async {
-    final auth = AuthStateNotifier(true)..setUserName('Otavio');
-    when(() => listsBloc.state).thenReturn(ListsSuccess(const []));
-
-    await tester.pumpWidget(_makeTestable(
-      listsBloc: listsBloc,
-      dashboardBloc: dashboardBloc,
-      searchItemsBloc: searchItemsBloc,
-      authNotifier: auth,
-    ));
-
-    expect(find.text('Olá, Otavio!'), findsOneWidget);
-  });
+  // NOTE: the "Olá, <name>!" greeting moved from ListsPage to HomePage
+  // (home_page.dart); its widget test was removed here as obsolete. HomePage
+  // currently has no widget test covering the greeting.
 }

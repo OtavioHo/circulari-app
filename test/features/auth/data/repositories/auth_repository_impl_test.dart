@@ -26,8 +26,10 @@ void main() {
           refreshToken: any(named: 'refreshToken'),
         )).thenAnswer((_) async {});
     when(() => tokenStorage.saveUserName(any())).thenAnswer((_) async {});
+    when(() => tokenStorage.saveUserEmail(any())).thenAnswer((_) async {});
     when(() => tokenStorage.clearTokens()).thenAnswer((_) async {});
     when(() => tokenStorage.clearUserName()).thenAnswer((_) async {});
+    when(() => tokenStorage.clearUserEmail()).thenAnswer((_) async {});
   });
 
   group('login', () {
