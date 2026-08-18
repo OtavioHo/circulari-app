@@ -284,6 +284,8 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         categoryId: _selectedCategoryId,
         userDefinedValue: value,
         imagePath: widget.imagePath,
+        // Links the analysis so the server persists its price snapshot.
+        aiAnalysisId: _analysis?.analysisId,
       ),
     );
   }

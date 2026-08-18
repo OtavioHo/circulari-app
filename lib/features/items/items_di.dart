@@ -8,11 +8,13 @@ import 'package:circulari/features/items/domain/usecases/create_item_usecase.dar
 import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/get_categories_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/revalue_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/update_item_usecase.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/revalue_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
 
 extension ItemsDI on GetIt {
@@ -25,8 +27,10 @@ extension ItemsDI on GetIt {
     registerLazySingleton(() => UpdateItemUsecase(call()));
     registerLazySingleton(() => DeleteItemUsecase(call()));
     registerLazySingleton(() => AnalyzeItemImageUsecase(call()));
+    registerLazySingleton(() => RevalueItemUsecase(call()));
     registerLazySingleton(() => SearchItemsUsecase(call()));
     registerFactory(() => AiAnalysisCubit(call()));
+    registerFactory(() => RevalueCubit(call()));
     registerFactory(() => SearchItemsBloc(searchItems: call()));
     registerFactory(() => CategoriesCubit(call()));
     registerFactory(

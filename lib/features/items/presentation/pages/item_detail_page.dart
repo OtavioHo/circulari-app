@@ -9,6 +9,8 @@ import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart
 import 'package:circulari/features/items/presentation/bloc/item_detail_event.dart';
 import 'package:circulari/features/items/presentation/bloc/item_detail_state.dart';
 import 'package:circulari/features/items/presentation/widgets/item_form_sheet.dart';
+import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
+import 'package:circulari/features/items/presentation/widgets/revalue_sheet.dart';
 
 const _expandedHeight = 260.0;
 const _collapsedHeight = 56.0;
@@ -268,6 +270,32 @@ class _ItemDetailScaffold extends StatelessWidget {
                 ).format(item.userDefinedValue),
               ),
             ],
+            // Saved-item revaluation: only offered when there's a stored image
+            // for the AI to re-analyze (the backend 422s without one).
+            if (item.images.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: isLoading ? null : () => _onRevalueTapped(context),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Valor parece errado?',
+                    style: typography.body.medium.regular.copyWith(
+                      color: const Color(0xFF878787),
+                      decoration: TextDecoration.underline,
+                      decorationColor: const Color(0xFF878787),
+                    ),
+                  ),
+                ),
+              ),
+            if (item.aiInsight != null) ...[
+              const SizedBox(height: 12),
+              PriceInsight(analysis: item.aiInsight!),
+            ],
             if (item.listInfo != null) ...[
               const SizedBox(height: 12),
               _DetailRow(
@@ -287,6 +315,24 @@ class _ItemDetailScaffold extends StatelessWidget {
         ),
       ),
     ];
+  }
+
+  Future<void> _onRevalueTapped(BuildContext context) async {
+    final result = await showRevalueSheet(context, item: item);
+    if (result == null || !context.mounted) return;
+    // The server copies the price snapshot from the analysis (ai_analysis_id);
+    // the accepted fields ride along as a normal update.
+    context.read<ItemDetailBloc>().add(
+          ItemDetailUpdateRequested(
+            item.id,
+            name: result.name,
+            description: result.description,
+            categoryId: result.categoryId,
+            userDefinedValue:
+                result.suggestedPrice > 0 ? result.suggestedPrice : null,
+            aiAnalysisId: result.analysisId,
+          ),
+        );
   }
 
   Future<void> _onEditTapped(BuildContext context) async {

@@ -60,6 +60,39 @@ void main() {
     );
 
     blocTest<ItemDetailBloc, ItemDetailState>(
+      'forwards aiAnalysisId so the server applies the price snapshot',
+      build: buildBloc,
+      setUp: () => when(() => updateItem(
+            any(),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            userDefinedValue: any(named: 'userDefinedValue'),
+            aiAnalysisId: any(named: 'aiAnalysisId'),
+          )).thenAnswer((_) async => updated),
+      act: (b) => b.add(const ItemDetailUpdateRequested(
+        'a',
+        name: 'iPhone 15',
+        userDefinedValue: 3400,
+        aiAnalysisId: 'analysis-1',
+      )),
+      expect: () => [
+        isA<ItemDetailLoading>(),
+        isA<ItemDetailSuccess>(),
+      ],
+      verify: (_) => verify(() => updateItem(
+            'a',
+            name: 'iPhone 15',
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            userDefinedValue: 3400,
+            aiAnalysisId: 'analysis-1',
+          )).called(1),
+    );
+
+    blocTest<ItemDetailBloc, ItemDetailState>(
       'emits [Loading, Failure] preserving the original item',
       build: buildBloc,
       setUp: () => when(() => updateItem(

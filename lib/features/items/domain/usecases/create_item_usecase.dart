@@ -14,6 +14,7 @@ class CreateItemUsecase {
     String? locationId,
     double? userDefinedValue,
     String? imagePath,
+    String? aiAnalysisId,
   }) =>
       _repository.createItem(
         listId: listId,
@@ -24,5 +25,6 @@ class CreateItemUsecase {
         locationId: locationId,
         userDefinedValue: userDefinedValue,
         imagePath: imagePath,
+        aiAnalysisId: aiAnalysisId,
       );
 }

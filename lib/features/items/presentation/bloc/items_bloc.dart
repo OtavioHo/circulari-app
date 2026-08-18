@@ -62,6 +62,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         locationId: event.locationId,
         userDefinedValue: event.userDefinedValue,
         imagePath: event.imagePath,
+        aiAnalysisId: event.aiAnalysisId,
       );
       emit(ItemsCreateSuccess([...previous, created], created));
     } on PlanLimitException {
