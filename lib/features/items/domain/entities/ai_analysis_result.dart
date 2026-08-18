@@ -2,6 +2,37 @@
 /// the price was grounded in real listings — [low] means ungrounded (a guess).
 enum PriceConfidence { high, medium, low }
 
+/// Parses the wire `price_confidence` value. Returns null for absent/unknown
+/// so each caller applies its own default — the analyze flow degrades to
+/// [PriceConfidence.low], the persisted snapshot keeps "unknown" as null.
+PriceConfidence? priceConfidenceFromJson(dynamic value) => switch (value) {
+      'high' => PriceConfidence.high,
+      'medium' => PriceConfidence.medium,
+      'low' => PriceConfidence.low,
+      _ => null,
+    };
+
+/// Parses a wire evidence list, dropping malformed entries. Single owner of
+/// the comp-validation rules for both the analyze response and the persisted
+/// item snapshot.
+List<PriceComp> priceCompsFromJson(dynamic value) {
+  if (value is! List) return const [];
+  return [
+    for (final entry in value)
+      if (entry is Map &&
+          entry['title'] is String &&
+          (entry['title'] as String).isNotEmpty &&
+          entry['url'] is String &&
+          (entry['url'] as String).isNotEmpty &&
+          entry['price'] is num)
+        PriceComp(
+          title: entry['title'] as String,
+          price: (entry['price'] as num).toDouble(),
+          url: entry['url'] as String,
+        ),
+  ];
+}
+
 /// A comparable listing the AI used to anchor the suggested price.
 /// Best-effort: [url] is model-authored and may point to a search/category page
 /// rather than the exact listing.
@@ -63,4 +94,8 @@ class AiAnalysisResult {
   /// item's condition in price_min/price_max, so the midpoint is a sensible
   /// default the user can still adjust.
   double get suggestedPrice => ((priceMin + priceMax) / 2).roundToDouble();
+
+  /// False when the AI could not price the item (zero range) — callers must
+  /// not write the 0 as a real value.
+  bool get hasEstimate => suggestedPrice > 0;
 }

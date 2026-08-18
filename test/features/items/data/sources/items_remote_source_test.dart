@@ -312,6 +312,72 @@ void main() {
       expect(keys.contains('parent_analysis_id'), isFalse);
     });
 
+    test('analyzeItem sends item_id (and correction fields) with no image part', () async {
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/ai/analyze'),
+          statusCode: 200,
+          data: okAnalysisJson(),
+        ),
+      );
+
+      await source.analyzeItem(
+        'item-1',
+        hint: 'é um iPhone 15',
+        parentAnalysisId: 'analysis-1',
+      );
+
+      final formData = verify(
+        () => dio.post(any(), data: captureAny(named: 'data'), options: any(named: 'options')),
+      ).captured.single as FormData;
+      final fields = {for (final f in formData.fields) f.key: f.value};
+      expect(fields['item_id'], 'item-1');
+      expect(fields['hint'], 'é um iPhone 15');
+      expect(fields['parent_analysis_id'], 'analysis-1');
+      expect(formData.files, isEmpty);
+    });
+
+    test('createItem sends ai_analysis_id on the multipart create', () async {
+      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/items'),
+          statusCode: 201,
+          data: okItemJson(),
+        ),
+      );
+
+      await source.createItem(
+        listId: 'list-1',
+        name: 'X',
+        imagePath: tempImage.path,
+        aiAnalysisId: 'analysis-1',
+      );
+
+      final formData = verify(() => dio.post(any(), data: captureAny(named: 'data')))
+          .captured
+          .single as FormData;
+      final fields = {for (final f in formData.fields) f.key: f.value};
+      expect(fields['ai_analysis_id'], 'analysis-1');
+    });
+
+    test('updateItem sends ai_analysis_id in the JSON body', () async {
+      when(() => dio.patch(any(), data: any(named: 'data'))).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/items/i1'),
+          statusCode: 200,
+          data: okItemJson(),
+        ),
+      );
+
+      await source.updateItem('i1', name: 'Y', aiAnalysisId: 'analysis-1');
+
+      final body = verify(() => dio.patch(any(), data: captureAny(named: 'data')))
+          .captured
+          .single as Map<String, dynamic>;
+      expect(body['ai_analysis_id'], 'analysis-1');
+    });
+
     test('maps 429 to RateLimitException', () async {
       when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
           .thenThrow(dioException(statusCode: 429, body: {}));

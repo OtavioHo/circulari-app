@@ -1,3 +1,4 @@
+import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/domain/entities/list_info.dart';
@@ -16,6 +17,12 @@ class ItemModel extends Item {
     required super.images,
     super.listInfo,
     required super.createdAt,
+    super.aiPriceMin,
+    super.aiPriceMax,
+    super.aiPriceConfidence,
+    super.aiPriceEvidence,
+    super.aiAnalysisId,
+    super.aiAnalyzedAt,
   });
 
   factory ItemModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +63,25 @@ class ItemModel extends Item {
           .toList(),
       listInfo: listInfo,
       createdAt: DateTime.parse(json['created_at'] as String),
+      aiPriceMin: _toDouble(json['ai_price_min']),
+      aiPriceMax: _toDouble(json['ai_price_max']),
+      aiPriceConfidence: priceConfidenceFromJson(json['ai_price_confidence']),
+      aiPriceEvidence: priceCompsFromJson(json['ai_price_evidence']),
+      aiAnalysisId: json['ai_analysis_id'] is String
+          ? json['ai_analysis_id'] as String
+          : null,
+      aiAnalyzedAt: json['ai_analyzed_at'] is String
+          ? DateTime.tryParse(json['ai_analyzed_at'] as String)
+          : null,
     );
   }
+
+  // Tolerant of a serialization drift (decimal-as-string): a hard cast here
+  // would throw a raw TypeError past the AppException-only catches and hang
+  // every item list on the loading spinner.
+  static double? _toDouble(dynamic value) => switch (value) {
+        num n => n.toDouble(),
+        String s => double.tryParse(s),
+        _ => null,
+      };
 }

@@ -84,9 +84,7 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
       final result = await _analyze(imagePath);
       _current = result;
       emit(AiAnalysisSuccess(result));
-    } on PlanLimitException {
-      emit(const AiAnalysisQuotaExceeded());
-    } on TierRequiredException {
+    } on QuotaException {
       emit(const AiAnalysisQuotaExceeded());
     } on AppException catch (e) {
       emit(AiAnalysisFailure(e.message));
@@ -113,19 +111,13 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
       _previous = previous;
       _current = result;
       emit(AiAnalysisRefineSuccess(result, previous: previous));
-    } on PlanLimitException {
+    } on QuotaException {
       // Paywall via the QuotaExceeded listener, then restore the previous
       // result without touching the form.
       emit(const AiAnalysisQuotaExceeded());
       emit(AiAnalysisRestored(previous));
-    } on TierRequiredException {
-      emit(const AiAnalysisQuotaExceeded());
-      emit(AiAnalysisRestored(previous));
     } on RateLimitException {
-      emit(AiAnalysisRefineFailure(
-        previous,
-        'Muitas análises seguidas. Aguarde um instante.',
-      ));
+      emit(AiAnalysisRefineFailure(previous, kAiRateLimitMessage));
     } on AppException catch (e) {
       emit(AiAnalysisRefineFailure(previous, e.message));
     }

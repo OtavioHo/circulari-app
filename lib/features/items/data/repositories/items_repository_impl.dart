@@ -33,6 +33,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
     String? locationId,
     double? userDefinedValue,
     String? imagePath,
+    String? aiAnalysisId,
   }) =>
       _source.createItem(
         listId: listId,
@@ -43,6 +44,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
         locationId: locationId,
         userDefinedValue: userDefinedValue,
         imagePath: imagePath,
+        aiAnalysisId: aiAnalysisId,
       );
 
   @override
@@ -54,6 +56,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? aiAnalysisId,
   }) =>
       _source.updateItem(
         id,
@@ -63,6 +66,7 @@ class ItemsRepositoryImpl implements ItemsRepository {
         categoryId: categoryId,
         locationId: locationId,
         userDefinedValue: userDefinedValue,
+        aiAnalysisId: aiAnalysisId,
       );
 
   @override
@@ -79,4 +83,12 @@ class ItemsRepositoryImpl implements ItemsRepository {
     String? parentAnalysisId,
   }) =>
       _source.analyzeImage(imagePath, hint: hint, parentAnalysisId: parentAnalysisId);
+
+  @override
+  Future<AiAnalysisResult> analyzeItem(
+    String itemId, {
+    String? hint,
+    String? parentAnalysisId,
+  }) =>
+      _source.analyzeItem(itemId, hint: hint, parentAnalysisId: parentAnalysisId);
 }

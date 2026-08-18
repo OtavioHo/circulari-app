@@ -44,6 +44,7 @@ class ItemDetailBloc extends Bloc<ItemDetailEvent, ItemDetailState> {
         quantity: event.quantity,
         categoryId: event.categoryId,
         userDefinedValue: event.userDefinedValue,
+        aiAnalysisId: event.aiAnalysisId,
       );
       emit(ItemDetailSuccess(updated));
     } on AppException catch (e) {

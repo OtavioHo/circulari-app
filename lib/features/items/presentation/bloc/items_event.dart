@@ -17,6 +17,10 @@ final class ItemsCreateRequested extends ItemsEvent {
   final double? userDefinedValue;
   final String? imagePath;
 
+  /// Applies the AI analysis that produced the pre-filled values — the server
+  /// copies its price snapshot onto the created item.
+  final String? aiAnalysisId;
+
   const ItemsCreateRequested({
     required this.listId,
     required this.name,
@@ -26,6 +30,7 @@ final class ItemsCreateRequested extends ItemsEvent {
     this.locationId,
     this.userDefinedValue,
     this.imagePath,
+    this.aiAnalysisId,
   });
 }
 

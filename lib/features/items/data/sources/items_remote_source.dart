@@ -91,6 +91,7 @@ class ItemsRemoteSource {
     String? locationId,
     double? userDefinedValue,
     String? imagePath,
+    String? aiAnalysisId,
   }) async {
     try {
       final Response response;
@@ -103,6 +104,7 @@ class ItemsRemoteSource {
           'category_id': ?categoryId,
           'location_id': ?locationId,
           'user_defined_value': ?(userDefinedValue?.toString()),
+          'ai_analysis_id': ?aiAnalysisId,
           'image': await MultipartFile.fromFile(imagePath),
         });
         response = await _dio.post('/items', data: formData);
@@ -115,6 +117,7 @@ class ItemsRemoteSource {
           'category_id': ?categoryId,
           'location_id': ?locationId,
           'user_defined_value': ?userDefinedValue,
+          'ai_analysis_id': ?aiAnalysisId,
         };
         response = await _dio.post('/items', data: body);
       }
@@ -132,6 +135,7 @@ class ItemsRemoteSource {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? aiAnalysisId,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -141,6 +145,7 @@ class ItemsRemoteSource {
         'category_id': ?categoryId,
         'location_id': ?locationId,
         'user_defined_value': ?userDefinedValue,
+        'ai_analysis_id': ?aiAnalysisId,
       };
       final response = await _dio.patch('/items/$id', data: body);
       return ItemModel.fromJson(_parseMap(response.data));
@@ -197,22 +202,7 @@ class ItemsRemoteSource {
           sendTimeout: const Duration(seconds: 30),
         ),
       );
-      final map = _parseMap(response.data);
-      final result = AiAnalysisResult(
-        analysisId: map['analysis_id'] as String?,
-        name: map['name'] as String,
-        category: map['category'] as String?,
-        categoryId: map['category_id'] as String?,
-        description: map['description'] as String,
-        priceMin: (map['price_min'] as num).toDouble(),
-        priceMax: (map['price_max'] as num).toDouble(),
-        priceConfidence: _parseConfidence(map['price_confidence']),
-        priceEvidence: _parseEvidence(map['price_evidence']),
-        alternatives: _parseAlternatives(map['alternatives']),
-        conflictsWithImage: map['conflicts_with_image'] == true,
-        conflictNote: map['conflict_note'] as String?,
-        freeRetryAvailable: map['free_retry_available'] == true,
-      );
+      final result = _parseAnalysis(response.data);
       debugPrint('[analyzeImage] OK confidence=${result.priceConfidence.name} '
           'evidence=${result.priceEvidence.length}');
       return result;
@@ -231,19 +221,65 @@ class ItemsRemoteSource {
     }
   }
 
+  /// Saved-item re-analysis: the server loads the item's stored main image —
+  /// nothing is uploaded. Same slow-endpoint timeouts as [analyzeImage].
+  Future<AiAnalysisResult> analyzeItem(
+    String itemId, {
+    String? hint,
+    String? parentAnalysisId,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'item_id': itemId,
+        'hint': ?hint,
+        'parent_analysis_id': ?parentAnalysisId,
+      });
+      final response = await _dio.post(
+        '/ai/analyze',
+        data: formData,
+        options: Options(
+          receiveTimeout: const Duration(seconds: 90),
+          sendTimeout: const Duration(seconds: 30),
+        ),
+      );
+      return _parseAnalysis(response.data);
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      debugPrint('[analyzeItem] unexpected error: $e');
+      throw ServerException('Failed to parse AI analysis.');
+    }
+  }
+
+  AiAnalysisResult _parseAnalysis(dynamic data) {
+    final map = _parseMap(data);
+    return AiAnalysisResult(
+      analysisId: map['analysis_id'] as String?,
+      name: map['name'] as String,
+      category: map['category'] as String?,
+      categoryId: map['category_id'] as String?,
+      description: map['description'] as String,
+      priceMin: (map['price_min'] as num).toDouble(),
+      priceMax: (map['price_max'] as num).toDouble(),
+      // Shared wire parsers (single owner of the field rules); the analyze
+      // flow degrades unknown confidence to low.
+      priceConfidence: priceConfidenceFromJson(map['price_confidence']) ??
+          PriceConfidence.low,
+      priceEvidence: priceCompsFromJson(map['price_evidence']),
+      alternatives: _parseAlternatives(map['alternatives']),
+      conflictsWithImage: map['conflicts_with_image'] == true,
+      conflictNote: map['conflict_note'] as String?,
+      freeRetryAvailable: map['free_retry_available'] == true,
+    );
+  }
+
   Map<String, dynamic> _parseMap(dynamic data) {
     if (data is! Map<String, dynamic>) {
       throw const ServerException('Unexpected response format.');
     }
     return data;
-  }
-
-  PriceConfidence _parseConfidence(dynamic value) {
-    return switch (value) {
-      'high' => PriceConfidence.high,
-      'medium' => PriceConfidence.medium,
-      _ => PriceConfidence.low,
-    };
   }
 
   List<String> _parseAlternatives(dynamic value) {
@@ -255,22 +291,4 @@ class ItemsRemoteSource {
     ];
   }
 
-  List<PriceComp> _parseEvidence(dynamic value) {
-    if (value is! List) return const [];
-    final comps = <PriceComp>[];
-    for (final entry in value) {
-      if (entry is! Map) continue;
-      final title = entry['title'];
-      final url = entry['url'];
-      final price = entry['price'];
-      if (title is String &&
-          title.isNotEmpty &&
-          url is String &&
-          url.isNotEmpty &&
-          price is num) {
-        comps.add(PriceComp(title: title, price: price.toDouble(), url: url));
-      }
-    }
-    return comps;
-  }
 }

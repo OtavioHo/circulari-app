@@ -13,6 +13,7 @@ class UpdateItemUsecase {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? aiAnalysisId,
   }) =>
       _repository.updateItem(
         id,
@@ -22,5 +23,6 @@ class UpdateItemUsecase {
         categoryId: categoryId,
         locationId: locationId,
         userDefinedValue: userDefinedValue,
+        aiAnalysisId: aiAnalysisId,
       );
 }

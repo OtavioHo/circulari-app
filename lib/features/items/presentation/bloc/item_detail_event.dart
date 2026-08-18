@@ -10,6 +10,9 @@ final class ItemDetailUpdateRequested extends ItemDetailEvent {
   final String? categoryId;
   final double? userDefinedValue;
 
+  /// Applies a re-analysis to the item — the server copies its price snapshot.
+  final String? aiAnalysisId;
+
   const ItemDetailUpdateRequested(
     this.id, {
     this.name,
@@ -17,6 +20,7 @@ final class ItemDetailUpdateRequested extends ItemDetailEvent {
     this.quantity,
     this.categoryId,
     this.userDefinedValue,
+    this.aiAnalysisId,
   });
 }
 

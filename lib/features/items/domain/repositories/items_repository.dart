@@ -20,6 +20,7 @@ abstract interface class ItemsRepository {
     String? locationId,
     double? userDefinedValue,
     String? imagePath,
+    String? aiAnalysisId,
   });
   Future<Item> updateItem(
     String id, {
@@ -29,11 +30,17 @@ abstract interface class ItemsRepository {
     String? categoryId,
     String? locationId,
     double? userDefinedValue,
+    String? aiAnalysisId,
   });
   Future<void> deleteItem(String id);
   Future<Item> uploadItemImage(String itemId, String imagePath);
   Future<AiAnalysisResult> analyzeImage(
     String imagePath, {
+    String? hint,
+    String? parentAnalysisId,
+  });
+  Future<AiAnalysisResult> analyzeItem(
+    String itemId, {
     String? hint,
     String? parentAnalysisId,
   });
