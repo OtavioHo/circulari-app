@@ -32,5 +32,9 @@ abstract interface class ItemsRepository {
   });
   Future<void> deleteItem(String id);
   Future<Item> uploadItemImage(String itemId, String imagePath);
-  Future<AiAnalysisResult> analyzeImage(String imagePath);
+  Future<AiAnalysisResult> analyzeImage(
+    String imagePath, {
+    String? hint,
+    String? parentAnalysisId,
+  });
 }

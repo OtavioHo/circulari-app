@@ -25,6 +25,7 @@ AppException mapDioError(DioException e) {
     return const TierRequiredException();
   }
   if (status == 404) return NotFoundException(message);
+  if (status == 429) return const RateLimitException();
   return ServerException(message);
 }
 

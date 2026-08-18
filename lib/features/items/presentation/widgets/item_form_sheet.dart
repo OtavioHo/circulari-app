@@ -4,6 +4,7 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -219,6 +220,14 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
           _selectedCategoryId = result.categoryId;
         }
       });
+    } else if (state is AiAnalysisQuotaExceeded) {
+      // Was silently swallowed before — a quota-blocked analysis from the edit
+      // sheet must surface the paywall like the add-item form does.
+      PaywallBottomSheet.show(
+        context,
+        resourceName: 'análises de IA',
+        onUpgrade: () => context.push('/paywall'),
+      );
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

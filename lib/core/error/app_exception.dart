@@ -28,6 +28,11 @@ final class TierRequiredException extends AppException {
   const TierRequiredException() : super('This feature requires a premium plan.');
 }
 
+/// The server throttled the request (HTTP 429) — retry after a short wait.
+final class RateLimitException extends AppException {
+  const RateLimitException() : super('Muitas solicitações. Aguarde um instante.');
+}
+
 /// The user dismissed the native purchase sheet — not a real error, so callers
 /// should silently return to the paywall.
 final class PurchaseCancelledException extends AppException {
