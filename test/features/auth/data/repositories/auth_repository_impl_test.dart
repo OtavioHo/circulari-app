@@ -54,6 +54,7 @@ void main() {
             refreshToken: tRefreshToken,
           )).called(1);
       verify(() => tokenStorage.saveUserName(tUserModel.name)).called(1);
+      verify(() => tokenStorage.saveUserEmail(tUserModel.email)).called(1);
     });
 
     test('does not persist tokens if the source throws', () async {
@@ -84,6 +85,7 @@ void main() {
 
       verify(() => tokenStorage.clearTokens()).called(1);
       verify(() => tokenStorage.clearUserName()).called(1);
+      verify(() => tokenStorage.clearUserEmail()).called(1);
     });
 
     test('clears tokens on successful remote logout', () async {
@@ -93,6 +95,7 @@ void main() {
 
       verify(() => tokenStorage.clearTokens()).called(1);
       verify(() => tokenStorage.clearUserName()).called(1);
+      verify(() => tokenStorage.clearUserEmail()).called(1);
     });
   });
 }

@@ -17,6 +17,14 @@ base class ItemsSuccess extends ItemsState {
   const ItemsSuccess(this.items);
 }
 
+/// Emitted while a create request is in flight. Subtype of [ItemsSuccess] so
+/// list views keep rendering the current items instead of blanking to a
+/// spinner (update/delete already preserve items; create must too). The add
+/// form watches this type to disable its submit button.
+final class ItemsCreateInProgress extends ItemsSuccess {
+  const ItemsCreateInProgress(super.items);
+}
+
 /// Emitted when an item was just created. Subtype of [ItemsSuccess] so existing
 /// listeners that observe successful state transitions still match.
 final class ItemsCreateSuccess extends ItemsSuccess {

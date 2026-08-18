@@ -87,14 +87,15 @@ Widget _makeTestable({
   required ListsBloc listsBloc,
   required DashboardBloc dashboardBloc,
   required SearchItemsBloc searchItemsBloc,
-  AuthStateNotifier? authNotifier,
 }) {
   return MaterialApp(
     theme: circulariLightThemeData,
     home: DefaultAssetBundle(
       bundle: _StubAssetBundle(),
+      // ListsPage still reads AuthStateNotifier from context — the provider
+      // must stay even though no test injects a custom one anymore.
       child: ChangeNotifierProvider<AuthStateNotifier>.value(
-        value: authNotifier ?? AuthStateNotifier(true),
+        value: AuthStateNotifier(true),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<ListsBloc>.value(value: listsBloc),
@@ -186,12 +187,6 @@ void main() {
 
   testWidgets('lists Retry button dispatches ListsLoadRequested',
       (tester) async {
-    // Same tall surface as the search-retry test below: the failure layout
-    // pushes Retry past the default 600px viewport, and an off-screen tap is
-    // a no-op.
-    await tester.binding.setSurfaceSize(const Size(800, 2000));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
     when(() => listsBloc.state).thenReturn(const ListsFailure('Error'));
 
     await tester.pumpWidget(_makeTestable(
@@ -199,8 +194,12 @@ void main() {
       dashboardBloc: dashboardBloc,
       searchItemsBloc: searchItemsBloc,
     ));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Retry').first);
+    // Scroll to the button on the real phone-sized surface instead of faking
+    // a 2000px viewport — an unreachable Retry should fail this test.
+    final retry = find.widgetWithText(ElevatedButton, 'Retry').first;
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
 
     final captured = verify(() => listsBloc.add(captureAny())).captured;
     expect(captured.single, isA<ListsLoadRequested>());
