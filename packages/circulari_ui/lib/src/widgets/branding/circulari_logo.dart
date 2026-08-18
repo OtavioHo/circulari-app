@@ -51,13 +51,21 @@ class CirculariLogo extends StatelessWidget {
           Flexible(child: name),
         ],
       ),
-      CirculariLogoOrientation.vertical => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          mark,
-          SizedBox(height: size * 0.18),
-          name,
-        ],
+      // scaleDown keeps the logo at natural size when there's room and shrinks
+      // it instead of overflowing when the host (e.g. auth scaffold's Expanded
+      // header) is squeezed by a short viewport (landscape phone, large text
+      // scale). Note: the keyboard does NOT squeeze the auth header — the
+      // scaffold adds the keyboard inset back to its height.
+      CirculariLogoOrientation.vertical => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            mark,
+            SizedBox(height: size * 0.18),
+            name,
+          ],
+        ),
       ),
     };
   }

@@ -87,14 +87,15 @@ Widget _makeTestable({
   required ListsBloc listsBloc,
   required DashboardBloc dashboardBloc,
   required SearchItemsBloc searchItemsBloc,
-  AuthStateNotifier? authNotifier,
 }) {
   return MaterialApp(
     theme: circulariLightThemeData,
     home: DefaultAssetBundle(
       bundle: _StubAssetBundle(),
+      // ListsPage still reads AuthStateNotifier from context — the provider
+      // must stay even though no test injects a custom one anymore.
       child: ChangeNotifierProvider<AuthStateNotifier>.value(
-        value: authNotifier ?? AuthStateNotifier(true),
+        value: AuthStateNotifier(true),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<ListsBloc>.value(value: listsBloc),
@@ -193,7 +194,12 @@ void main() {
       dashboardBloc: dashboardBloc,
       searchItemsBloc: searchItemsBloc,
     ));
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Retry').first);
+    // Scroll to the button on the real phone-sized surface instead of faking
+    // a 2000px viewport — an unreachable Retry should fail this test.
+    final retry = find.widgetWithText(ElevatedButton, 'Retry').first;
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
 
     final captured = verify(() => listsBloc.add(captureAny())).captured;
     expect(captured.single, isA<ListsLoadRequested>());
@@ -220,18 +226,7 @@ void main() {
     expect(captured.single, isA<SearchItemsLoadRequested>());
   });
 
-  testWidgets('renders user name from AuthStateNotifier in header',
-      (tester) async {
-    final auth = AuthStateNotifier(true)..setUserName('Otavio');
-    when(() => listsBloc.state).thenReturn(ListsSuccess(const []));
-
-    await tester.pumpWidget(_makeTestable(
-      listsBloc: listsBloc,
-      dashboardBloc: dashboardBloc,
-      searchItemsBloc: searchItemsBloc,
-      authNotifier: auth,
-    ));
-
-    expect(find.text('Olá, Otavio!'), findsOneWidget);
-  });
+  // NOTE: the "Olá, <name>!" greeting moved from ListsPage to HomePage
+  // (home_page.dart); its widget test was removed here as obsolete. HomePage
+  // currently has no widget test covering the greeting.
 }

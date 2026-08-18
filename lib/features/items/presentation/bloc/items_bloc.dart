@@ -49,7 +49,9 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
     Emitter<ItemsState> emit,
   ) async {
     final previous = _currentItems();
-    emit(const ItemsLoading());
+    // Items-carrying in-progress state: a bare ItemsLoading would blank the
+    // whole list (and lose scroll) for the duration of the request.
+    emit(ItemsCreateInProgress(previous));
     try {
       final created = await _createItem(
         listId: event.listId,

@@ -71,7 +71,7 @@ class HomePage extends StatelessWidget {
                                   '';
                               final firstName = fullName.trim().split(' ').first;
                               return Text(
-                                'Olá, $firstName!',
+                                firstName.isEmpty ? 'Olá!' : 'Olá, $firstName!',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,

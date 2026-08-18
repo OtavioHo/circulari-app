@@ -304,9 +304,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
           padding: const EdgeInsets.all(16),
           child: BlocBuilder<ItemsBloc, ItemsState>(
             buildWhen: (prev, curr) =>
-                prev is ItemsLoading || curr is ItemsLoading,
+                prev is ItemsCreateInProgress || curr is ItemsCreateInProgress,
             builder: (context, itemsState) => AbsorbPointer(
-              absorbing: itemsState is ItemsLoading,
+              absorbing: itemsState is ItemsCreateInProgress,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -509,14 +509,14 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                           onPressed:
                               aiState is AiAnalysisLoading ||
                                   aiState is AiAnalysisRefining ||
-                                  itemsState is ItemsLoading
+                                  itemsState is ItemsCreateInProgress
                               ? null
                               : _submit,
                           label: 'Criar Item',
                           isLoading:
                               aiState is AiAnalysisLoading ||
                               aiState is AiAnalysisRefining ||
-                              itemsState is ItemsLoading,
+                              itemsState is ItemsCreateInProgress,
                         ),
                       ),
                 ),

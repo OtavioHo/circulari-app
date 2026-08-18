@@ -52,6 +52,9 @@ void main() {
 
   void stubOffering(List<Package> packages) {
     final offering = MockOffering();
+    // getOptions logs offering.identifier — an unstubbed getter returns null
+    // and crashes the mock with a type error.
+    when(() => offering.identifier).thenReturn('default');
     when(() => offering.availablePackages).thenReturn(packages);
     final offerings = MockOfferings();
     when(() => offerings.current).thenReturn(offering);
