@@ -1,8 +1,8 @@
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
+import 'package:circulari/features/items/presentation/widgets/ai_hint_input.dart';
 
 /// "Não é isso?" — correction affordance under the AI result: one chip per
 /// alternative identification plus "Outro…" for free text. Tapping either
@@ -140,16 +140,6 @@ class _CorrectionHintSheet extends StatefulWidget {
 
 class _CorrectionHintSheetState extends State<_CorrectionHintSheet> {
   final _controller = TextEditingController();
-  bool _hasText = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(() {
-      final hasText = _controller.text.trim().isNotEmpty;
-      if (hasText != _hasText) setState(() => _hasText = hasText);
-    });
-  }
 
   @override
   void dispose() {
@@ -166,7 +156,7 @@ class _CorrectionHintSheetState extends State<_CorrectionHintSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.circulariTheme;
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 24, 24, bottom + 24),
       child: Column(
@@ -180,26 +170,11 @@ class _CorrectionHintSheetState extends State<_CorrectionHintSheet> {
             ),
           ),
           SizedBox(height: theme.spacing.small),
-          Text(
-            'Diga o que está errado e a IA reanalisa o valor.',
-            style: theme.typography.body.medium.regular.copyWith(
-              color: CirculariColorsTokens.greyscale400,
-            ),
-          ),
-          SizedBox(height: theme.spacing.medium),
-          CirculariTextFormField(
+          AiHintInput(
             controller: _controller,
-            label: 'Correção',
-            hintText: 'ex: é um iPhone 15 de 256GB',
-            onDark: true,
-            lines: 2,
-            // Backend caps the hint at 200 chars.
-            inputFormatters: [LengthLimitingTextInputFormatter(200)],
-          ),
-          SizedBox(height: theme.spacing.medium),
-          CirculariButton(
-            onPressed: _hasText ? _submit : null,
-            label: 'Corrigir análise',
+            subtitle: 'Diga o que está errado e a IA reanalisa o valor.',
+            buttonLabel: 'Corrigir análise',
+            onSubmit: _submit,
           ),
         ],
       ),

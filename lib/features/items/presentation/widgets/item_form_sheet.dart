@@ -4,7 +4,6 @@ import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -14,6 +13,7 @@ import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
+import 'package:circulari/features/items/presentation/widgets/ai_hint_input.dart';
 import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 
 final _brlFormat = NumberFormat('#,##0.00', 'pt_BR');
@@ -54,6 +54,10 @@ class ItemFormResult {
   final double? userDefinedValue;
   final String? imagePath;
 
+  /// The analysis that produced the AI-filled values (a new photo re-runs the
+  /// analysis in this sheet) — forwarded so the server persists its snapshot.
+  final String? aiAnalysisId;
+
   const ItemFormResult({
     required this.name,
     this.description,
@@ -61,6 +65,7 @@ class ItemFormResult {
     this.categoryId,
     this.userDefinedValue,
     this.imagePath,
+    this.aiAnalysisId,
   });
 }
 
@@ -202,6 +207,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
         categoryId: _selectedCategoryId,
         userDefinedValue: value,
         imagePath: _imagePath,
+        aiAnalysisId: _analysis?.analysisId,
       ),
     );
   }
@@ -211,7 +217,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
       final result = state.result;
       if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.name;
       if (_descCtrl.text.isEmpty) _descCtrl.text = result.description;
-      if (_valueCtrl.text.isEmpty && result.suggestedPrice > 0) {
+      if (_valueCtrl.text.isEmpty && result.hasEstimate) {
         _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
       }
       setState(() {
@@ -223,11 +229,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     } else if (state is AiAnalysisQuotaExceeded) {
       // Was silently swallowed before — a quota-blocked analysis from the edit
       // sheet must surface the paywall like the add-item form does.
-      PaywallBottomSheet.show(
-        context,
-        resourceName: 'análises de IA',
-        onUpgrade: () => context.push('/paywall'),
-      );
+      showAiQuotaPaywall(context);
     } else if (state is AiAnalysisFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

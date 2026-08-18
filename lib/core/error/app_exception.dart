@@ -19,14 +19,24 @@ final class NetworkException extends AppException {
   const NetworkException() : super('No internet connection.');
 }
 
-final class PlanLimitException extends AppException {
+/// Plan-limit family — any of these means "surface the paywall". Catching the
+/// supertype keeps the paywall wiring in one clause per call site.
+sealed class QuotaException extends AppException {
+  const QuotaException(super.message);
+}
+
+final class PlanLimitException extends QuotaException {
   final int? limit;
   const PlanLimitException({this.limit}) : super('You have reached your plan limit.');
 }
 
-final class TierRequiredException extends AppException {
+final class TierRequiredException extends QuotaException {
   const TierRequiredException() : super('This feature requires a premium plan.');
 }
+
+/// Copy for an AI analysis hitting the per-user throttle (HTTP 429). Shared by
+/// every AI cubit so the wording can't drift between entry points.
+const kAiRateLimitMessage = 'Muitas análises seguidas. Aguarde um instante.';
 
 /// The server throttled the request (HTTP 429) — retry after a short wait.
 final class RateLimitException extends AppException {

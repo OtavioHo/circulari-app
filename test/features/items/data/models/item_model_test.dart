@@ -42,6 +42,21 @@ void main() {
       expect(insight.analysisId, 'analysis-1');
     });
 
+    test('tolerates serialization drift instead of throwing (list-hang guard)', () {
+      final item = ItemModel.fromJson({
+        ...baseJson(),
+        'ai_price_min': '3000.50', // decimal-as-string
+        'ai_price_max': 3800,
+        'ai_analyzed_at': 1755388800000, // epoch instead of ISO — ignored
+        'ai_analysis_id': 42, // wrong type — ignored
+      });
+
+      expect(item.aiPriceMin, 3000.50);
+      expect(item.aiPriceMax, 3800);
+      expect(item.aiAnalyzedAt, isNull);
+      expect(item.aiAnalysisId, isNull);
+    });
+
     test('defaults to no snapshot for pre-M3 responses', () {
       final item = ItemModel.fromJson(baseJson());
 

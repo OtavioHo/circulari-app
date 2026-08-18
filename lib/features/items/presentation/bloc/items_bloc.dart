@@ -65,9 +65,7 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         aiAnalysisId: event.aiAnalysisId,
       );
       emit(ItemsCreateSuccess([...previous, created], created));
-    } on PlanLimitException {
-      emit(ItemsQuotaExceeded(previous));
-    } on TierRequiredException {
+    } on QuotaException {
       emit(ItemsQuotaExceeded(previous));
     } on AppException catch (e) {
       emit(ItemsActionFailure(previous, e.message));

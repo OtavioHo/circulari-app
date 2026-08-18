@@ -162,6 +162,8 @@ class _ItemDetailScaffold extends StatelessWidget {
   List<Widget> _buildBody(BuildContext context) {
     final typography = context.circulariTheme.typography;
     final mainImageUrl = item.images.firstOrNull?.url;
+    // The getter builds a fresh object — read it once per build.
+    final aiInsight = item.aiInsight;
     return [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -292,9 +294,9 @@ class _ItemDetailScaffold extends StatelessWidget {
                   ),
                 ),
               ),
-            if (item.aiInsight != null) ...[
+            if (aiInsight != null) ...[
               const SizedBox(height: 12),
-              PriceInsight(analysis: item.aiInsight!),
+              PriceInsight(analysis: aiInsight),
             ],
             if (item.listInfo != null) ...[
               const SizedBox(height: 12),
@@ -328,8 +330,7 @@ class _ItemDetailScaffold extends StatelessWidget {
             name: result.name,
             description: result.description,
             categoryId: result.categoryId,
-            userDefinedValue:
-                result.suggestedPrice > 0 ? result.suggestedPrice : null,
+            userDefinedValue: result.hasEstimate ? result.suggestedPrice : null,
             aiAnalysisId: result.analysisId,
           ),
         );
@@ -346,6 +347,7 @@ class _ItemDetailScaffold extends StatelessWidget {
             quantity: result.quantity,
             categoryId: result.categoryId,
             userDefinedValue: result.userDefinedValue,
+            aiAnalysisId: result.aiAnalysisId,
           ),
         );
   }

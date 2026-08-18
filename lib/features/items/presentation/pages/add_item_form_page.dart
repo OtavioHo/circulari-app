@@ -11,6 +11,7 @@ import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/widgets/ai_correction_bar.dart';
+import 'package:circulari/features/items/presentation/widgets/ai_hint_input.dart';
 import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
@@ -159,11 +160,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
       _pendingSnapshot = null;
       setState(() => _analysis = state.result);
     } else if (state is AiAnalysisQuotaExceeded) {
-      PaywallBottomSheet.show(
-        context,
-        resourceName: 'análises de IA',
-        onUpgrade: () => context.push('/paywall'),
-      );
+      showAiQuotaPaywall(context);
     } else if (state is AiAnalysisRefineFailure) {
       _pendingSnapshot = null;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +186,7 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
       _descCtrl.text = result.description;
       _descAiGenerated = true;
     }
-    if (result.suggestedPrice > 0) {
+    if (result.hasEstimate) {
       if (overwrite || _valueCtrl.text.isEmpty) {
         _valueCtrl.text = _brlFormat.format(result.suggestedPrice);
         _valueAiGenerated = true;

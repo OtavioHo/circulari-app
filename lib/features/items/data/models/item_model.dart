@@ -63,41 +63,25 @@ class ItemModel extends Item {
           .toList(),
       listInfo: listInfo,
       createdAt: DateTime.parse(json['created_at'] as String),
-      aiPriceMin: (json['ai_price_min'] as num?)?.toDouble(),
-      aiPriceMax: (json['ai_price_max'] as num?)?.toDouble(),
-      aiPriceConfidence: _parseConfidence(json['ai_price_confidence']),
-      aiPriceEvidence: _parseEvidence(json['ai_price_evidence']),
-      aiAnalysisId: json['ai_analysis_id'] as String?,
-      aiAnalyzedAt: json['ai_analyzed_at'] != null
+      aiPriceMin: _toDouble(json['ai_price_min']),
+      aiPriceMax: _toDouble(json['ai_price_max']),
+      aiPriceConfidence: priceConfidenceFromJson(json['ai_price_confidence']),
+      aiPriceEvidence: priceCompsFromJson(json['ai_price_evidence']),
+      aiAnalysisId: json['ai_analysis_id'] is String
+          ? json['ai_analysis_id'] as String
+          : null,
+      aiAnalyzedAt: json['ai_analyzed_at'] is String
           ? DateTime.tryParse(json['ai_analyzed_at'] as String)
           : null,
     );
   }
 
-  static PriceConfidence? _parseConfidence(dynamic value) {
-    return switch (value) {
-      'high' => PriceConfidence.high,
-      'medium' => PriceConfidence.medium,
-      'low' => PriceConfidence.low,
-      _ => null,
-    };
-  }
-
-  static List<PriceComp> _parseEvidence(dynamic value) {
-    if (value is! List) return const [];
-    return [
-      for (final entry in value)
-        if (entry is Map &&
-            entry['title'] is String &&
-            (entry['title'] as String).isNotEmpty &&
-            entry['url'] is String &&
-            (entry['url'] as String).isNotEmpty &&
-            entry['price'] is num)
-          PriceComp(
-            title: entry['title'] as String,
-            price: (entry['price'] as num).toDouble(),
-            url: entry['url'] as String,
-          ),
-    ];
-  }
+  // Tolerant of a serialization drift (decimal-as-string): a hard cast here
+  // would throw a raw TypeError past the AppException-only catches and hang
+  // every item list on the loading spinner.
+  static double? _toDouble(dynamic value) => switch (value) {
+        num n => n.toDouble(),
+        String s => double.tryParse(s),
+        _ => null,
+      };
 }
