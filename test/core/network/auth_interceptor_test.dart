@@ -201,6 +201,133 @@ void main() {
     expect(authNotifier.isAuthenticated, isFalse);
   });
 
+  test('refresh succeeds but retry fails: propagates the retry error '
+      'and keeps tokens', () async {
+    mainAdapter.respond(statusCode: 401);
+    refreshAdapter.respond(statusCode: 200, body: {
+      'token': 'new-access',
+      'refreshToken': 'new-refresh',
+    });
+    // The retried request itself blows up server-side.
+    refreshAdapter.respond(statusCode: 500, body: {'message': 'boom'});
+
+    await expectLater(
+      () => dio.get('/anything'),
+      throwsA(isA<DioException>()
+          .having((e) => e.response?.statusCode, 'statusCode', 500)
+          .having((e) => e.error, 'error', isNot(isA<UnauthorizedException>()))),
+    );
+    // The refresh worked: new tokens were saved and must not be cleared.
+    verify(() => tokenStorage.saveTokens(
+          accessToken: 'new-access',
+          refreshToken: 'new-refresh',
+        )).called(1);
+    verifyNever(() => tokenStorage.clearTokens());
+    expect(authNotifier.isAuthenticated, isTrue);
+  });
+
+  test('401 from a request marked kSkipAuthRefresh passes through untouched',
+      () async {
+    mainAdapter.respond(
+      statusCode: 401,
+      body: {'message': 'Invalid email or password'},
+    );
+
+    await expectLater(
+      () => dio.post(
+        '/auth/login',
+        data: {'email': 'a@b.c', 'password': 'x'},
+        options: Options(extra: const {kSkipAuthRefresh: true}),
+      ),
+      throwsA(isA<DioException>()
+          .having((e) => e.response?.statusCode, 'statusCode', 401)
+          .having(
+            (e) => e.response?.data['message'],
+            'message',
+            'Invalid email or password',
+          )),
+    );
+    // No refresh attempt, no session teardown.
+    verifyNever(() => tokenStorage.getRefreshToken());
+    verifyNever(() => tokenStorage.clearTokens());
+    expect(refreshAdapter.requests, isEmpty);
+  });
+
+  test('concurrent 401s: retry failures after a successful refresh propagate '
+      'as their own errors', () async {
+    mainAdapter
+      ..respond(statusCode: 401)
+      ..respond(statusCode: 401);
+    refreshAdapter.respond(statusCode: 200, body: {
+      'token': 'new-access',
+      'refreshToken': 'new-refresh',
+    });
+    // Both retries fail — covers the waiter branch and the leader branch.
+    refreshAdapter
+      ..respond(statusCode: 500, body: {'message': 'boom'})
+      ..respond(statusCode: 500, body: {'message': 'boom'});
+
+    final results = await Future.wait<Object>([
+      dio.get('/a').then<Object>((r) => r, onError: (Object e) => e),
+      dio.get('/b').then<Object>((r) => r, onError: (Object e) => e),
+    ]);
+
+    for (final result in results) {
+      expect(
+        result,
+        isA<DioException>()
+            .having((e) => e.response?.statusCode, 'statusCode', 500)
+            .having(
+              (e) => e.error,
+              'error',
+              isNot(isA<UnauthorizedException>()),
+            ),
+      );
+    }
+    verifyNever(() => tokenStorage.clearTokens());
+    expect(authNotifier.isAuthenticated, isTrue);
+  });
+
+  test('non-Dio throw from token storage during the retry rejects instead of '
+      'hanging the caller forever', () async {
+    // Dio does not await the async onError callback: without the interceptor's
+    // catch-all, a non-Dio throw escaping the retry (e.g. a Web Crypto
+    // DOMException on Flutter Web) leaves the handler unresolved and this
+    // await would never complete.
+    mainAdapter.respond(statusCode: 401);
+    refreshAdapter.respond(statusCode: 200, body: {
+      'token': 'new-access',
+      'refreshToken': 'new-refresh',
+    });
+    // First read serves onRequest; the second (inside _retry) blows up.
+    var readCount = 0;
+    when(() => tokenStorage.getAccessToken()).thenAnswer((_) async {
+      readCount++;
+      if (readCount == 1) return 'old-access';
+      throw StateError('storage unavailable');
+    });
+
+    await expectLater(
+      () => dio.get('/anything'),
+      throwsA(isA<DioException>()
+          .having((e) => e.error, 'error', isA<StateError>())),
+    );
+  });
+
+  test('non-Dio throw from token storage on request rejects instead of '
+      'hanging the caller forever', () async {
+    when(() => tokenStorage.getAccessToken())
+        .thenAnswer((_) async => throw StateError('storage unavailable'));
+
+    await expectLater(
+      () => dio.get('/anything'),
+      throwsA(isA<DioException>()
+          .having((e) => e.error, 'error', isA<StateError>())),
+    );
+    // The request never reached the network.
+    expect(mainAdapter.requests, isEmpty);
+  });
+
   test('non-401 errors pass through untouched', () async {
     mainAdapter.respond(statusCode: 500, body: {'message': 'boom'});
 

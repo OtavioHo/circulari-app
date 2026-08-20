@@ -61,35 +61,95 @@ void main() {
   });
 
   group('getItems', () {
-    test('parses items from {data: [...]} envelope', () async {
-      when(() => dio.get(any())).thenAnswer((_) async => Response(
-            requestOptions: RequestOptions(path: '/lists/list-1/items'),
-            statusCode: 200,
-            data: {
-              'data': [okItemJson()]
-            },
-          ));
+    void stubGet(dynamic data) => when(() => dio.get(
+              any(),
+              queryParameters: any(named: 'queryParameters'),
+            ))
+        .thenAnswer((_) async => Response(
+              requestOptions: RequestOptions(path: '/lists/list-1/items'),
+              statusCode: 200,
+              data: data,
+            ));
 
-      final items = await source.getItems('list-1');
+    test('parses items, nextCursor, and totalValue from the envelope',
+        () async {
+      stubGet({
+        'data': [okItemJson()],
+        'nextCursor': 'cur-1',
+        'totalValue': 1234,
+      });
 
-      expect(items, hasLength(1));
-      expect(items.first.id, 'i1');
+      final result = await source.getItems('list-1');
+
+      expect(result.data, hasLength(1));
+      expect(result.data.first.id, 'i1');
+      expect(result.nextCursor, 'cur-1');
+      expect(result.hasMore, isTrue);
+      // Whole-list total, parsed from int to double.
+      expect(result.totalValue, 1234.0);
+    });
+
+    test('totalValue is null when the server omits it (older backend)',
+        () async {
+      stubGet({
+        'data': [okItemJson()],
+        'nextCursor': null,
+      });
+
+      final result = await source.getItems('list-1');
+
+      expect(result.totalValue, isNull);
+    });
+
+    test('returns null cursor on the last page', () async {
+      stubGet({
+        'data': [okItemJson()],
+        'nextCursor': null,
+      });
+
+      final result = await source.getItems('list-1');
+
+      expect(result.nextCursor, isNull);
+      expect(result.hasMore, isFalse);
+    });
+
+    test('forwards cursor and limit as query parameters', () async {
+      stubGet({'data': <Map<String, dynamic>>[], 'nextCursor': null});
+
+      await source.getItems('list-1', cursor: 'cur-1', limit: 100);
+
+      final query = verify(() => dio.get(
+            '/lists/list-1/items',
+            queryParameters: captureAny(named: 'queryParameters'),
+          )).captured.single as Map<String, dynamic>;
+      expect(query['cursor'], 'cur-1');
+      expect(query['limit'], 100);
+    });
+
+    test('omits cursor and limit when not provided', () async {
+      stubGet({'data': <Map<String, dynamic>>[], 'nextCursor': null});
+
+      await source.getItems('list-1');
+
+      final query = verify(() => dio.get(
+            any(),
+            queryParameters: captureAny(named: 'queryParameters'),
+          )).captured.single as Map<String, dynamic>;
+      expect(query, isEmpty);
     });
 
     test('throws ServerException when envelope is missing data array',
         () async {
-      when(() => dio.get(any())).thenAnswer((_) async => Response(
-            requestOptions: RequestOptions(path: '/x'),
-            statusCode: 200,
-            data: {'data': 'not-a-list'},
-          ));
+      stubGet({'data': 'not-a-list'});
 
       expect(() => source.getItems('list-1'), throwsA(isA<ServerException>()));
     });
 
     test('maps DioException → AppException', () async {
-      when(() => dio.get(any()))
-          .thenThrow(dioException(statusCode: 500, body: {}));
+      when(() => dio.get(
+            any(),
+            queryParameters: any(named: 'queryParameters'),
+          )).thenThrow(dioException(statusCode: 500, body: {}));
 
       expect(() => source.getItems('list-1'), throwsA(isA<ServerException>()));
     });

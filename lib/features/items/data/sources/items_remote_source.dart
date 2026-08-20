@@ -6,6 +6,7 @@ import 'package:circulari/core/models/paginated_result.dart';
 import 'package:circulari/core/network/dio_error_mapper.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
+import 'package:circulari/features/items/domain/entities/items_page.dart';
 import 'package:circulari/features/items/data/models/item_model.dart';
 
 class ItemsRemoteSource {
@@ -26,9 +27,16 @@ class ItemsRemoteSource {
     }
   }
 
-  Future<List<ItemModel>> getItems(String listId) async {
+  Future<ItemsPage> getItems(
+    String listId, {
+    String? cursor,
+    int? limit,
+  }) async {
     try {
-      final response = await _dio.get('/lists/$listId/items');
+      final response = await _dio.get('/lists/$listId/items', queryParameters: {
+        'cursor': ?cursor,
+        'limit': ?limit,
+      });
       if (response.data is! Map<String, dynamic>) {
         throw const ServerException('Unexpected response format.');
       }
@@ -37,12 +45,19 @@ class ItemsRemoteSource {
       if (list is! List) {
         throw const ServerException('Unexpected response format.');
       }
-      return list.map((e) {
+      final items = list.map((e) {
         if (e is! Map<String, dynamic>) {
           throw const ServerException('Unexpected item format.');
         }
         return ItemModel.fromJson(e);
       }).toList();
+      return ItemsPage(
+        data: items,
+        nextCursor: envelope['nextCursor'] as String?,
+        // Whole-list total (all pages) — tolerant of an older backend that
+        // doesn't send it yet.
+        totalValue: (envelope['totalValue'] as num?)?.toDouble(),
+      );
     } on DioException catch (e) {
       throw mapDioError(e);
     }

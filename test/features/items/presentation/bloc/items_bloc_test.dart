@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/entities/items_page.dart';
 import 'package:circulari/features/items/domain/usecases/create_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart';
@@ -51,14 +52,24 @@ void main() {
 
   group('ItemsLoadRequested', () {
     blocTest<ItemsBloc, ItemsState>(
-      'emits [Loading, Success] with returned items',
+      'emits [Loading, Success] with first page items and nextCursor',
       build: buildBloc,
-      setUp: () => when(() => getItems(any()))
-          .thenAnswer((_) async => [existing]),
+      setUp: () => when(() => getItems(
+                any(),
+                cursor: any(named: 'cursor'),
+                limit: any(named: 'limit'),
+              ))
+          .thenAnswer((_) async => ItemsPage(
+              data: [existing], nextCursor: 'cur-1', totalValue: 420.0)),
       act: (b) => b.add(const ItemsLoadRequested('list-1')),
       expect: () => [
         isA<ItemsLoading>(),
-        isA<ItemsSuccess>().having((s) => s.items, 'items', [existing]),
+        isA<ItemsSuccess>()
+            .having((s) => s.items, 'items', [existing])
+            .having((s) => s.nextCursor, 'nextCursor', 'cur-1')
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.totalValue, 'totalValue', 420.0),
       ],
       verify: (_) => verify(() => getItems('list-1')).called(1),
     );
@@ -66,8 +77,11 @@ void main() {
     blocTest<ItemsBloc, ItemsState>(
       'emits [Loading, Failure] on AppException',
       build: buildBloc,
-      setUp: () => when(() => getItems(any()))
-          .thenThrow(const NetworkException()),
+      setUp: () => when(() => getItems(
+            any(),
+            cursor: any(named: 'cursor'),
+            limit: any(named: 'limit'),
+          )).thenThrow(const NetworkException()),
       act: (b) => b.add(const ItemsLoadRequested('list-1')),
       expect: () => [
         isA<ItemsLoading>(),
@@ -78,6 +92,183 @@ void main() {
         ),
       ],
     );
+  });
+
+  group('ItemsLoadMoreRequested', () {
+    final page2 = tItem(id: 'c', name: 'Page 2');
+
+    blocTest<ItemsBloc, ItemsState>(
+      'appends next page, clears cursor when no more results, and refreshes '
+      'totalValue from the envelope',
+      build: buildBloc,
+      seed: () =>
+          ItemsSuccess([existing], nextCursor: 'cur-1', totalValue: 100.0),
+      setUp: () => when(() => getItems(
+                any(),
+                cursor: any(named: 'cursor'),
+                limit: any(named: 'limit'),
+              ))
+          .thenAnswer(
+              (_) async => ItemsPage(data: [page2], totalValue: 175.0)),
+      act: (b) => b.add(const ItemsLoadMoreRequested('list-1')),
+      expect: () => [
+        isA<ItemsSuccess>()
+            .having((s) => s.items, 'items', [existing])
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true),
+        isA<ItemsSuccess>()
+            .having((s) => s.items, 'items', [existing, page2])
+            .having((s) => s.nextCursor, 'nextCursor', isNull)
+            .having((s) => s.hasMore, 'hasMore', false)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.totalValue, 'totalValue', 175.0),
+      ],
+      verify: (_) =>
+          verify(() => getItems('list-1', cursor: 'cur-1')).called(1),
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'is a no-op when there are no more pages',
+      build: buildBloc,
+      seed: () => ItemsSuccess([existing]),
+      act: (b) => b.add(const ItemsLoadMoreRequested('list-1')),
+      expect: () => const <ItemsState>[],
+      verify: (_) => verifyNever(() => getItems(
+            any(),
+            cursor: any(named: 'cursor'),
+            limit: any(named: 'limit'),
+          )),
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'is a no-op while a previous loadMore is in flight',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        isLoadingMore: true,
+      ),
+      act: (b) => b.add(const ItemsLoadMoreRequested('list-1')),
+      expect: () => const <ItemsState>[],
+      verify: (_) => verifyNever(() => getItems(
+            any(),
+            cursor: any(named: 'cursor'),
+            limit: any(named: 'limit'),
+          )),
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'keeps loaded items and cursor, resets isLoadingMore and surfaces '
+      'loadMoreError on failure',
+      build: buildBloc,
+      seed: () => ItemsSuccess([existing], nextCursor: 'cur-1'),
+      setUp: () => when(() => getItems(
+            any(),
+            cursor: any(named: 'cursor'),
+            limit: any(named: 'limit'),
+          )).thenThrow(const NetworkException()),
+      act: (b) => b.add(const ItemsLoadMoreRequested('list-1')),
+      expect: () => [
+        isA<ItemsSuccess>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.loadMoreError, 'loadMoreError', isNull),
+        isA<ItemsSuccess>()
+            .having((s) => s.items, 'items', [existing])
+            .having((s) => s.nextCursor, 'nextCursor', 'cur-1')
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having(
+              (s) => s.loadMoreError,
+              'loadMoreError',
+              'No internet connection.',
+            ),
+      ],
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'clears loadMoreError on the retry attempt (one-shot)',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        loadMoreError: 'No internet connection.',
+      ),
+      setUp: () => when(() => getItems(
+                any(),
+                cursor: any(named: 'cursor'),
+                limit: any(named: 'limit'),
+              ))
+          .thenAnswer((_) async => ItemsPage(data: [page2])),
+      act: (b) => b.add(const ItemsLoadMoreRequested('list-1')),
+      expect: () => [
+        isA<ItemsSuccess>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.loadMoreError, 'loadMoreError', isNull),
+        isA<ItemsSuccess>()
+            .having((s) => s.items, 'items', [existing, page2])
+            .having((s) => s.loadMoreError, 'loadMoreError', isNull),
+      ],
+    );
+  });
+
+  group('ItemsSuccess.copyWith', () {
+    test('keeps every field when called with no arguments', () {
+      final state = ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        isLoadingMore: true,
+        totalValue: 99.0,
+        loadMoreError: 'boom',
+      );
+
+      final copy = state.copyWith();
+
+      expect(copy.items, [existing]);
+      expect(copy.nextCursor, 'cur-1');
+      expect(copy.isLoadingMore, isTrue);
+      expect(copy.totalValue, 99.0);
+      expect(copy.loadMoreError, 'boom');
+    });
+
+    test('clearCursor and clearLoadMoreError null the fields', () {
+      final state = ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        loadMoreError: 'boom',
+      );
+
+      final copy =
+          state.copyWith(clearCursor: true, clearLoadMoreError: true);
+
+      expect(copy.nextCursor, isNull);
+      expect(copy.hasMore, isFalse);
+      expect(copy.loadMoreError, isNull);
+    });
+
+    test('overrides fields when provided', () {
+      final state = ItemsSuccess([existing], totalValue: 1.0);
+
+      final copy = state.copyWith(
+        items: [existing, created],
+        nextCursor: 'cur-2',
+        isLoadingMore: true,
+        totalValue: 2.0,
+        loadMoreError: 'later',
+      );
+
+      expect(copy.items, [existing, created]);
+      expect(copy.nextCursor, 'cur-2');
+      expect(copy.isLoadingMore, isTrue);
+      expect(copy.totalValue, 2.0);
+      expect(copy.loadMoreError, 'later');
+    });
+
+    test('returns a base ItemsSuccess when called on a create subtype', () {
+      final state = ItemsCreateSuccess([existing], existing);
+
+      final copy = state.copyWith(isLoadingMore: true);
+
+      expect(copy, isA<ItemsSuccess>());
+      expect(copy, isNot(isA<ItemsCreateSuccess>()));
+    });
   });
 
   group('ItemsCreateRequested', () {

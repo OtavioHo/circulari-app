@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:circulari/core/bloc/safe_emit_mixin.dart';
 import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/usecases/analyze_item_image_usecase.dart';
@@ -64,7 +65,8 @@ final class AiAnalysisRestored extends AiAnalysisState {
   const AiAnalysisRestored(this.result);
 }
 
-class AiAnalysisCubit extends Cubit<AiAnalysisState> {
+class AiAnalysisCubit extends Cubit<AiAnalysisState>
+    with SafeEmitMixin<AiAnalysisState> {
   final AnalyzeItemImageUsecase _analyze;
 
   // Refines re-send the same image with a hint; undo restores the pre-refine
@@ -83,11 +85,11 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
     try {
       final result = await _analyze(imagePath);
       _current = result;
-      emit(AiAnalysisSuccess(result));
+      safeEmit(AiAnalysisSuccess(result));
     } on QuotaException {
-      emit(const AiAnalysisQuotaExceeded());
+      safeEmit(const AiAnalysisQuotaExceeded());
     } on AppException catch (e) {
-      emit(AiAnalysisFailure(e.message));
+      safeEmit(AiAnalysisFailure(e.message));
     }
   }
 
@@ -110,16 +112,16 @@ class AiAnalysisCubit extends Cubit<AiAnalysisState> {
       );
       _previous = previous;
       _current = result;
-      emit(AiAnalysisRefineSuccess(result, previous: previous));
+      safeEmit(AiAnalysisRefineSuccess(result, previous: previous));
     } on QuotaException {
       // Paywall via the QuotaExceeded listener, then restore the previous
       // result without touching the form.
-      emit(const AiAnalysisQuotaExceeded());
-      emit(AiAnalysisRestored(previous));
+      safeEmit(const AiAnalysisQuotaExceeded());
+      safeEmit(AiAnalysisRestored(previous));
     } on RateLimitException {
-      emit(AiAnalysisRefineFailure(previous, kAiRateLimitMessage));
+      safeEmit(AiAnalysisRefineFailure(previous, kAiRateLimitMessage));
     } on AppException catch (e) {
-      emit(AiAnalysisRefineFailure(previous, e.message));
+      safeEmit(AiAnalysisRefineFailure(previous, e.message));
     }
   }
 

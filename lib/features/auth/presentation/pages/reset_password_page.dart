@@ -120,6 +120,7 @@ class _Form extends StatelessWidget {
             CirculariAuthTextFormField(
               label: 'Nova senha',
               controller: passwordController,
+              obscureText: true,
               isAuth: true,
               textInputAction: TextInputAction.next,
               prefixIcon: Icons.lock_outline,
@@ -139,6 +140,7 @@ class _Form extends StatelessWidget {
             CirculariAuthTextFormField(
               label: 'Confirmar senha',
               controller: confirmController,
+              obscureText: true,
               isAuth: true,
               textInputAction: TextInputAction.done,
               prefixIcon: Icons.lock_outline,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:circulari_ui/circulari_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +14,7 @@ import 'package:circulari/features/lists/domain/entities/item_list.dart';
 const _expandedHeight = 260.0;
 const _collapsedHeight = 56.0;
 
-class ListDetailPage extends StatelessWidget {
+class ListDetailPage extends StatefulWidget {
   final String listId;
   final String listName;
   final String? picturePath;
@@ -33,13 +35,28 @@ class ListDetailPage extends StatelessWidget {
   });
 
   @override
+  State<ListDetailPage> createState() => _ListDetailPageState();
+}
+
+class _ListDetailPageState extends State<ListDetailPage> {
+  /// Last metrics observed from the scroll view (CirculariCollapsibleBody owns
+  /// its ScrollController internally, so metrics only reach us through
+  /// notifications). Used by the post-frame initial-fill check: when an
+  /// appended page still doesn't make the content scrollable, the extents
+  /// don't change and NO new notification fires — this cache is then the only
+  /// way to know the viewport is still underfilled.
+  ScrollMetrics? _lastMetrics;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: CirculariColorsTokens.freshCore,
-        onPressed: () =>
-            context.push('/items/add?listId=$listId', extra: list),
+        onPressed: () => context.push(
+          '/items/add?listId=${widget.listId}',
+          extra: widget.list,
+        ),
         tooltip: 'Novo Item',
         child: const Icon(Icons.add, color: CirculariColorsTokens.greyscale100),
       ),
@@ -49,59 +66,163 @@ class ListDetailPage extends StatelessWidget {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(state.message)));
+          } else if (state is ItemsSuccess && state.loadMoreError != null) {
+            // One-shot: the bloc clears loadMoreError on the next attempt and
+            // no other emit carries it, so this fires once per failure.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.loadMoreError!),
+                action: SnackBarAction(
+                  label: 'Tentar novamente',
+                  onPressed: () => context.read<ItemsBloc>().add(
+                    ItemsLoadMoreRequested(widget.listId),
+                  ),
+                ),
+              ),
+            );
+          }
+          // Initial fill: whenever a page lands with more pages available,
+          // re-check after this frame whether the content can scroll yet.
+          // The post-frame + microtask hop runs AFTER any pending
+          // ScrollMetricsNotification microtask, so _lastMetrics is fresh when
+          // the appended page changed the extents — and still correct (stale
+          // but identical) when it didn't, which is exactly the underfilled
+          // case where no notification fires at all. This keeps firing page
+          // after page until the viewport fills or hasMore is false; the
+          // state gate in _maybeLoadMore prevents dispatch storms.
+          if (state is ItemsSuccess &&
+              state.hasMore &&
+              !state.isLoadingMore &&
+              state.loadMoreError == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              scheduleMicrotask(() {
+                final metrics = _lastMetrics;
+                if (!context.mounted || metrics == null) return;
+                _maybeLoadMore(context, metrics);
+              });
+            });
           }
         },
         builder: (context, state) {
           final displayTotal = _resolveDisplayTotal(state);
-          return CirculariCollapsibleBody(
-            expandedHeight: _expandedHeight,
-            collapsedHeight: _collapsedHeight,
-            showBackButton: true,
-            appBarActions: [
-              // Editing needs the full entity; a deep link without the router
-              // extra has nothing to prefill the form with.
-              if (list case final list?)
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: CirculariAppBarIconButton(
-                    icon: Icons.edit_outlined,
-                    color: CirculariColorsTokens.greyscale50,
-                    onPressed: () =>
-                        context.push('/lists/$listId/edit', extra: list),
+          // ScrollMetricsNotification fires on initial layout and whenever the
+          // scrollable extents change WITHOUT user scrolling — it is what makes
+          // the next page load when page 1 doesn't fill the viewport (clamping
+          // physics never emit a ScrollNotification when maxScrollExtent == 0).
+          return NotificationListener<ScrollMetricsNotification>(
+            onNotification: (notification) {
+              if (notification.depth == 0) {
+                _lastMetrics = notification.metrics;
+                _maybeLoadMore(context, notification.metrics);
+              }
+              return false; // keep the notification bubbling
+            },
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification is ScrollUpdateNotification &&
+                    notification.depth == 0) {
+                  _lastMetrics = notification.metrics;
+                  _maybeLoadMore(context, notification.metrics);
+                }
+                return false; // keep the notification bubbling
+              },
+              child: CirculariCollapsibleBody(
+                expandedHeight: _expandedHeight,
+                collapsedHeight: _collapsedHeight,
+                showBackButton: true,
+                appBarActions: [
+                  // Editing needs the full entity; a deep link without the
+                  // router extra has nothing to prefill the form with.
+                  if (widget.list case final list?)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: CirculariAppBarIconButton(
+                        icon: Icons.edit_outlined,
+                        color: CirculariColorsTokens.greyscale50,
+                        onPressed: () => context.push(
+                          '/lists/${widget.listId}/edit',
+                          extra: list,
+                        ),
+                      ),
+                    ),
+                ],
+                backgroundBuilder:
+                    widget.picturePath != null && widget.backgroundColor != null
+                    ? _buildBackground
+                    : null,
+                headerBuilder: (context, shrinkOffset) =>
+                    _buildHeader(shrinkOffset, displayTotal),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Items',
+                      style: context.circulariTheme.typography.body.xLarge.bold
+                          .copyWith(color: CirculariColorsTokens.greyscale800),
+                    ),
                   ),
-                ),
-            ],
-            backgroundBuilder: picturePath != null && backgroundColor != null
-                ? _buildBackground
-                : null,
-            headerBuilder: (context, shrinkOffset) =>
-                _buildHeader(shrinkOffset, displayTotal),
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Items',
-                  style: context.circulariTheme.typography.body.xLarge.bold
-                      .copyWith(color: CirculariColorsTokens.greyscale800),
-                ),
+                  const SizedBox(height: 8),
+                  ..._buildChildren(context, state),
+                  const SizedBox(height: 100),
+                ],
               ),
-              const SizedBox(height: 8),
-              ..._buildChildren(context, state),
-              const SizedBox(height: 100),
-            ],
+            ),
           );
         },
       ),
     );
   }
 
+  /// Near-end trigger for pagination: dispatches a load-more when the content
+  /// can't scroll yet (initial fill) or the position is within
+  /// [loadMoreThreshold] of the bottom. Gated on the bloc state so scroll
+  /// frames while a page is in flight — or after a failure, which retries only
+  /// via the snackbar action — don't re-dispatch.
+  void _maybeLoadMore(BuildContext context, ScrollMetrics metrics) {
+    const loadMoreThreshold = 400.0;
+    final state = context.read<ItemsBloc>().state;
+    if (state is! ItemsSuccess ||
+        !state.hasMore ||
+        state.isLoadingMore ||
+        state.loadMoreError != null) {
+      return;
+    }
+    if (metrics.axis != Axis.vertical || !metrics.hasContentDimensions) {
+      return;
+    }
+    // Covers both the underfilled viewport (maxScrollExtent == 0) and the
+    // regular near-bottom case.
+    if (metrics.pixels >= metrics.maxScrollExtent - loadMoreThreshold) {
+      context.read<ItemsBloc>().add(ItemsLoadMoreRequested(widget.listId));
+    }
+  }
+
   double? _resolveDisplayTotal(ItemsState state) {
-    final liveTotal = switch (state) {
-      ItemsSuccess(:final items) || ItemsActionFailure(:final items) =>
-        items.fold(0.0, (sum, item) => sum + (item.userDefinedValue ?? 0)),
-      _ => null,
+    final (items, hasMore, serverTotal) = switch (state) {
+      ItemsSuccess(:final items, :final hasMore, :final totalValue) => (
+        items,
+        hasMore,
+        totalValue,
+      ),
+      ItemsActionFailure(:final items, :final nextCursor, :final totalValue) =>
+        (items, nextCursor != null, totalValue),
+      ItemsQuotaExceeded(:final items, :final nextCursor, :final totalValue) =>
+        (items, nextCursor != null, totalValue),
+      _ => (null, false, null),
     };
-    return liveTotal ?? initialTotalValue;
+    if (items == null) return widget.initialTotalValue;
+    double loadedTotal() => items.fold<double>(
+      0.0,
+      (sum, item) => sum + (item.userDefinedValue ?? 0),
+    );
+    // While pages remain unloaded, folding only the loaded ones undercounts —
+    // prefer the live server-computed total from the items envelope (falling
+    // back to the navigation-time value, then to the partial fold, for older
+    // backends that don't send it).
+    if (hasMore) {
+      return serverTotal ?? widget.initialTotalValue ?? loadedTotal();
+    }
+    return loadedTotal();
   }
 
   Widget _buildBackground(BuildContext context, double shrinkOffset) {
@@ -112,7 +233,7 @@ class ListDetailPage extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(picturePath!, fit: BoxFit.cover),
+          Image.asset(widget.picturePath!, fit: BoxFit.cover),
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -132,8 +253,8 @@ class ListDetailPage extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(
               painter: _WavePainter(
-                color: backgroundColor!.withAlpha(128),
-                seed: seed ?? picturePath!.hashCode,
+                color: widget.backgroundColor!.withAlpha(128),
+                seed: widget.seed ?? widget.picturePath!.hashCode,
               ),
             ),
           ),
@@ -158,7 +279,7 @@ class ListDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              listName,
+              widget.listName,
               style: TextStyle.lerp(
                 circulariTypography.heading2.copyWith(color: Colors.white),
                 circulariTypography.heading5.copyWith(color: Colors.white),
@@ -211,8 +332,10 @@ class ListDetailPage extends StatelessWidget {
                   title: 'Esta lista está vazia',
                   description: 'Adicione o primeiro item para começar.',
                   ctaLabel: 'Adicionar item',
-                  onCtaPressed: () =>
-                      context.push('/items/add?listId=$listId', extra: list),
+                  onCtaPressed: () => context.push(
+                    '/items/add?listId=${widget.listId}',
+                    extra: widget.list,
+                  ),
                 ),
               ]
             : [
@@ -227,6 +350,17 @@ class ListDetailPage extends StatelessWidget {
                         _buildItemTile(context, items[index]),
                   ),
                 ),
+                if (state is ItemsSuccess && state.isLoadingMore)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
               ],
       ItemsFailure(:final message) => [_buildFailureView(context, message)],
     };
@@ -258,8 +392,9 @@ class ListDetailPage extends StatelessWidget {
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () =>
-                context.read<ItemsBloc>().add(ItemsLoadRequested(listId)),
+            onPressed: () => context.read<ItemsBloc>().add(
+              ItemsLoadRequested(widget.listId),
+            ),
             child: const Text('Retry'),
           ),
         ],

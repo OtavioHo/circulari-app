@@ -48,7 +48,9 @@ class _CirculariAuthTextFormFieldState
   @override
   void initState() {
     super.initState();
-    _obscureText = widget.obscureText;
+    // `isAuth` marks a password field: it must start obscured even when the
+    // caller forgets to pass `obscureText: true` explicitly.
+    _obscureText = widget.obscureText || widget.isAuth;
   }
 
   @override
