@@ -58,10 +58,10 @@ class _AiScanningOverlayState extends State<AiScanningOverlay>
     return Material(
       type: MaterialType.transparency,
       child: ColoredBox(
-        // The Figma frame fill is forestVault900 at 60%, but that assumes a
-        // dark page behind it; over the white form it washes out, so the
-        // scrim is heavier to keep the mock's near-dark look.
-        color: _darkGreen.withValues(alpha: 0.92),
+        // Solid fill: the Figma frame uses a translucent scrim, but over the
+        // white form the bleed-through looks washed out, so the overlay
+        // hides the page entirely.
+        color: _darkGreen,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
