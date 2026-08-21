@@ -4,25 +4,20 @@ import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/features/lists/domain/entities/item_list.dart';
 import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
-import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
 
 class ListsBloc extends Bloc<ListsEvent, ListsState> {
   final GetListsUsecase _getLists;
-  final RenameListUsecase _renameList;
   final DeleteListUsecase _deleteList;
 
   ListsBloc({
     required GetListsUsecase getLists,
-    required RenameListUsecase renameList,
     required DeleteListUsecase deleteList,
   })  : _getLists = getLists,
-        _renameList = renameList,
         _deleteList = deleteList,
         super(const ListsInitial()) {
     on<ListsLoadRequested>(_onLoad);
-    on<ListsRenameRequested>(_onRename);
     on<ListsDeleteRequested>(_onDelete);
   }
 
@@ -36,35 +31,6 @@ class ListsBloc extends Bloc<ListsEvent, ListsState> {
       emit(ListsSuccess(lists));
     } on AppException catch (e) {
       emit(ListsFailure(e.message));
-    }
-  }
-
-  Future<void> _onRename(
-    ListsRenameRequested event,
-    Emitter<ListsState> emit,
-  ) async {
-    final previous = _currentLists();
-    try {
-      await _renameList(event.id, event.name);
-      emit(ListsSuccess(
-        previous
-            .map((l) => l.id == event.id
-                ? ItemList(
-                    id: l.id,
-                    name: event.name,
-                    location: l.location,
-                    color: l.color,
-                    icon: l.icon,
-                    picture: l.picture,
-                    itemCount: l.itemCount,
-                    totalValue: l.totalValue,
-                    createdAt: l.createdAt,
-                  )
-                : l)
-            .toList(),
-      ));
-    } on AppException catch (e) {
-      emit(ListsActionFailure(previous, e.message));
     }
   }
 

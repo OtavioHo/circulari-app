@@ -24,4 +24,26 @@ class ItemList {
     required this.totalValue,
     required this.createdAt,
   });
+
+  static const _unset = Object();
+
+  /// [location] is clearable: pass `null` explicitly to erase it.
+  ItemList copyWith({
+    String? name,
+    Object? location = _unset,
+    ListColor? color,
+    ListIcon? icon,
+    ListPicture? picture,
+  }) => ItemList(
+        id: id,
+        name: name ?? this.name,
+        location:
+            identical(location, _unset) ? this.location : location as String?,
+        color: color ?? this.color,
+        icon: icon ?? this.icon,
+        picture: picture ?? this.picture,
+        itemCount: itemCount,
+        totalValue: totalValue,
+        createdAt: createdAt,
+      );
 }

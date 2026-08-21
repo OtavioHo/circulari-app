@@ -68,6 +68,9 @@ class CirculariColorsTokens {
   static const Color forestVault800 = Color(0xFF1B4534);
   static const Color forestVault900 = Color(0xFF0B2319);
 
+  // Danger — destructive actions (Figma "adobe/red")
+  static const Color danger = Color(0xFFEB1000);
+
   // Greyscale — grayscale secondary
   static const Color greyscale50  = Color(0xFFFBFBFB);
   static const Color greyscale100 = Color(0xFFF6F6F6);

@@ -1,5 +1,6 @@
 export 'package:circulari_ui/src/widgets/buttons/button.dart';
 export 'package:circulari_ui/src/widgets/buttons/back_button.dart';
+export 'package:circulari_ui/src/widgets/buttons/app_bar_icon_button.dart';
 export 'package:circulari_ui/src/widgets/inputs/text_form_field.dart';
 export 'package:circulari_ui/src/widgets/inputs/search_field.dart';
 export 'package:circulari_ui/src/widgets/inputs/auth_text_form_field.dart';
@@ -19,5 +20,6 @@ export 'package:circulari_ui/src/widgets/layout/app_bar.dart';
 export 'package:circulari_ui/src/widgets/layout/in_app_scaffold.dart';
 export 'package:circulari_ui/src/widgets/feedback/paywall_bottom_sheet.dart';
 export 'package:circulari_ui/src/widgets/feedback/ai_scanning_overlay.dart';
+export 'package:circulari_ui/src/widgets/feedback/confirm_delete_bottom_sheet.dart';
 export 'package:circulari_ui/src/widgets/feedback/empty_state.dart';
 export 'package:circulari_ui/src/widgets/branding/circulari_logo.dart';

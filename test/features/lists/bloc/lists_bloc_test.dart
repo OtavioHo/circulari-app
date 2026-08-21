@@ -9,7 +9,6 @@ import 'package:circulari/features/lists/domain/entities/list_icon.dart';
 import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
-import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_event.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
@@ -17,8 +16,6 @@ import 'package:circulari/features/lists/presentation/bloc/lists_state.dart';
 class MockGetListsUsecase extends Mock implements GetListsUsecase {}
 
 class MockDeleteListUsecase extends Mock implements DeleteListUsecase {}
-
-class MockRenameListUsecase extends Mock implements RenameListUsecase {}
 
 final _tColor = ListColor(hexCode: '#FF0000', name: 'Red', order: 0);
 final _tIcon = ListIcon(slug: 'home', name: 'Home', order: 0);
@@ -38,17 +35,14 @@ final _tList = ItemList(
 void main() {
   late MockGetListsUsecase getLists;
   late MockDeleteListUsecase deleteList;
-  late MockRenameListUsecase renameList;
 
   setUp(() {
     getLists = MockGetListsUsecase();
     deleteList = MockDeleteListUsecase();
-    renameList = MockRenameListUsecase();
   });
 
   ListsBloc buildBloc() => ListsBloc(
         getLists: getLists,
-        renameList: renameList,
         deleteList: deleteList,
       );
 
@@ -139,34 +133,4 @@ void main() {
     );
   });
 
-  group('ListsRenameRequested', () {
-    blocTest<ListsBloc, ListsState>(
-      'updates name in existing list on success',
-      build: buildBloc,
-      seed: () => ListsSuccess([_tList]),
-      setUp: () =>
-          when(() => renameList(any(), any())).thenAnswer((_) async {}),
-      act: (bloc) =>
-          bloc.add(const ListsRenameRequested('abc', 'New Name')),
-      expect: () => [
-        isA<ListsSuccess>().having(
-          (s) => s.lists.first.name,
-          'name',
-          'New Name',
-        ),
-      ],
-      verify: (_) => verify(() => renameList('abc', 'New Name')).called(1),
-    );
-
-    blocTest<ListsBloc, ListsState>(
-      'emits ActionFailure when rename throws',
-      build: buildBloc,
-      seed: () => ListsSuccess([_tList]),
-      setUp: () => when(() => renameList(any(), any()))
-          .thenThrow(const ServerException('Could not rename.')),
-      act: (bloc) =>
-          bloc.add(const ListsRenameRequested('abc', 'New Name')),
-      expect: () => [isA<ListsActionFailure>()],
-    );
-  });
 }

@@ -43,6 +43,50 @@ class CirculariButton extends StatelessWidget {
   }
 }
 
+/// Destructive variant of [CirculariButton]: red fill, white label.
+class CirculariDangerButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const CirculariDangerButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = context.circulariTheme.typography;
+
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        minimumSize: const Size.fromHeight(56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: CirculariColorsTokens.danger,
+      ),
+      onPressed: onPressed,
+      child: isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : Text(
+              label,
+              style: typography.body.medium.semibold.copyWith(
+                color: Colors.white,
+              ),
+            ),
+    );
+  }
+}
+
 class CirculariOutlinedButton extends StatelessWidget {
   final String label;
   final bool isLoading;

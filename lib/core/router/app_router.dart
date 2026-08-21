@@ -175,6 +175,16 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/lists/:id/edit',
+      builder: (context, state) {
+        final list = state.extra as ItemList;
+        return BlocProvider(
+          create: (_) => sl<CreateListCubit>(param1: list)..loadOptions(),
+          child: CreateListPage(initial: list),
+        );
+      },
+    ),
+    GoRoute(
       path: '/profile/edit',
       builder: (context, state) => BlocProvider(
         create: (_) => sl<EditProfileCubit>(),

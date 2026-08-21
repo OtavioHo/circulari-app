@@ -57,6 +57,20 @@ class ListDetailPage extends StatelessWidget {
             expandedHeight: _expandedHeight,
             collapsedHeight: _collapsedHeight,
             showBackButton: true,
+            appBarActions: [
+              // Editing needs the full entity; a deep link without the router
+              // extra has nothing to prefill the form with.
+              if (list case final list?)
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: CirculariAppBarIconButton(
+                    icon: Icons.edit_outlined,
+                    color: CirculariColorsTokens.greyscale50,
+                    onPressed: () =>
+                        context.push('/lists/$listId/edit', extra: list),
+                  ),
+                ),
+            ],
             backgroundBuilder: picturePath != null && backgroundColor != null
                 ? _buildBackground
                 : null,
