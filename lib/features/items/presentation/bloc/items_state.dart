@@ -67,11 +67,18 @@ base class ItemsSuccess extends ItemsState {
 /// list views keep rendering the current items instead of blanking to a
 /// spinner (update/delete already preserve items; create must too). The add
 /// form watches this type to disable its submit button.
+///
+/// [isLoadingMore] and [loadMoreError] must be forwarded like every other
+/// pagination field: list views gate load-more dispatch on them for ANY
+/// [ItemsSuccess], so dropping them here would reopen the gate mid-flight and
+/// fetch the same cursor twice, appending the page in duplicate.
 final class ItemsCreateInProgress extends ItemsSuccess {
   const ItemsCreateInProgress(
     super.items, {
     super.nextCursor,
+    super.isLoadingMore,
     super.totalValue,
+    super.loadMoreError,
   });
 }
 
@@ -83,7 +90,9 @@ final class ItemsCreateSuccess extends ItemsSuccess {
     super.items,
     this.created, {
     super.nextCursor,
+    super.isLoadingMore,
     super.totalValue,
+    super.loadMoreError,
   });
 }
 

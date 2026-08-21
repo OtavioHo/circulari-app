@@ -361,6 +361,8 @@ class _ListDetailPageState extends State<ListDetailPage> {
                       ),
                     ),
                   ),
+                if (state is ItemsSuccess && state.loadMoreError != null)
+                  _buildLoadMoreErrorTile(context, state.loadMoreError!),
               ],
       ItemsFailure(:final message) => [_buildFailureView(context, message)],
     };
@@ -380,6 +382,37 @@ class _ListDetailPageState extends State<ListDetailPage> {
         listName: item.listInfo?.name ?? '',
         listColor: listColor,
         categoryName: item.category?.name ?? '',
+      ),
+    );
+  }
+
+  /// Persistent end-of-list retry after a load-more failure.
+  ///
+  /// [_maybeLoadMore] stays gated shut while loadMoreError is set, so a failing
+  /// server isn't hammered once per scroll frame — but that also means nothing
+  /// re-arms pagination on its own. The snackbar alone can't carry the recovery
+  /// (it auto-dismisses in seconds, and missing it leaves the list silently
+  /// truncated until the route is reopened); this tile stays until the retry
+  /// succeeds.
+  Widget _buildLoadMoreErrorTile(BuildContext context, String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: context.circulariTheme.typography.body.medium.regular
+                .copyWith(color: CirculariColorsTokens.greyscale600),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => context.read<ItemsBloc>().add(
+              ItemsLoadMoreRequested(widget.listId),
+            ),
+            child: const Text('Tentar novamente'),
+          ),
+        ],
       ),
     );
   }

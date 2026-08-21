@@ -461,4 +461,168 @@ void main() {
       ],
     );
   });
+
+  // The server totalValue spans ALL pages, so views prefer it over folding the
+  // loaded items while pages remain unloaded. A local mutation that leaves it
+  // untouched makes the header keep counting a deleted item (or ignore a new
+  // one) until the next page lands — never, for a fully loaded list.
+  group('totalValue after local mutations', () {
+    blocTest<ItemsBloc, ItemsState>(
+      'delete subtracts the removed item value from the server total',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [tItem(id: 'a', userDefinedValue: 30.0), created],
+        nextCursor: 'cur-1',
+        totalValue: 100.0,
+      ),
+      setUp: () => when(() => deleteItem(any())).thenAnswer((_) async {}),
+      act: (b) => b.add(const ItemsDeleteRequested('a')),
+      expect: () => [
+        isA<ItemsSuccess>().having((s) => s.totalValue, 'totalValue', 70.0),
+      ],
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'update shifts the server total by the value delta',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [tItem(id: 'a', userDefinedValue: 30.0)],
+        nextCursor: 'cur-1',
+        totalValue: 100.0,
+      ),
+      setUp: () => when(() => updateItem(
+            any(),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            locationId: any(named: 'locationId'),
+            userDefinedValue: any(named: 'userDefinedValue'),
+          )).thenAnswer(
+        (_) async => tItem(id: 'a', userDefinedValue: 50.0),
+      ),
+      act: (b) => b.add(const ItemsUpdateRequested('a', name: 'Renamed')),
+      expect: () => [
+        isA<ItemsSuccess>().having((s) => s.totalValue, 'totalValue', 120.0),
+      ],
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'create adds the new item value to the server total',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        totalValue: 100.0,
+      ),
+      setUp: () => when(() => createItem(
+            listId: any(named: 'listId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            locationId: any(named: 'locationId'),
+            userDefinedValue: any(named: 'userDefinedValue'),
+            imagePath: any(named: 'imagePath'),
+          )).thenAnswer(
+        (_) async => tItem(id: 'b', userDefinedValue: 25.0),
+      ),
+      act: (b) => b.add(const ItemsCreateRequested(
+        listId: 'list-1',
+        name: 'New',
+      )),
+      expect: () => [
+        isA<ItemsCreateInProgress>()
+            .having((s) => s.totalValue, 'totalValue', 100.0),
+        isA<ItemsCreateSuccess>()
+            .having((s) => s.totalValue, 'totalValue', 125.0),
+      ],
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'leaves totalValue null when the backend never sent one',
+      build: buildBloc,
+      seed: () => ItemsSuccess([existing], nextCursor: 'cur-1'),
+      setUp: () => when(() => deleteItem(any())).thenAnswer((_) async {}),
+      act: (b) => b.add(const ItemsDeleteRequested('a')),
+      expect: () => [
+        isA<ItemsSuccess>().having((s) => s.totalValue, 'totalValue', isNull),
+      ],
+    );
+  });
+
+  // The create subtypes are ItemsSuccess, and list views gate load-more
+  // dispatch on isLoadingMore/loadMoreError for ANY ItemsSuccess. Dropping
+  // either field on a create emit reopens that gate mid-flight, refetching the
+  // same cursor and appending the page twice.
+  group('create subtypes forward pagination fields', () {
+    blocTest<ItemsBloc, ItemsState>(
+      'ItemsCreateInProgress/Success keep isLoadingMore while a page is in '
+      'flight',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        isLoadingMore: true,
+      ),
+      setUp: () => when(() => createItem(
+            listId: any(named: 'listId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            locationId: any(named: 'locationId'),
+            userDefinedValue: any(named: 'userDefinedValue'),
+            imagePath: any(named: 'imagePath'),
+          )).thenAnswer((_) async => created),
+      act: (b) => b.add(const ItemsCreateRequested(
+        listId: 'list-1',
+        name: 'New',
+      )),
+      expect: () => [
+        isA<ItemsCreateInProgress>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.nextCursor, 'nextCursor', 'cur-1'),
+        isA<ItemsCreateSuccess>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.nextCursor, 'nextCursor', 'cur-1'),
+      ],
+    );
+
+    blocTest<ItemsBloc, ItemsState>(
+      'ItemsCreateInProgress/Success keep a pending loadMoreError',
+      build: buildBloc,
+      seed: () => ItemsSuccess(
+        [existing],
+        nextCursor: 'cur-1',
+        loadMoreError: 'No internet connection.',
+      ),
+      setUp: () => when(() => createItem(
+            listId: any(named: 'listId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            quantity: any(named: 'quantity'),
+            categoryId: any(named: 'categoryId'),
+            locationId: any(named: 'locationId'),
+            userDefinedValue: any(named: 'userDefinedValue'),
+            imagePath: any(named: 'imagePath'),
+          )).thenAnswer((_) async => created),
+      act: (b) => b.add(const ItemsCreateRequested(
+        listId: 'list-1',
+        name: 'New',
+      )),
+      expect: () => [
+        isA<ItemsCreateInProgress>().having(
+          (s) => s.loadMoreError,
+          'loadMoreError',
+          'No internet connection.',
+        ),
+        isA<ItemsCreateSuccess>().having(
+          (s) => s.loadMoreError,
+          'loadMoreError',
+          'No internet connection.',
+        ),
+      ],
+    );
+  });
 }

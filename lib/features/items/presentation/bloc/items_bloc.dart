@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/domain/usecases/create_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart';
@@ -92,7 +93,9 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
       ItemsCreateInProgress(
         current.items,
         nextCursor: current.nextCursor,
+        isLoadingMore: current.isLoadingMore,
         totalValue: current.totalValue,
+        loadMoreError: current.loadMoreError,
       ),
     );
     try {
@@ -112,7 +115,12 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
           [...current.items, created],
           created,
           nextCursor: current.nextCursor,
-          totalValue: current.totalValue,
+          isLoadingMore: current.isLoadingMore,
+          totalValue: _shiftTotal(
+            current.totalValue,
+            created.userDefinedValue ?? 0,
+          ),
+          loadMoreError: current.loadMoreError,
         ),
       );
     } on QuotaException {
@@ -155,6 +163,10 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
           items: current.items
               .map((i) => i.id == event.id ? updated : i)
               .toList(),
+          totalValue: _shiftTotal(
+            current.totalValue,
+            (updated.userDefinedValue ?? 0) - _valueOf(current.items, event.id),
+          ),
           clearLoadMoreError: true,
         ),
       );
@@ -180,6 +192,10 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
       emit(
         current.copyWith(
           items: current.items.where((i) => i.id != event.id).toList(),
+          totalValue: _shiftTotal(
+            current.totalValue,
+            -_valueOf(current.items, event.id),
+          ),
           clearLoadMoreError: true,
         ),
       );
@@ -193,6 +209,26 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
         ),
       );
     }
+  }
+
+  /// Shifts the server-computed whole-list total by a local mutation's delta.
+  ///
+  /// [ItemsSuccess.totalValue] spans ALL pages, so it cannot be recomputed by
+  /// folding the loaded items — and views prefer it over that fold while pages
+  /// remain unloaded. Leaving it untouched after a create/update/delete makes
+  /// the header keep counting a removed item (or ignore a new one) until the
+  /// next page lands, which for a fully loaded list is never. Null (an older
+  /// backend that doesn't send the total) stays null.
+  double? _shiftTotal(double? total, double delta) =>
+      total == null ? null : total + delta;
+
+  /// The pre-mutation value of [id], or 0 when the item isn't in the loaded
+  /// pages (nothing to subtract in that case — the delta is the caller's).
+  double _valueOf(List<Item> items, String id) {
+    for (final item in items) {
+      if (item.id == id) return item.userDefinedValue ?? 0;
+    }
+    return 0;
   }
 
   /// The current items-carrying state collapsed to a base [ItemsSuccess], so

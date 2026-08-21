@@ -145,6 +145,29 @@ void main() {
       expect(() => source.getItems('list-1'), throwsA(isA<ServerException>()));
     });
 
+    // A bare `as String?` would throw a raw TypeError here — not a
+    // DioException, so mapDioError never sees it, and not an AppException, so
+    // ItemsBloc's `on AppException` never catches it. Coercing to null instead
+    // would silently truncate the list.
+    test('throws ServerException when nextCursor is not a string', () async {
+      stubGet({
+        'data': [okItemJson()],
+        'nextCursor': 42,
+      });
+
+      expect(() => source.getItems('list-1'), throwsA(isA<ServerException>()));
+    });
+
+    test('throws ServerException when totalValue is not numeric', () async {
+      stubGet({
+        'data': [okItemJson()],
+        'nextCursor': null,
+        'totalValue': 'lots',
+      });
+
+      expect(() => source.getItems('list-1'), throwsA(isA<ServerException>()));
+    });
+
     test('maps DioException → AppException', () async {
       when(() => dio.get(
             any(),

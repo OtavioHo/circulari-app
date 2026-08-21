@@ -9,6 +9,32 @@ import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/items_page.dart';
 import 'package:circulari/features/items/data/models/item_model.dart';
 
+/// Reads the pagination cursor from a list envelope.
+///
+/// A bare `as String?` would throw a raw [TypeError] on a non-string cursor —
+/// neither a [DioException] (so [mapDioError] never sees it) nor an
+/// [AppException] (so the blocs' `on AppException` never catches it), leaving
+/// it to surface as an unhandled bloc error. Coercing to null instead would be
+/// worse than throwing: the list would silently stop paginating.
+String? _readCursor(Map<String, dynamic> envelope) {
+  final cursor = envelope['nextCursor'];
+  if (cursor != null && cursor is! String) {
+    throw const ServerException('Unexpected response format.');
+  }
+  return cursor as String?;
+}
+
+/// Reads the whole-list total from a list envelope. Absent is legitimate (an
+/// older backend), but a present non-numeric value is a contract break and
+/// must not escape as a raw [TypeError] — see [_readCursor].
+double? _readTotalValue(Map<String, dynamic> envelope) {
+  final total = envelope['totalValue'];
+  if (total != null && total is! num) {
+    throw const ServerException('Unexpected response format.');
+  }
+  return (total as num?)?.toDouble();
+}
+
 class ItemsRemoteSource {
   final Dio _dio;
   const ItemsRemoteSource(this._dio);
@@ -53,10 +79,10 @@ class ItemsRemoteSource {
       }).toList();
       return ItemsPage(
         data: items,
-        nextCursor: envelope['nextCursor'] as String?,
+        nextCursor: _readCursor(envelope),
         // Whole-list total (all pages) — tolerant of an older backend that
         // doesn't send it yet.
-        totalValue: (envelope['totalValue'] as num?)?.toDouble(),
+        totalValue: _readTotalValue(envelope),
       );
     } on DioException catch (e) {
       throw mapDioError(e);
@@ -88,10 +114,7 @@ class ItemsRemoteSource {
         }
         return ItemModel.fromJson(e);
       }).toList();
-      return PaginatedResult(
-        data: items,
-        nextCursor: envelope['nextCursor'] as String?,
-      );
+      return PaginatedResult(data: items, nextCursor: _readCursor(envelope));
     } on DioException catch (e) {
       throw mapDioError(e);
     }
