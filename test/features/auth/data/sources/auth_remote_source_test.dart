@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/auth_interceptor.dart';
 import 'package:circulari/features/auth/data/sources/auth_remote_source.dart';
 
 import '../../../../helpers/dio_helpers.dart';
@@ -14,6 +15,10 @@ void main() {
   late MockDio dio;
   late AuthRemoteSource source;
 
+  setUpAll(() {
+    registerFallbackValue(Options());
+  });
+
   setUp(() {
     dio = MockDio();
     source = AuthRemoteSource(dio);
@@ -21,7 +26,7 @@ void main() {
 
   group('login', () {
     test('parses token, refreshToken, and user from a 200 body', () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options'))).thenAnswer(
         (_) async => Response<dynamic>(
           requestOptions: RequestOptions(path: '/auth/login'),
           statusCode: 200,
@@ -47,7 +52,7 @@ void main() {
 
     test('remaps 401 from auth endpoint to ServerException with server message',
         () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenThrow(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options'))).thenThrow(
         dioException(
           statusCode: 401,
           body: {'message': 'Invalid email or password'},
@@ -65,7 +70,7 @@ void main() {
     });
 
     test('uses default message when 401 body has no message', () async {
-      when(() => dio.post(any(), data: any(named: 'data')))
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
           .thenThrow(dioException(statusCode: 401, body: {}));
 
       expect(
@@ -79,7 +84,7 @@ void main() {
     });
 
     test('maps connection errors to NetworkException', () async {
-      when(() => dio.post(any(), data: any(named: 'data')))
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
           .thenThrow(dioConnectionError());
 
       expect(
@@ -89,7 +94,7 @@ void main() {
     });
 
     test('throws ServerException on malformed body', () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options'))).thenAnswer(
         (_) async => Response<dynamic>(
           requestOptions: RequestOptions(path: '/auth/login'),
           statusCode: 200,
@@ -104,7 +109,7 @@ void main() {
     });
 
     test('throws ServerException when token field is missing', () async {
-      when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options'))).thenAnswer(
         (_) async => Response<dynamic>(
           requestOptions: RequestOptions(path: '/auth/login'),
           statusCode: 200,
@@ -141,6 +146,47 @@ void main() {
       when(() => dio.post(any())).thenThrow(dioException(statusCode: 500));
 
       expect(() => source.logout(), throwsA(isA<AppException>()));
+    });
+  });
+
+  group('skipAuthRefresh marker', () {
+    test('every unauthenticated endpoint tells AuthInterceptor to skip the '
+        'refresh flow on 401', () async {
+      when(() => dio.post(any(),
+              data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer(
+        (invocation) async => Response<dynamic>(
+          requestOptions: RequestOptions(
+            path: invocation.positionalArguments.first as String,
+          ),
+          statusCode: 200,
+          data: {
+            'token': tAccessToken,
+            'refreshToken': tRefreshToken,
+            'user': tUserJson,
+            'resetToken': 'reset-token',
+          },
+        ),
+      );
+
+      await source.login(email: 'a@b.com', password: '12345678');
+      await source.register(
+          email: 'a@b.com', password: '12345678', name: 'Jane');
+      await source.forgotPassword(email: 'a@b.com');
+      await source.verifyResetOtp(email: 'a@b.com', otp: '123456');
+      await source.resetPassword(
+        email: 'a@b.com',
+        resetToken: 'reset-token',
+        newPassword: 'hunter2222',
+      );
+
+      final captured = verify(() => dio.post(any(),
+              data: any(named: 'data'), options: captureAny(named: 'options')))
+          .captured;
+      expect(captured, hasLength(5));
+      for (final options in captured) {
+        expect((options as Options?)?.extra?[kSkipAuthRefresh], isTrue);
+      }
     });
   });
 }

@@ -249,4 +249,33 @@ void main() {
       expect: () => const [],
     );
   });
+
+  test('does not throw when the sheet closes mid-analysis (emit after close)',
+      () async {
+    when(() => analyze(any())).thenAnswer(
+      (_) => Future.delayed(const Duration(milliseconds: 50), () => tAiResult),
+    );
+    final cubit = buildCubit();
+    final pending = cubit.analyze('/tmp/x.jpg');
+    await cubit.close();
+    // The late emit must be swallowed, not thrown as StateError.
+    await pending;
+  });
+
+  test('does not throw when the sheet closes mid-refine (emit after close)',
+      () async {
+    when(() => analyze(any())).thenAnswer((_) async => tAiResult);
+    when(() => analyze(
+          any(),
+          hint: any(named: 'hint', that: isNotNull),
+          parentAnalysisId: any(named: 'parentAnalysisId'),
+        )).thenAnswer(
+      (_) => Future.delayed(const Duration(milliseconds: 50), () => tAiResult),
+    );
+    final cubit = buildCubit();
+    await cubit.analyze('/tmp/x.jpg');
+    final pending = cubit.refine('é um iPhone 15');
+    await cubit.close();
+    await pending;
+  });
 }

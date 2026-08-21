@@ -348,6 +348,7 @@ class _ItemDetailScaffold extends StatelessWidget {
             categoryId: result.categoryId,
             userDefinedValue: result.userDefinedValue,
             aiAnalysisId: result.aiAnalysisId,
+            imagePath: result.imagePath,
           ),
         );
   }

@@ -7,6 +7,13 @@ final class ItemsLoadRequested extends ItemsEvent {
   const ItemsLoadRequested(this.listId);
 }
 
+/// Fetches the next page and appends it to the current list. No-op when all
+/// pages are loaded or a load-more is already in flight.
+final class ItemsLoadMoreRequested extends ItemsEvent {
+  final String listId;
+  const ItemsLoadMoreRequested(this.listId);
+}
+
 final class ItemsCreateRequested extends ItemsEvent {
   final String listId;
   final String name;

@@ -1,12 +1,20 @@
 import 'package:dio/dio.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/core/network/auth_interceptor.dart';
 import 'package:circulari/core/network/dio_error_mapper.dart';
 import 'package:circulari/features/auth/data/models/user_model.dart';
 
 class AuthRemoteSource {
   final Dio _dio;
   const AuthRemoteSource(this._dio);
+
+  /// Marks unauthenticated endpoints so [AuthInterceptor] lets their 401s
+  /// (wrong credentials, bad OTP/reset token) pass through instead of
+  /// triggering a token refresh. `/auth/me` and `/auth/logout` are
+  /// session-bound and deliberately unmarked.
+  static Options get _noAuthRefresh =>
+      Options(extra: const {kSkipAuthRefresh: true});
 
   Future<({String token, String refreshToken, UserModel user})> register({
     required String email,
@@ -17,6 +25,7 @@ class AuthRemoteSource {
       final response = await _dio.post(
         '/auth/register',
         data: {'email': email, 'password': password, 'name': name},
+        options: _noAuthRefresh,
       );
       final data = _parseBody(response.data);
       return (
@@ -37,6 +46,7 @@ class AuthRemoteSource {
       final response = await _dio.post(
         '/auth/login',
         data: {'email': email, 'password': password},
+        options: _noAuthRefresh,
       );
       final data = _parseBody(response.data);
       return (
@@ -68,7 +78,11 @@ class AuthRemoteSource {
 
   Future<void> forgotPassword({required String email}) async {
     try {
-      await _dio.post('/auth/forgot-password', data: {'email': email});
+      await _dio.post(
+        '/auth/forgot-password',
+        data: {'email': email},
+        options: _noAuthRefresh,
+      );
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -82,6 +96,7 @@ class AuthRemoteSource {
       final response = await _dio.post(
         '/auth/verify-reset-otp',
         data: {'email': email, 'otp': otp},
+        options: _noAuthRefresh,
       );
       final data = _parseBody(response.data);
       return _requireString(data, 'resetToken');
@@ -103,6 +118,7 @@ class AuthRemoteSource {
           'resetToken': resetToken,
           'newPassword': newPassword,
         },
+        options: _noAuthRefresh,
       );
     } on DioException catch (e) {
       throw _mapError(e);

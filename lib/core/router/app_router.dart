@@ -20,6 +20,7 @@ import 'package:circulari/features/auth/presentation/pages/verify_otp_page.dart'
 import 'package:circulari/features/items/domain/entities/item.dart';
 import 'package:circulari/features/items/domain/usecases/delete_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/update_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/upload_item_image_usecase.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart';
@@ -271,6 +272,7 @@ final appRouter = GoRouter(
             item: item,
             updateItem: sl<UpdateItemUsecase>(),
             deleteItem: sl<DeleteItemUsecase>(),
+            uploadItemImage: sl<UploadItemImageUsecase>(),
           ),
           child: const ItemDetailPage(),
         );

@@ -11,6 +11,7 @@ import 'package:circulari/features/items/domain/usecases/get_items_usecase.dart'
 import 'package:circulari/features/items/domain/usecases/revalue_item_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/search_items_usecase.dart';
 import 'package:circulari/features/items/domain/usecases/update_item_usecase.dart';
+import 'package:circulari/features/items/domain/usecases/upload_item_image_usecase.dart';
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
@@ -26,6 +27,7 @@ extension ItemsDI on GetIt {
     registerLazySingleton(() => CreateItemUsecase(call()));
     registerLazySingleton(() => UpdateItemUsecase(call()));
     registerLazySingleton(() => DeleteItemUsecase(call()));
+    registerLazySingleton(() => UploadItemImageUsecase(call()));
     registerLazySingleton(() => AnalyzeItemImageUsecase(call()));
     registerLazySingleton(() => RevalueItemUsecase(call()));
     registerLazySingleton(() => SearchItemsUsecase(call()));

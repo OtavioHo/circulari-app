@@ -2,6 +2,7 @@ import 'package:circulari/core/models/paginated_result.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/entities/items_page.dart';
 import 'package:circulari/features/items/domain/repositories/items_repository.dart';
 import 'package:circulari/features/items/data/sources/items_remote_source.dart';
 
@@ -13,7 +14,12 @@ class ItemsRepositoryImpl implements ItemsRepository {
   Future<List<Category>> getCategories() => _source.getCategories();
 
   @override
-  Future<List<Item>> getItems(String listId) => _source.getItems(listId);
+  Future<ItemsPage> getItems(
+    String listId, {
+    String? cursor,
+    int? limit,
+  }) =>
+      _source.getItems(listId, cursor: cursor, limit: limit);
 
   @override
   Future<PaginatedResult<Item>> searchItems({

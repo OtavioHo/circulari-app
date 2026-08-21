@@ -13,6 +13,10 @@ final class ItemDetailUpdateRequested extends ItemDetailEvent {
   /// Applies a re-analysis to the item — the server copies its price snapshot.
   final String? aiAnalysisId;
 
+  /// A new photo picked in the edit sheet — uploaded after the field update
+  /// succeeds (separate multipart endpoint).
+  final String? imagePath;
+
   const ItemDetailUpdateRequested(
     this.id, {
     this.name,
@@ -21,6 +25,7 @@ final class ItemDetailUpdateRequested extends ItemDetailEvent {
     this.categoryId,
     this.userDefinedValue,
     this.aiAnalysisId,
+    this.imagePath,
   });
 }
 

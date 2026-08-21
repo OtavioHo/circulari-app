@@ -122,6 +122,7 @@ class _Form extends StatelessWidget {
               CirculariAuthTextFormField(
                 label: 'Senha',
                 controller: passwordController,
+                obscureText: true,
                 isAuth: true,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => onSubmit(),

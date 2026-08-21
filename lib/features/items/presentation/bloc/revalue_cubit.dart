@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:circulari/core/bloc/safe_emit_mixin.dart';
 import 'package:circulari/core/error/app_exception.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/usecases/revalue_item_usecase.dart';
@@ -33,7 +34,8 @@ final class RevalueQuotaExceeded extends RevalueState {
   const RevalueQuotaExceeded();
 }
 
-class RevalueCubit extends Cubit<RevalueState> {
+class RevalueCubit extends Cubit<RevalueState>
+    with SafeEmitMixin<RevalueState> {
   final RevalueItemUsecase _revalue;
 
   // Correction chain: after a preview, the NEXT correction's parent is the
@@ -43,12 +45,6 @@ class RevalueCubit extends Cubit<RevalueState> {
   String? _parentAnalysisId;
 
   RevalueCubit(this._revalue) : super(const RevalueInitial());
-
-  // The sheet-owned cubit can be closed while the up-to-90s request is in
-  // flight (drag/back/close); emitting then would throw StateError.
-  void _safeEmit(RevalueState state) {
-    if (!isClosed) emit(state);
-  }
 
   Future<void> revalue({
     required String itemId,
@@ -65,17 +61,17 @@ class RevalueCubit extends Cubit<RevalueState> {
         parentAnalysisId: _parentAnalysisId,
       );
       _parentAnalysisId = result.analysisId ?? _parentAnalysisId;
-      _safeEmit(RevaluePreview(result));
+      safeEmit(RevaluePreview(result));
     } on QuotaException {
-      _safeEmit(const RevalueQuotaExceeded());
+      safeEmit(const RevalueQuotaExceeded());
     } on RateLimitException {
-      _safeEmit(const RevalueFailure(kAiRateLimitMessage));
+      safeEmit(const RevalueFailure(kAiRateLimitMessage));
     } on AppException catch (e) {
-      _safeEmit(RevalueFailure(e.message));
+      safeEmit(RevalueFailure(e.message));
     }
   }
 
   /// Back to the hint input (Descartar from the preview). The executed
   /// analysis stays counted, and the correction chain is preserved.
-  void reset() => _safeEmit(const RevalueInitial());
+  void reset() => safeEmit(const RevalueInitial());
 }

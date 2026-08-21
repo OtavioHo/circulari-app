@@ -2,10 +2,15 @@ import 'package:circulari/core/models/paginated_result.dart';
 import 'package:circulari/features/items/domain/entities/ai_analysis_result.dart';
 import 'package:circulari/features/items/domain/entities/category.dart';
 import 'package:circulari/features/items/domain/entities/item.dart';
+import 'package:circulari/features/items/domain/entities/items_page.dart';
 
 abstract interface class ItemsRepository {
   Future<List<Category>> getCategories();
-  Future<List<Item>> getItems(String listId);
+  Future<ItemsPage> getItems(
+    String listId, {
+    String? cursor,
+    int? limit,
+  });
   Future<PaginatedResult<Item>> searchItems({
     String? search,
     String? cursor,
