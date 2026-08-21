@@ -9,7 +9,8 @@ import 'package:circulari/features/lists/domain/usecases/get_list_colors_usecase
 import 'package:circulari/features/lists/domain/usecases/get_list_icons_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_list_pictures_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_lists_usecase.dart';
-import 'package:circulari/features/lists/domain/usecases/rename_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/update_list_usecase.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 import 'package:circulari/features/lists/presentation/bloc/lists_bloc.dart';
 import 'package:circulari/features/lists/presentation/cubit/create_list_cubit.dart';
 
@@ -23,20 +24,23 @@ extension ListsDI on GetIt {
     registerLazySingleton(() => GetListPicturesUsecase(call()));
     registerLazySingleton(() => CreateListUsecase(call()));
     registerLazySingleton(() => DeleteListUsecase(call()));
-    registerLazySingleton(() => RenameListUsecase(call()));
+    registerLazySingleton(() => UpdateListUsecase(call()));
     registerFactory(
       () => ListsBloc(
         getLists: call(),
-        renameList: call(),
         deleteList: call(),
       ),
     );
-    registerFactory(
-      () => CreateListCubit(
+    // param1 carries the list being edited; null means create mode.
+    registerFactoryParam<CreateListCubit, ItemList?, void>(
+      (initial, _) => CreateListCubit(
         getColors: call(),
         getIcons: call(),
         getPictures: call(),
         createList: call(),
+        updateList: call(),
+        deleteList: call(),
+        initial: initial,
       ),
     );
   }

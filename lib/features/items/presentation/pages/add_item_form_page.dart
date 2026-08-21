@@ -255,7 +255,6 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     } else if (state is ItemsQuotaExceeded) {
       PaywallBottomSheet.show(
         context,
-        resourceName: 'itens',
         onUpgrade: () => context.push('/paywall'),
       );
     } else if (state is ItemsActionFailure) {
@@ -297,7 +296,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         ),
         BlocListener<ItemsBloc, ItemsState>(listener: _onItemsState),
       ],
-      child: CirculariInAppScaffold(
+      child: Stack(
+        children: [
+          CirculariInAppScaffold(
         title: 'Criar item',
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -349,12 +350,6 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 ),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                   builder: (context, state) {
-                    if (state is AiAnalysisLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: LinearProgressIndicator(),
-                      );
-                    }
                     if (state is AiAnalysisRefining) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -527,9 +522,24 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
           ),
         ),
       ),
+          BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+            // A refine (correction chip / "Outro…") is the same wait as the
+            // initial analysis, so it gets the same full-screen overlay.
+            buildWhen: (prev, curr) => _isAnalyzing(prev) != _isAnalyzing(curr),
+            builder: (context, state) => _isAnalyzing(state)
+                ? const Positioned.fill(child: AiScanningOverlay())
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
     );
   }
 }
+
+/// True while the AI is working — the initial photo analysis or a
+/// correction-triggered re-analysis.
+bool _isAnalyzing(AiAnalysisState state) =>
+    state is AiAnalysisLoading || state is AiAnalysisRefining;
 
 /// Post-correction summary: old → new suggested price, with Desfazer. The
 /// executed analysis stays counted regardless (copy on the undo snackbar).

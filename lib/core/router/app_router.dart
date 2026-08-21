@@ -175,6 +175,19 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/lists/:id/edit',
+      // extra is null on deep links and Android state restoration; the form
+      // can't be built without the entity, so fall back to the lists tab.
+      redirect: (context, state) => state.extra is ItemList ? null : '/lists',
+      builder: (context, state) {
+        final list = state.extra as ItemList;
+        return BlocProvider(
+          create: (_) => sl<CreateListCubit>(param1: list)..loadOptions(),
+          child: CreateListPage(initial: list),
+        );
+      },
+    ),
+    GoRoute(
       path: '/profile/edit',
       builder: (context, state) => BlocProvider(
         create: (_) => sl<EditProfileCubit>(),

@@ -3,11 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/data/models/list_color_model.dart';
+import 'package:circulari/features/lists/data/models/list_icon_model.dart';
+import 'package:circulari/features/lists/data/models/list_picture_model.dart';
+import 'package:circulari/features/lists/domain/entities/item_list.dart';
 import 'package:circulari/features/lists/domain/entities/list_color.dart';
+import 'package:circulari/features/lists/domain/entities/list_icon.dart';
+import 'package:circulari/features/lists/domain/entities/list_picture.dart';
 import 'package:circulari/features/lists/domain/usecases/create_list_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/delete_list_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_list_colors_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_list_icons_usecase.dart';
 import 'package:circulari/features/lists/domain/usecases/get_list_pictures_usecase.dart';
+import 'package:circulari/features/lists/domain/usecases/update_list_usecase.dart';
 import 'package:circulari/features/lists/presentation/cubit/create_list_cubit.dart';
 import 'package:circulari/features/lists/presentation/cubit/create_list_state.dart';
 
@@ -21,24 +29,35 @@ class MockGetPictures extends Mock implements GetListPicturesUsecase {}
 
 class MockCreateList extends Mock implements CreateListUsecase {}
 
+class MockUpdateList extends Mock implements UpdateListUsecase {}
+
+class MockDeleteList extends Mock implements DeleteListUsecase {}
+
 void main() {
   late MockGetColors getColors;
   late MockGetIcons getIcons;
   late MockGetPictures getPictures;
   late MockCreateList createList;
+  late MockUpdateList updateList;
+  late MockDeleteList deleteList;
 
   setUp(() {
     getColors = MockGetColors();
     getIcons = MockGetIcons();
     getPictures = MockGetPictures();
     createList = MockCreateList();
+    updateList = MockUpdateList();
+    deleteList = MockDeleteList();
   });
 
-  CreateListCubit buildCubit() => CreateListCubit(
+  CreateListCubit buildCubit({ItemList? initial}) => CreateListCubit(
         getColors: getColors,
         getIcons: getIcons,
         getPictures: getPictures,
         createList: createList,
+        updateList: updateList,
+        deleteList: deleteList,
+        initial: initial,
       );
 
   void stubOptionsHappyPath() {
@@ -75,6 +94,49 @@ void main() {
             .having((s) => s.selectedIcon, 'selectedIcon', tListIcon)
             .having((s) => s.selectedPicture, 'selectedPicture', tListPicture)
             .having((s) => s.submitting, 'submitting', false),
+      ],
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'handles model-typed (covariant) lists from the data layer',
+      build: buildCubit,
+      setUp: () {
+        // The real remote sources return List<ListColorModel> etc. — the
+        // subtype-parameterised runtime type used to make firstWhere reject
+        // the entity-typed orElse closure and strand the state in Loading.
+        when(() => getColors()).thenAnswer(
+          (_) async => <ListColorModel>[
+            ListColorModel(
+              hexCode: tListColor.hexCode,
+              name: tListColor.name,
+              order: tListColor.order,
+            ),
+          ],
+        );
+        when(() => getIcons()).thenAnswer(
+          (_) async => <ListIconModel>[
+            ListIconModel(
+              slug: tListIcon.slug,
+              name: tListIcon.name,
+              order: tListIcon.order,
+            ),
+          ],
+        );
+        when(() => getPictures()).thenAnswer(
+          (_) async => <ListPictureModel>[
+            ListPictureModel(
+              slug: tListPicture.slug,
+              order: tListPicture.order,
+            ),
+          ],
+        );
+      },
+      act: (c) => c.loadOptions(),
+      expect: () => [
+        isA<CreateListLoading>(),
+        isA<CreateListReady>()
+            .having((s) => s.selectedColor.hexCode, 'selectedColor.hexCode',
+                tListColor.hexCode),
       ],
     );
 
@@ -190,7 +252,7 @@ void main() {
     );
 
     blocTest<CreateListCubit, CreateListState>(
-      'emits QuotaExceeded on PlanLimitException',
+      'emits QuotaExceeded then restores the form on PlanLimitException',
       build: buildCubit,
       seed: () => ready,
       setUp: () => when(() => createList(
@@ -204,11 +266,12 @@ void main() {
       expect: () => [
         isA<CreateListReady>().having((s) => s.submitting, 'submitting', true),
         isA<CreateListQuotaExceeded>(),
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', false),
       ],
     );
 
     blocTest<CreateListCubit, CreateListState>(
-      'emits QuotaExceeded on TierRequiredException',
+      'emits QuotaExceeded then restores the form on TierRequiredException',
       build: buildCubit,
       seed: () => ready,
       setUp: () => when(() => createList(
@@ -222,6 +285,7 @@ void main() {
       expect: () => [
         isA<CreateListReady>(),
         isA<CreateListQuotaExceeded>(),
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', false),
       ],
     );
 
@@ -258,6 +322,134 @@ void main() {
             iconId: any(named: 'iconId'),
             pictureId: any(named: 'pictureId'),
           )),
+    );
+  });
+
+  group('edit mode', () {
+    const colorB = ListColor(hexCode: '#00FF00', name: 'Green', order: 1);
+    const iconB = ListIcon(slug: 'car', name: 'Car', order: 1);
+    const pictureB = ListPicture(slug: 'city', order: 1);
+
+    final tEditing = ItemList(
+      id: 'list-9',
+      name: 'Old Name',
+      location: 'Old Place',
+      color: colorB,
+      icon: iconB,
+      picture: pictureB,
+      itemCount: 3,
+      totalValue: 120,
+      createdAt: DateTime(2024),
+    );
+
+    final ready = CreateListReady(
+      colors: [tListColor, colorB],
+      icons: [tListIcon, iconB],
+      pictures: [tListPicture, pictureB],
+      selectedColor: colorB,
+      selectedIcon: iconB,
+      selectedPicture: pictureB,
+    );
+
+    void stubUpdateOk() {
+      when(() => updateList(
+            any(),
+            name: any(named: 'name'),
+            location: any(named: 'location'),
+            colorId: any(named: 'colorId'),
+            iconId: any(named: 'iconId'),
+            pictureId: any(named: 'pictureId'),
+          )).thenAnswer((_) async {});
+    }
+
+    blocTest<CreateListCubit, CreateListState>(
+      'loadOptions pre-selects the edited list color/icon/picture',
+      build: () => buildCubit(initial: tEditing),
+      setUp: () {
+        when(() => getColors())
+            .thenAnswer((_) async => [tListColor, colorB]);
+        when(() => getIcons()).thenAnswer((_) async => [tListIcon, iconB]);
+        when(() => getPictures())
+            .thenAnswer((_) async => [tListPicture, pictureB]);
+      },
+      act: (c) => c.loadOptions(),
+      expect: () => [
+        isA<CreateListLoading>(),
+        isA<CreateListReady>()
+            .having((s) => s.selectedColor, 'selectedColor', colorB)
+            .having((s) => s.selectedIcon, 'selectedIcon', iconB)
+            .having((s) => s.selectedPicture, 'selectedPicture', pictureB),
+      ],
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'submit PATCHes via updateList and emits Success with updated entity',
+      build: () => buildCubit(initial: tEditing),
+      seed: () => ready,
+      setUp: stubUpdateOk,
+      act: (c) => c.submit(name: 'New Name', location: 'New Place'),
+      expect: () => [
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', true),
+        isA<CreateListSuccess>()
+            .having((s) => s.list.id, 'id', 'list-9')
+            .having((s) => s.list.name, 'name', 'New Name')
+            .having((s) => s.list.location, 'location', 'New Place')
+            .having((s) => s.list.itemCount, 'itemCount', 3),
+      ],
+      verify: (_) {
+        verify(() => updateList(
+              'list-9',
+              name: 'New Name',
+              location: 'New Place',
+              colorId: colorB.hexCode,
+              iconId: iconB.slug,
+              pictureId: pictureB.slug,
+            )).called(1);
+        verifyNever(() => createList(
+              name: any(named: 'name'),
+              location: any(named: 'location'),
+              colorId: any(named: 'colorId'),
+              iconId: any(named: 'iconId'),
+              pictureId: any(named: 'pictureId'),
+            ));
+      },
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'delete emits Deleted on success',
+      build: () => buildCubit(initial: tEditing),
+      seed: () => ready,
+      setUp: () => when(() => deleteList(any())).thenAnswer((_) async {}),
+      act: (c) => c.delete(),
+      expect: () => [
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', true),
+        isA<CreateListDeleted>(),
+      ],
+      verify: (_) => verify(() => deleteList('list-9')).called(1),
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'delete returns to Ready with errorMessage on AppException',
+      build: () => buildCubit(initial: tEditing),
+      seed: () => ready,
+      setUp: () => when(() => deleteList(any()))
+          .thenThrow(const ServerException('boom')),
+      act: (c) => c.delete(),
+      expect: () => [
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', true),
+        isA<CreateListReady>()
+            .having((s) => s.submitting, 'submitting', false)
+            .having((s) => s.errorMessage, 'errorMessage', 'boom'),
+      ],
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'delete is a no-op in create mode',
+      build: buildCubit,
+      seed: () => ready,
+      act: (c) => c.delete(),
+      expect: () => const <CreateListState>[],
+      verify: (_) => verifyNever(() => deleteList(any())),
     );
   });
 }

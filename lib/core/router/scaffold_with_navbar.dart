@@ -35,22 +35,22 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 CirculariNavItem(
                   icon: Icons.home_outlined,
                   activeIcon: Icons.home,
-                  label: 'Home',
+                  label: 'Início',
                 ),
                 CirculariNavItem(
                   icon: Icons.add_circle_outline,
                   activeIcon: Icons.add_circle,
-                  label: 'Add',
+                  label: 'Criar',
                 ),
                 CirculariNavItem(
                   icon: Icons.list_alt_outlined,
                   activeIcon: Icons.list_alt,
-                  label: 'Lists',
+                  label: 'Listas',
                 ),
                 CirculariNavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
-                  label: 'Profile',
+                  label: 'Perfil',
                 ),
               ],
               currentIndex: _selectedIndex(context),

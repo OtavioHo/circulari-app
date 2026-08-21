@@ -106,8 +106,8 @@ void main() {
     });
   });
 
-  group('renameList', () {
-    test('PATCHes /lists/:id with new name', () async {
+  group('updateList', () {
+    test('PATCHes /lists/:id with the full body', () async {
       when(() => dio.patch(any(), data: any(named: 'data'))).thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: '/lists/abc'),
@@ -115,10 +115,38 @@ void main() {
         ),
       );
 
-      await source.renameList('abc', 'New Name');
+      await source.updateList(
+        'abc',
+        name: 'New Name',
+        location: 'SP',
+        colorId: '#FF0000',
+        iconId: 'home',
+        pictureId: 'nature',
+      );
 
-      verify(() => dio.patch('/lists/abc', data: {'name': 'New Name'}))
-          .called(1);
+      verify(() => dio.patch('/lists/abc', data: {
+            'name': 'New Name',
+            'location': 'SP',
+            'color_id': '#FF0000',
+            'icon_id': 'home',
+            'picture_id': 'nature',
+          })).called(1);
+    });
+
+    test('sends explicit null location and omits other null fields', () async {
+      when(() => dio.patch(any(), data: any(named: 'data'))).thenAnswer(
+        (_) async => Response(
+          requestOptions: RequestOptions(path: '/lists/abc'),
+          statusCode: 200,
+        ),
+      );
+
+      await source.updateList('abc', name: 'New Name');
+
+      verify(() => dio.patch(
+            '/lists/abc',
+            data: {'name': 'New Name', 'location': null},
+          )).called(1);
     });
 
     test('maps 404 to NotFoundException', () async {
@@ -126,7 +154,7 @@ void main() {
           .thenThrow(dioException(statusCode: 404, body: {'message': 'no'}));
 
       expect(
-        () => source.renameList('abc', 'X'),
+        () => source.updateList('abc', name: 'X'),
         throwsA(isA<NotFoundException>()),
       );
     });

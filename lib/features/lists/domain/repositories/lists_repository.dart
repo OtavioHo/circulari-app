@@ -15,6 +15,13 @@ abstract interface class ListsRepository {
     required String iconId,
     required String pictureId,
   });
-  Future<void> renameList(String id, String name);
+  Future<void> updateList(
+    String id, {
+    required String name,
+    String? location,
+    String? colorId,
+    String? iconId,
+    String? pictureId,
+  });
   Future<void> deleteList(String id);
 }

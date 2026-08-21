@@ -60,6 +60,11 @@ final class CreateListSuccess extends CreateListState {
   const CreateListSuccess(this.list);
 }
 
+/// Emitted after the list being edited is deleted.
+final class CreateListDeleted extends CreateListState {
+  const CreateListDeleted();
+}
+
 final class CreateListOptionsFailure extends CreateListState {
   final String message;
   const CreateListOptionsFailure(this.message);

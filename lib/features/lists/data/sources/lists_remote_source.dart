@@ -97,9 +97,24 @@ class ListsRemoteSource {
     }
   }
 
-  Future<void> renameList(String id, String name) async {
+  Future<void> updateList(
+    String id, {
+    required String name,
+    String? location,
+    String? colorId,
+    String? iconId,
+    String? pictureId,
+  }) async {
     try {
-      await _dio.patch('/lists/$id', data: {'name': name});
+      await _dio.patch('/lists/$id', data: {
+        'name': name,
+        // Sent even when null: the backend keeps omitted keys unchanged, so an
+        // explicit null is the only way to clear a previously set location.
+        'location': location,
+        'color_id': ?colorId,
+        'icon_id': ?iconId,
+        'picture_id': ?pictureId,
+      });
     } on DioException catch (e) {
       throw mapDioError(e);
     }

@@ -396,18 +396,12 @@ class _ItemDetailScaffold extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: CirculariColorsTokens.greyscale800,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => _DeleteConfirmationSheet(
-        onBack: () => Navigator.of(ctx).pop(false),
-        onConfirm: () => Navigator.of(ctx).pop(true),
-      ),
+    final confirmed = await ConfirmDeleteBottomSheet.show(
+      context,
+      title: 'Tem certeza que deseja excluir o item?',
+      message: 'Caso exclua o item, ele será excluído definitivamente.',
+      cancelLabel: 'Voltar',
+      confirmLabel: 'Sim, excluir item',
     );
 
     if (confirmed == true && context.mounted) {
@@ -428,55 +422,6 @@ class _ItemDetailScaffold extends StatelessWidget {
     } catch (_) {
       return null;
     }
-  }
-}
-
-class _DeleteConfirmationSheet extends StatelessWidget {
-  final VoidCallback onBack;
-  final VoidCallback onConfirm;
-
-  const _DeleteConfirmationSheet({
-    required this.onBack,
-    required this.onConfirm,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final typography = context.circulariTheme.typography;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Tem certeza que deseja excluir o item?',
-            textAlign: TextAlign.center,
-            style: typography.body.xLarge.semibold.copyWith(
-              color: CirculariColorsTokens.greyscale50,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Caso exclua o item, ele será excluído definitivamente.',
-            textAlign: TextAlign.center,
-            style: typography.body.large.regular.copyWith(
-              color: CirculariColorsTokens.greyscale500,
-              height: 1.5,
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 24),
-          CirculariButton(label: 'Voltar', onPressed: onBack),
-          const SizedBox(height: 16),
-          CirculariOutlinedButton(
-            label: 'Sim, excluir item',
-            onPressed: onConfirm,
-          ),
-        ],
-      ),
-    );
   }
 }
 

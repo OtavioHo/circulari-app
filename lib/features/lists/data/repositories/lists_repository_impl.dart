@@ -37,8 +37,21 @@ class ListsRepositoryImpl implements ListsRepository {
       );
 
   @override
-  Future<void> renameList(String id, String name) =>
-      _source.renameList(id, name);
+  Future<void> updateList(
+    String id, {
+    required String name,
+    String? location,
+    String? colorId,
+    String? iconId,
+    String? pictureId,
+  }) => _source.updateList(
+        id,
+        name: name,
+        location: location,
+        colorId: colorId,
+        iconId: iconId,
+        pictureId: pictureId,
+      );
 
   @override
   Future<void> deleteList(String id) => _source.deleteList(id);
