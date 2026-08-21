@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:circulari/core/error/app_exception.dart';
+import 'package:circulari/features/lists/data/models/list_color_model.dart';
+import 'package:circulari/features/lists/data/models/list_icon_model.dart';
+import 'package:circulari/features/lists/data/models/list_picture_model.dart';
 import 'package:circulari/features/lists/domain/entities/item_list.dart';
 import 'package:circulari/features/lists/domain/entities/list_color.dart';
 import 'package:circulari/features/lists/domain/entities/list_icon.dart';
@@ -91,6 +94,49 @@ void main() {
             .having((s) => s.selectedIcon, 'selectedIcon', tListIcon)
             .having((s) => s.selectedPicture, 'selectedPicture', tListPicture)
             .having((s) => s.submitting, 'submitting', false),
+      ],
+    );
+
+    blocTest<CreateListCubit, CreateListState>(
+      'handles model-typed (covariant) lists from the data layer',
+      build: buildCubit,
+      setUp: () {
+        // The real remote sources return List<ListColorModel> etc. — the
+        // subtype-parameterised runtime type used to make firstWhere reject
+        // the entity-typed orElse closure and strand the state in Loading.
+        when(() => getColors()).thenAnswer(
+          (_) async => <ListColorModel>[
+            ListColorModel(
+              hexCode: tListColor.hexCode,
+              name: tListColor.name,
+              order: tListColor.order,
+            ),
+          ],
+        );
+        when(() => getIcons()).thenAnswer(
+          (_) async => <ListIconModel>[
+            ListIconModel(
+              slug: tListIcon.slug,
+              name: tListIcon.name,
+              order: tListIcon.order,
+            ),
+          ],
+        );
+        when(() => getPictures()).thenAnswer(
+          (_) async => <ListPictureModel>[
+            ListPictureModel(
+              slug: tListPicture.slug,
+              order: tListPicture.order,
+            ),
+          ],
+        );
+      },
+      act: (c) => c.loadOptions(),
+      expect: () => [
+        isA<CreateListLoading>(),
+        isA<CreateListReady>()
+            .having((s) => s.selectedColor.hexCode, 'selectedColor.hexCode',
+                tListColor.hexCode),
       ],
     );
 

@@ -49,9 +49,13 @@ class CreateListCubit extends Cubit<CreateListState> {
         _getIcons(),
         _getPictures(),
       ]);
-      final colors = results[0] as List<ListColor>;
-      final icons = results[1] as List<ListIcon>;
-      final pictures = results[2] as List<ListPicture>;
+      // The data layer returns model-typed lists (e.g. List<ListColorModel>).
+      // cast() rebinds the element type so firstWhere's `orElse` closure
+      // (typed against the entity) is accepted at runtime — a plain downcast
+      // keeps the covariant runtime type and throws inside firstWhere.
+      final colors = (results[0] as List).cast<ListColor>();
+      final icons = (results[1] as List).cast<ListIcon>();
+      final pictures = (results[2] as List).cast<ListPicture>();
 
       if (colors.isEmpty || icons.isEmpty || pictures.isEmpty) {
         emit(const CreateListOptionsFailure('No options available from server.'));
