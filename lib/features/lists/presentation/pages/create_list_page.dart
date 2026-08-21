@@ -24,7 +24,6 @@ class CreateListPage extends StatelessWidget {
         } else if (state is CreateListQuotaExceeded) {
           PaywallBottomSheet.show(
             context,
-            resourceName: 'listas',
             onUpgrade: () => context.push('/paywall'),
           );
         }

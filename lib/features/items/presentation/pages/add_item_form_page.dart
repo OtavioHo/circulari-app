@@ -255,7 +255,6 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
     } else if (state is ItemsQuotaExceeded) {
       PaywallBottomSheet.show(
         context,
-        resourceName: 'itens',
         onUpgrade: () => context.push('/paywall'),
       );
     } else if (state is ItemsActionFailure) {

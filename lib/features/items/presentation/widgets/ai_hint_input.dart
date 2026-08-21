@@ -71,12 +71,11 @@ class AiHintInput extends StatelessWidget {
   }
 }
 
-/// Single owner of the AI-quota paywall invocation (resource label + route),
-/// previously copy-pasted per call site.
+/// Single owner of the AI-quota paywall invocation, previously copy-pasted
+/// per call site.
 void showAiQuotaPaywall(BuildContext context) {
   PaywallBottomSheet.show(
     context,
-    resourceName: 'análises de IA',
     onUpgrade: () => context.push('/paywall'),
   );
 }
