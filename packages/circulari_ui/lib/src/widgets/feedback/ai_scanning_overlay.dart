@@ -52,45 +52,51 @@ class _AiScanningOverlayState extends State<AiScanningOverlay>
   Widget build(BuildContext context) {
     final theme = context.circulariTheme;
 
-    return ColoredBox(
-      // The Figma frame fill is forestVault900 at 60%, but that assumes a dark
-      // page behind it; over the white form it washes out, so the scrim is
-      // heavier to keep the mock's near-dark look.
-      color: _darkGreen.withValues(alpha: 0.92),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 200,
-              height: 200,
-              // The boundary keeps the per-frame pulse repaint off the
-              // route-level layer (scrim + text repaint once, not at 60fps);
-              // the painter repaints itself via `repaint: controller`.
-              child: RepaintBoundary(
-                child: CustomPaint(painter: _PulsePainter(_controller)),
+    // Material (transparent) keeps the Texts styled when the overlay is
+    // stacked above the Scaffold's own Material — without it they render
+    // with the debug yellow double-underline.
+    return Material(
+      type: MaterialType.transparency,
+      child: ColoredBox(
+        // The Figma frame fill is forestVault900 at 60%, but that assumes a
+        // dark page behind it; over the white form it washes out, so the
+        // scrim is heavier to keep the mock's near-dark look.
+        color: _darkGreen.withValues(alpha: 0.92),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 200,
+                height: 200,
+                // The boundary keeps the per-frame pulse repaint off the
+                // route-level layer (scrim + text repaint once, not at 60fps);
+                // the painter repaints itself via `repaint: controller`.
+                child: RepaintBoundary(
+                  child: CustomPaint(painter: _PulsePainter(_controller)),
+                ),
               ),
-            ),
-            const SizedBox(height: 48),
-            Text(
-              widget.title,
-              textAlign: TextAlign.center,
-              style: theme.typography.body.xLarge.bold.copyWith(
-                fontSize: 28,
-                height: 1.3,
-                color: Colors.white,
+              const SizedBox(height: 48),
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: theme.typography.body.xLarge.bold.copyWith(
+                  fontSize: 28,
+                  height: 1.3,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.subtitle,
-              textAlign: TextAlign.center,
-              style: theme.typography.body.large.medium.copyWith(
-                height: 1.6,
-                color: CirculariColorsTokens.vitalGlow,
+              const SizedBox(height: 8),
+              Text(
+                widget.subtitle,
+                textAlign: TextAlign.center,
+                style: theme.typography.body.large.medium.copyWith(
+                  height: 1.6,
+                  color: CirculariColorsTokens.vitalGlow,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
