@@ -71,6 +71,9 @@ class CirculariColorsTokens {
   // Danger — destructive actions (Figma "adobe/red")
   static const Color danger = Color(0xFFEB1000);
 
+  // Pulse Lime — Figma "Primary/500", the AI-scanning overlay accent
+  static const Color pulseLime = Color(0xFFD2F801);
+
   // Greyscale — grayscale secondary
   static const Color greyscale50  = Color(0xFFFBFBFB);
   static const Color greyscale100 = Color(0xFFF6F6F6);

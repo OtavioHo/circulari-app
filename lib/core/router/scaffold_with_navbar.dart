@@ -35,7 +35,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 CirculariNavItem(
                   icon: Icons.home_outlined,
                   activeIcon: Icons.home,
-                  label: 'Home',
+                  label: 'Início',
                 ),
                 CirculariNavItem(
                   icon: Icons.add_circle_outline,

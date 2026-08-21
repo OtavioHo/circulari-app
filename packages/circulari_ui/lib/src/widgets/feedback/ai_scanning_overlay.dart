@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:circulari_ui/src/extensions/build_context_extension.dart';
+import 'package:circulari_ui/src/theme/circulari_colors.dart';
 
-// Figma "Primary/500" — the pulse lime is not part of CirculariColorsTokens.
-const _lime = Color(0xFFD2F801);
-const _darkGreen = Color(0xFF0B2319);
+const _lime = CirculariColorsTokens.pulseLime;
+const _darkGreen = CirculariColorsTokens.forestVault900;
 
 /// Full-screen dimming overlay shown while the AI reads an item photo,
 /// per the Figma "Pulse Illustration" loading frame: concentric
@@ -64,10 +64,11 @@ class _AiScanningOverlayState extends State<AiScanningOverlay>
             SizedBox(
               width: 200,
               height: 200,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (_, _) =>
-                    CustomPaint(painter: _PulsePainter(_controller.value)),
+              // The boundary keeps the per-frame pulse repaint off the
+              // route-level layer (scrim + text repaint once, not at 60fps);
+              // the painter repaints itself via `repaint: controller`.
+              child: RepaintBoundary(
+                child: CustomPaint(painter: _PulsePainter(_controller)),
               ),
             ),
             const SizedBox(height: 48),
@@ -86,7 +87,7 @@ class _AiScanningOverlayState extends State<AiScanningOverlay>
               textAlign: TextAlign.center,
               style: theme.typography.body.large.medium.copyWith(
                 height: 1.6,
-                color: const Color(0xFFEFF669),
+                color: CirculariColorsTokens.vitalGlow,
               ),
             ),
           ],
@@ -96,11 +97,12 @@ class _AiScanningOverlayState extends State<AiScanningOverlay>
   }
 }
 
-/// Paints the 200x200 pulse illustration; [t] is the repeating 0..1 phase.
+/// Paints the 200x200 pulse illustration, driven directly by the repeating
+/// 0..1 [animation] phase (no per-frame widget rebuild).
 class _PulsePainter extends CustomPainter {
-  final double t;
+  final Animation<double> animation;
 
-  _PulsePainter(this.t);
+  _PulsePainter(this.animation) : super(repaint: animation);
 
   // Fixed particle spots from the Figma layer positions (x, y, diameter).
   static const _particles = [
@@ -113,12 +115,14 @@ class _PulsePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final t = animation.value;
     final center = size.center(Offset.zero);
     // Slow breathing multiplier shared by the glow and the core.
     final breath = 0.5 + 0.5 * math.sin(t * 2 * math.pi);
 
-    // Blurred lime glows (Figma waves/rings collapsed into two washes; the
-    // MaskFilter reproduces the layer blur).
+    // Soft lime glows (Figma waves/rings collapsed into two washes). A radial
+    // gradient fading over the blur distance approximates the Figma layer
+    // blur without a per-frame Gaussian pass.
     _glow(canvas, center, 170, 0.028 + 0.017 * breath, 60);
     _glow(canvas, center, 115, 0.045 + 0.020 * breath, 35);
 
@@ -163,12 +167,19 @@ class _PulsePainter extends CustomPainter {
     double alpha,
     double blur,
   ) {
+    final outer = radius + blur;
     canvas.drawCircle(
       center,
-      radius,
+      outer,
       Paint()
-        ..color = _lime.withValues(alpha: alpha)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur),
+        ..shader = RadialGradient(
+          stops: [0, radius / outer, 1],
+          colors: [
+            _lime.withValues(alpha: alpha),
+            _lime.withValues(alpha: alpha),
+            _lime.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: outer)),
     );
   }
 
@@ -208,5 +219,6 @@ class _PulsePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_PulsePainter oldDelegate) => oldDelegate.t != t;
+  bool shouldRepaint(_PulsePainter oldDelegate) =>
+      oldDelegate.animation != animation;
 }

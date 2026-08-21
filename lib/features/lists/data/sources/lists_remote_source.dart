@@ -108,7 +108,9 @@ class ListsRemoteSource {
     try {
       await _dio.patch('/lists/$id', data: {
         'name': name,
-        'location': ?location,
+        // Sent even when null: the backend keeps omitted keys unchanged, so an
+        // explicit null is the only way to clear a previously set location.
+        'location': location,
         'color_id': ?colorId,
         'icon_id': ?iconId,
         'picture_id': ?pictureId,

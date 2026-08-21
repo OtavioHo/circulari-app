@@ -206,7 +206,7 @@ void main() {
     );
 
     blocTest<CreateListCubit, CreateListState>(
-      'emits QuotaExceeded on PlanLimitException',
+      'emits QuotaExceeded then restores the form on PlanLimitException',
       build: buildCubit,
       seed: () => ready,
       setUp: () => when(() => createList(
@@ -220,11 +220,12 @@ void main() {
       expect: () => [
         isA<CreateListReady>().having((s) => s.submitting, 'submitting', true),
         isA<CreateListQuotaExceeded>(),
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', false),
       ],
     );
 
     blocTest<CreateListCubit, CreateListState>(
-      'emits QuotaExceeded on TierRequiredException',
+      'emits QuotaExceeded then restores the form on TierRequiredException',
       build: buildCubit,
       seed: () => ready,
       setUp: () => when(() => createList(
@@ -238,6 +239,7 @@ void main() {
       expect: () => [
         isA<CreateListReady>(),
         isA<CreateListQuotaExceeded>(),
+        isA<CreateListReady>().having((s) => s.submitting, 'submitting', false),
       ],
     );
 

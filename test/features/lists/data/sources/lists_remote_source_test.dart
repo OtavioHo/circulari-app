@@ -133,7 +133,7 @@ void main() {
           })).called(1);
     });
 
-    test('omits null optional fields from the body', () async {
+    test('sends explicit null location and omits other null fields', () async {
       when(() => dio.patch(any(), data: any(named: 'data'))).thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: '/lists/abc'),
@@ -143,8 +143,10 @@ void main() {
 
       await source.updateList('abc', name: 'New Name');
 
-      verify(() => dio.patch('/lists/abc', data: {'name': 'New Name'}))
-          .called(1);
+      verify(() => dio.patch(
+            '/lists/abc',
+            data: {'name': 'New Name', 'location': null},
+          )).called(1);
     });
 
     test('maps 404 to NotFoundException', () async {

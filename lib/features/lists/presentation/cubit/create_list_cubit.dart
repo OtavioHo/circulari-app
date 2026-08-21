@@ -146,9 +146,9 @@ class CreateListCubit extends Cubit<CreateListState> {
         createdAt: DateTime.now(),
       )));
     } on PlanLimitException {
-      emit(const CreateListQuotaExceeded());
+      _emitQuotaExceeded(ready);
     } on TierRequiredException {
-      emit(const CreateListQuotaExceeded());
+      _emitQuotaExceeded(ready);
     } on AppException catch (e) {
       emit(ready.copyWith(submitting: false, errorMessage: e.message));
     }
@@ -166,6 +166,14 @@ class CreateListCubit extends Cubit<CreateListState> {
     } on AppException catch (e) {
       emit(ready.copyWith(submitting: false, errorMessage: e.message));
     }
+  }
+
+  /// [CreateListQuotaExceeded] is a one-shot signal for the paywall listener;
+  /// the form state is restored immediately after so the user keeps their
+  /// input (and the page isn't left blank) once the paywall sheet closes.
+  void _emitQuotaExceeded(CreateListReady ready) {
+    emit(const CreateListQuotaExceeded());
+    emit(ready.copyWith(submitting: false));
   }
 
   CreateListReady? _requireReady() =>
