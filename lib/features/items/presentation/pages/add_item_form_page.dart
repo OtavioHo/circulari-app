@@ -296,7 +296,9 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
         ),
         BlocListener<ItemsBloc, ItemsState>(listener: _onItemsState),
       ],
-      child: CirculariInAppScaffold(
+      child: Stack(
+        children: [
+          CirculariInAppScaffold(
         title: 'Criar item',
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -348,12 +350,6 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
                 ),
                 BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
                   builder: (context, state) {
-                    if (state is AiAnalysisLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: LinearProgressIndicator(),
-                      );
-                    }
                     if (state is AiAnalysisRefining) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -525,6 +521,15 @@ class _AddItemFormPageState extends State<AddItemFormPage> {
             ),
           ),
         ),
+      ),
+          BlocBuilder<AiAnalysisCubit, AiAnalysisState>(
+            buildWhen: (prev, curr) =>
+                prev is AiAnalysisLoading != curr is AiAnalysisLoading,
+            builder: (context, state) => state is AiAnalysisLoading
+                ? const Positioned.fill(child: AiScanningOverlay())
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

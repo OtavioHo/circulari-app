@@ -18,5 +18,6 @@ export 'package:circulari_ui/src/widgets/layout/auth_scaffold.dart';
 export 'package:circulari_ui/src/widgets/layout/app_bar.dart';
 export 'package:circulari_ui/src/widgets/layout/in_app_scaffold.dart';
 export 'package:circulari_ui/src/widgets/feedback/paywall_bottom_sheet.dart';
+export 'package:circulari_ui/src/widgets/feedback/ai_scanning_overlay.dart';
 export 'package:circulari_ui/src/widgets/feedback/empty_state.dart';
 export 'package:circulari_ui/src/widgets/branding/circulari_logo.dart';
