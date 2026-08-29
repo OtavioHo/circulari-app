@@ -141,6 +141,12 @@ class _PlansPageState extends State<PlansPage>
   }
 
   Widget _buildCard(PaywallState state, _PlanInfo plan, bool busy) {
+    // The free tier has no store package: it shows its fixed price and a
+    // disabled CTA, and never waits on the offering.
+    if (plan.fixedPrice != null) {
+      return _PlanCard(plan: plan, period: _period, price: plan.fixedPrice);
+    }
+
     final option = _optionFor(state, plan.tier);
     // Prices come only from the live store offering — never hardcoded. While the
     // offering loads the card shows a price skeleton; a loaded offering that
@@ -207,16 +213,22 @@ class _PlansPageState extends State<PlansPage>
                 Flexible(
                   child: SizedBox(
                     height: _carouselHeight,
-                    child: PageView.builder(
-                      controller: _controller,
-                      itemCount: _planCatalog.length,
-                      onPageChanged: (index) =>
-                          setState(() => _currentPage = index),
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: _gap / 2),
-                        child: _buildCard(state, _planCatalog[index], busy),
-                      ),
-                    ),
+                    // Held back until [_CardMeasurements] has reported, one
+                    // frame in: laying the cards out against [_fallbackHeight]
+                    // overflows whenever a card is naturally taller than it.
+                    child: _cardHeights.isEmpty
+                        ? const SizedBox.shrink()
+                        : PageView.builder(
+                            controller: _controller,
+                            itemCount: _planCatalog.length,
+                            onPageChanged: (index) =>
+                                setState(() => _currentPage = index),
+                            itemBuilder: (context, index) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: _gap / 2),
+                              child: _buildCard(state, _planCatalog[index], busy),
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -540,8 +552,8 @@ class _CardMeasurements extends StatelessWidget {
               child: _PlanCard(
                 plan: plans[i],
                 period: period,
-                price: null,
-                priceLoading: true,
+                price: plans[i].fixedPrice,
+                priceLoading: plans[i].fixedPrice == null,
                 onHeight: (height) => onHeight(i, height),
               ),
             ),
@@ -692,38 +704,56 @@ class _PlanInfo {
   final List<String> features;
   final String ctaLabel;
 
+  /// Price to show for tiers the store doesn't sell (the free plan). Null for
+  /// paid tiers, whose price comes from the live offering.
+  final String? fixedPrice;
+
   const _PlanInfo({
     required this.tier,
     required this.name,
     required this.subtitle,
     required this.features,
     required this.ctaLabel,
+    this.fixedPrice,
   });
 }
 
 const _planCatalog = <_PlanInfo>[
   _PlanInfo(
+    tier: PlanTier.free,
+    name: 'Free',
+    subtitle: 'Para começar a organizar',
+    features: [
+      'Até **50 itens**',
+      'Uso de IA para a criação de até **10 itens**',
+      'Permitido criar **1 lista**',
+      'Procura de itens simplificada',
+    ],
+    // Not sold in the store — fixed price, nothing to purchase.
+    fixedPrice: r'R$0',
+    ctaLabel: 'Plano gratuito',
+  ),
+  _PlanInfo(
     tier: PlanTier.essencial,
     name: 'Essencial',
     subtitle: 'Para quem quer organizar mais',
     features: [
-      'Até **500 itens**',
-      'Uso de IA para a criação de até **100 itens**',
-      'Crie até **10 listas**',
-      'Procura de itens avançada',
+      'Até **70 itens**',
+      '**IA Power** disponível para todos os produtos',
+      'Permitido criar **3 listas**',
+      'Procura de itens turbinada',
     ],
     ctaLabel: 'Assinar',
   ),
   _PlanInfo(
     tier: PlanTier.pro,
     name: 'Pro',
-    subtitle: 'Acesso total e ilimitado',
+    subtitle: 'O plano mais completo',
     features: [
-      '**Itens ilimitados**',
-      '**IA ilimitada** para criação de itens',
-      '**Listas ilimitadas**',
-      'Procura de itens com IA',
-      'Suporte prioritário',
+      'Até **150 itens**',
+      '**IA Power** disponível para todos os produtos',
+      'Permitido criar **5 listas**',
+      'Procura de itens turbinada',
     ],
     ctaLabel: 'Assinar',
   ),
