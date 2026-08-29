@@ -200,6 +200,25 @@ class ItemsRemoteSource {
     }
   }
 
+  /// Creates (or returns) the item's public share link.
+  ///
+  /// The endpoint is idempotent, so calling it repeatedly hands back the same
+  /// link rather than invalidating one already in circulation.
+  Future<String> shareItem(String id) async {
+    try {
+      final response = await _dio.post('/items/$id/share');
+      final url = _parseMap(response.data)['url'];
+      // A raw TypeError here would be neither a DioException nor an
+      // AppException, so no layer above would catch it — see [_readCursor].
+      if (url is! String || url.isEmpty) {
+        throw const ServerException('Unexpected response format.');
+      }
+      return url;
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
+
   Future<ItemModel> uploadItemImage(String itemId, String imagePath) async {
     try {
       final formData = FormData.fromMap({

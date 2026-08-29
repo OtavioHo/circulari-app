@@ -38,6 +38,9 @@ abstract interface class ItemsRepository {
     String? aiAnalysisId,
   });
   Future<void> deleteItem(String id);
+
+  /// Returns the item's public share URL, creating the link if needed.
+  Future<String> shareItem(String id);
   Future<Item> uploadItemImage(String itemId, String imagePath);
   Future<AiAnalysisResult> analyzeImage(
     String imagePath, {

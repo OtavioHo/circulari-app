@@ -236,6 +236,48 @@ void main() {
     });
   });
 
+  group('shareItem', () {
+    test('returns the url from the response', () async {
+      when(() => dio.post(any())).thenAnswer((_) async => Response(
+            requestOptions: RequestOptions(path: '/items/x/share'),
+            statusCode: 200,
+            data: {'token': 'tok-abc', 'url': 'https://share.test/i/tok-abc'},
+          ));
+
+      expect(await source.shareItem('x'), 'https://share.test/i/tok-abc');
+      verify(() => dio.post('/items/x/share')).called(1);
+    });
+
+    // A raw TypeError here would be neither a DioException nor an
+    // AppException, so nothing above would catch it.
+    test('rejects a response with a missing or non-string url', () async {
+      for (final body in [
+        <String, dynamic>{'token': 'tok-abc'},
+        <String, dynamic>{'url': 42},
+        <String, dynamic>{'url': ''},
+      ]) {
+        when(() => dio.post(any())).thenAnswer((_) async => Response(
+              requestOptions: RequestOptions(path: '/items/x/share'),
+              statusCode: 200,
+              data: body,
+            ));
+
+        await expectLater(
+          () => source.shareItem('x'),
+          throwsA(isA<ServerException>()),
+        );
+      }
+    });
+
+    test('maps 404 to NotFoundException', () async {
+      when(() => dio.post(any())).thenThrow(
+        dioException(statusCode: 404, body: {'message': 'Not found'}),
+      );
+
+      expect(() => source.shareItem('x'), throwsA(isA<NotFoundException>()));
+    });
+  });
+
   group('analyzeImage', () {
     late File tempImage;
 

@@ -69,6 +69,9 @@ dependencies:
   # Opening AI price-evidence listing links in the browser
   url_launcher: ^6.3.0
 
+  # Native share sheet for item share links
+  share_plus: ^10.1.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -11,6 +11,7 @@ import 'package:circulari/features/items/presentation/bloc/item_detail_state.dar
 import 'package:circulari/features/items/presentation/widgets/item_form_sheet.dart';
 import 'package:circulari/features/items/presentation/widgets/price_insight.dart';
 import 'package:circulari/features/items/presentation/widgets/revalue_sheet.dart';
+import 'package:circulari/features/items/presentation/widgets/share_item_button.dart';
 
 const _expandedHeight = 260.0;
 const _collapsedHeight = 56.0;
@@ -193,6 +194,8 @@ class _ItemDetailScaffold extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
+                ShareItemButton(itemId: item.id, disabled: isLoading),
+                const SizedBox(width: 8),
                 IconButton(
                   onPressed: isLoading ? null : () => _confirmDelete(context),
                   icon: const Icon(Icons.delete_outline),

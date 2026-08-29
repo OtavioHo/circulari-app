@@ -24,6 +24,7 @@ import 'package:circulari/features/items/domain/usecases/upload_item_image_useca
 import 'package:circulari/features/items/presentation/bloc/ai_analysis_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/categories_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/item_detail_bloc.dart';
+import 'package:circulari/features/items/presentation/bloc/share_item_cubit.dart';
 import 'package:circulari/features/items/presentation/bloc/items_bloc.dart';
 import 'package:circulari/features/items/presentation/bloc/items_event.dart';
 import 'package:circulari/features/items/presentation/bloc/search_items_bloc.dart';
@@ -267,13 +268,18 @@ final appRouter = GoRouter(
       path: '/items/:id',
       builder: (context, state) {
         final item = state.extra as Item;
-        return BlocProvider(
-          create: (_) => ItemDetailBloc(
-            item: item,
-            updateItem: sl<UpdateItemUsecase>(),
-            deleteItem: sl<DeleteItemUsecase>(),
-            uploadItemImage: sl<UploadItemImageUsecase>(),
-          ),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => ItemDetailBloc(
+                item: item,
+                updateItem: sl<UpdateItemUsecase>(),
+                deleteItem: sl<DeleteItemUsecase>(),
+                uploadItemImage: sl<UploadItemImageUsecase>(),
+              ),
+            ),
+            BlocProvider(create: (_) => sl<ShareItemCubit>()),
+          ],
           child: const ItemDetailPage(),
         );
       },

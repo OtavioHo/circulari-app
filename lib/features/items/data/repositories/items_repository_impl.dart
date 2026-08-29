@@ -79,6 +79,9 @@ class ItemsRepositoryImpl implements ItemsRepository {
   Future<void> deleteItem(String id) => _source.deleteItem(id);
 
   @override
+  Future<String> shareItem(String id) => _source.shareItem(id);
+
+  @override
   Future<Item> uploadItemImage(String itemId, String imagePath) =>
       _source.uploadItemImage(itemId, imagePath);
 
